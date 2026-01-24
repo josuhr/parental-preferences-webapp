@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #667eea; }
+        h2 { color: #333; font-size: 1.3rem; }
+        .status { padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .loading { background: #e3f2fd; color: #1565c0; }
+        .success { background: #e8f5e9; color: #2e7d32; }
+        .error { background: #ffebee; color: #c62828; }
+        .warning { background: #fff3cd; color: #856404; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        button { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; }
+        button:hover { background: #5568d3; }
+        .test-result { margin-top: 10px; padding: 10px; border-left: 4px solid #667eea; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Google Sheets Connection Diagnostic</h1>
+    
+    <div class="test-box">
+        <h2>Sheet Information</h2>
+        <p><strong>Sheet ID:</strong> 143M9nXKYlOo9fourw7c9SHa4C_nLBmCSdqcvJ72cjUE</p>
+        <p><strong>Testing Tab:</strong> Arts & Crafts</p>
+        <p><a href="https://docs.google.com/spreadsheets/d/143M9nXKYlOo9fourw7c9SHa4C_nLBmCSdqcvJ72cjUE/edit" target="_blank">Open Sheet in New Tab</a></p>
+    </div>
+
+    <div class="test-box">
+        <h2>Connection Tests</h2>
+        <button onclick="runTests()">🚀 Run All Tests</button>
+        <div id="results"></div>
+    </div>
+
+    <div class="test-box">
+        <h2>💡 Fix Instructions</h2>
+        <div class="status warning">
+            <strong>If tests fail, follow these steps:</strong>
+            <ol style="margin-top: 10px;">
+                <li>Open your Google Sheet (link above)</li>
+                <li>Click the <strong>"Share"</strong> button (top right corner)</li>
+                <li>Under "General access", change to <strong>"Anyone with the link"</strong></li>
+                <li>Ensure role is set to <strong>"Viewer"</strong></li>
+                <li>Click "Done" and re-run the tests</li>
+            </ol>
+            <p style="margin-top: 15px;"><strong>OR</strong> use File → Share → Publish to web → Publish</p>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_ID = '143M9nXKYlOo9fourw7c9SHa4C_nLBmCSdqcvJ72cjUE';
+        const TEST_TAB = 'Arts & Crafts';
+        
+        async function runTests() {
+            const resultsEl = document.getElementById('results');
+            resultsEl.innerHTML = '<div class="status loading">Running tests...</div>';
+            
+            let results = '';
+            
+            // Test 1: Google Visualization API
+            results += '<div class="test-result">';
+            results += '<h3>Test 1: Google Visualization API (gviz)</h3>';
+            
+            const gvizUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(TEST_TAB)}`;
+            results += `<p><strong>URL:</strong> <code>${gvizUrl}</code></p>`;
+            
+            try {
+                const response = await fetch(gvizUrl);
+                results += `<p>HTTP Status: ${response.status} ${response.statusText}</p>`;
+                
+                if (response.ok) {
+                    const text = await response.text();
+                    const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]+)\);?\s*$/);
+                    
+                    if (jsonMatch) {
+                        const data = JSON.parse(jsonMatch[1]);
+                        if (data.status === 'error') {
+                            results += `<div class="status error">❌ API returned error: ${data.errors?.[0]?.detailed_message || 'Unknown error'}</div>`;
+                        } else if (data.table && data.table.rows) {
+                            results += `<div class="status success">✅ Success! Found ${data.table.rows.length} rows</div>`;
+                            results += `<p>First few values:</p>`;
+                            results += '<pre>' + JSON.stringify(data.table.rows.slice(0, 3), null, 2).substring(0, 500) + '...</pre>';
+                        } else {
+                            results += `<div class="status warning">⚠️ Response OK but no data table found</div>`;
+                        }
+                    } else {
+                        results += `<div class="status error">❌ Could not parse response format</div>`;
+                        results += `<p>Response preview:</p><pre>${text.substring(0, 200)}...</pre>`;
+                    }
+                } else {
+                    results += `<div class="status error">❌ HTTP Error: ${response.status}</div>`;
+                }
+            } catch (error) {
+                results += `<div class="status error">❌ Failed: ${error.message}</div>`;
+            }
+            
+            results += '</div>';
+            
+            // Test 2: CSV Export
+            results += '<div class="test-result">';
+            results += '<h3>Test 2: CSV Export Method</h3>';
+            
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+            results += `<p><strong>URL:</strong> <code>${csvUrl}</code></p>`;
+            
+            try {
+                const response = await fetch(csvUrl);
+                results += `<p>HTTP Status: ${response.status} ${response.statusText}</p>`;
+                
+                if (response.ok) {
+                    const csv = await response.text();
+                    const lines = csv.split('\n').slice(0, 5);
+                    results += `<div class="status success">✅ CSV export works!</div>`;
+                    results += `<p>First few lines:</p><pre>${lines.join('\n')}</pre>`;
+                } else {
+                    results += `<div class="status error">❌ HTTP Error: ${response.status}</div>`;
+                }
+            } catch (error) {
+                results += `<div class="status error">❌ Failed: ${error.message}</div>`;
+            }
+            
+            results += '</div>';
+            
+            // Test 3: Check CORS
+            results += '<div class="test-result">';
+            results += '<h3>Test 3: Browser & CORS Check</h3>';
+            results += `<p>Browser: ${navigator.userAgent}</p>`;
+            results += `<p>Online: ${navigator.onLine ? '✅ Yes' : '❌ No'}</p>`;
+            results += '</div>';
+            
+            resultsEl.innerHTML = results;
+        }
+        
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            setTimeout(runTests, 500);
+        });
+    </script>
+</body>
+</html>

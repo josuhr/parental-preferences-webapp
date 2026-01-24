@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parental Preferences - Activity Guide</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="no-print header">
+        <h1>🎨 Parental Preferences Activity Guide</h1>
+        <p>Which activities do Mom and Dad love to do with you?</p>
+        <div class="controls">
+            <button id="refreshBtn" class="btn btn-primary">🔄 Refresh Data</button>
+            <button id="printBtn" class="btn btn-secondary">🖨️ Print</button>
+            <button id="helpBtn" class="btn btn-help">❓ Troubleshooting</button>
+        </div>
+        <div id="loading" class="loading">Loading activities...</div>
+        <div id="error" class="error"></div>
+        <div id="help" class="help-section">
+            <h3>📋 Troubleshooting Steps</h3>
+            <ol>
+                <li><strong>Check Sheet Sharing:</strong> Open <a href="https://docs.google.com/spreadsheets/d/143M9nXKYlOo9fourw7c9SHa4C_nLBmCSdqcvJ72cjUE/edit" target="_blank">your Google Sheet</a></li>
+                <li>Click the <strong>"Share"</strong> button (top right)</li>
+                <li>Under "General access", select <strong>"Anyone with the link"</strong></li>
+                <li>Make sure it says <strong>"Viewer"</strong></li>
+                <li>Click <strong>"Done"</strong> and then click "🔄 Refresh Data" here</li>
+            </ol>
+            <p><strong>Alternative:</strong> File → Share → Publish to web → Publish (this makes it publicly accessible)</p>
+        </div>
+    </div>
+
+    <div id="categories" class="categories-container">
+        <!-- Categories will be dynamically inserted here -->
+    </div>
+
+    <div class="print-footer">
+        <p>💜 Activities updated from Google Sheets | Made with love for learning together!</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

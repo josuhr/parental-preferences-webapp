@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Google Sheets Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .result {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success { color: #2e7d32; }
+        .error { color: #c62828; }
+        .warning { color: #f57c00; }
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Simple Google Sheets Connection Test</h1>
+    
+    <div class="result">
+        <h2>Test Setup</h2>
+        <p><strong>Sheet ID:</strong> 143M9nXKYlOo9fourw7c9SHa4C_nLBmCSdqcvJ72cjUE</p>
+        <p><strong>Test Tab:</strong> Arts & Crafts</p>
+        <p><strong>Protocol:</strong> <span id="protocol"></span></p>
+        <button onclick="runSimpleTest()">🚀 Run Test</button>
+    </div>
+    
+    <div id="output"></div>
+
+    <script>
+        document.getElementById('protocol').textContent = window.location.protocol;
+        
+        async function runSimpleTest() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<div class="result"><p>Testing...</p></div>';
+            
+            const SHEET_ID = '143M9nXKYlOo9fourw7c9SHa4C_nLBmCSdqcvJ72cjUE';
+            const TAB = 'Arts & Crafts';
+            
+            let html = '<div class="result">';
+            
+            // Test 1: Simple fetch to see what happens
+            html += '<h3>Test 1: Basic Fetch</h3>';
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(TAB)}`;
+            html += `<p><strong>URL:</strong><br><code>${url}</code></p>`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                
+                html += `<p class="success">✅ Fetch succeeded!</p>`;
+                html += `<p><strong>Status:</strong> ${response.status} ${response.statusText}</p>`;
+                html += `<p><strong>Content-Type:</strong> ${response.headers.get('content-type')}</p>`;
+                
+                const text = await response.text();
+                html += `<p><strong>Response length:</strong> ${text.length} characters</p>`;
+                html += `<p><strong>First 500 characters:</strong></p>`;
+                html += `<pre>${text.substring(0, 500)}</pre>`;
+                
+                // Try to parse it
+                const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]+)\);?\s*$/);
+                if (jsonMatch) {
+                    const data = JSON.parse(jsonMatch[1]);
+                    html += `<p class="success">✅ Successfully parsed JSON!</p>`;
+                    
+                    if (data.status === 'error') {
+                        html += `<p class="error">❌ API Error: ${JSON.stringify(data.errors, null, 2)}</p>`;
+                    } else if (data.table && data.table.rows) {
+                        html += `<p class="success">✅ Got ${data.table.rows.length} rows of data!</p>`;
+                        html += `<p><strong>Sample data (first 3 rows):</strong></p>`;
+                        html += `<pre>${JSON.stringify(data.table.rows.slice(0, 3), null, 2)}</pre>`;
+                    }
+                } else {
+                    html += `<p class="warning">⚠️ Response format doesn't match expected pattern</p>`;
+                }
+                
+            } catch (error) {
+                html += `<p class="error">❌ Fetch failed: ${error.message}</p>`;
+                html += `<p><strong>Error type:</strong> ${error.name}</p>`;
+                html += `<p><strong>Full error:</strong></p>`;
+                html += `<pre>${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}</pre>`;
+            }
+            
+            // Test 2: Try CSV export
+            html += '<h3>Test 2: CSV Export (First Sheet)</h3>';
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+            html += `<p><strong>URL:</strong><br><code>${csvUrl}</code></p>`;
+            
+            try {
+                const response = await fetch(csvUrl);
+                html += `<p class="success">✅ CSV fetch succeeded!</p>`;
+                html += `<p><strong>Status:</strong> ${response.status} ${response.statusText}</p>`;
+                
+                const csv = await response.text();
+                const lines = csv.split('\n').slice(0, 5);
+                html += `<p><strong>First 5 lines:</strong></p>`;
+                html += `<pre>${lines.join('\n')}</pre>`;
+                
+            } catch (error) {
+                html += `<p class="error">❌ CSV fetch failed: ${error.message}</p>`;
+            }
+            
+            html += '</div>';
+            output.innerHTML = html;
+        }
+        
+        // Auto-run on page load
+        window.addEventListener('load', () => {
+            setTimeout(runSimpleTest, 500);
+        });
+    </script>
+</body>
+</html>
