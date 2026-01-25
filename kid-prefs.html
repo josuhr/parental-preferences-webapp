@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kid Preferences - Carer Support Platform</title>
+    <link rel="stylesheet" href="auth-styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .kid-prefs-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: #1976d2;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            color: #1976d2;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .kids-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kid-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .kid-card:hover {
+            border-color: #1976d2;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .kid-card.add-new {
+            border-style: dashed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: #999;
+        }
+
+        .kid-card.add-new:hover {
+            border-color: #1976d2;
+            color: #1976d2;
+        }
+
+        .kid-card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .kid-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .kid-info h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .kid-age {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .kid-stats {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-top: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stat {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .kid-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .btn-small {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 20px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .emoji-picker {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .emoji-option {
+            padding: 10px;
+            font-size: 28px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .emoji-option:hover {
+            border-color: #1976d2;
+            background: #f5f5f5;
+        }
+
+        .emoji-option.selected {
+            border-color: #1976d2;
+            background: #e3f2fd;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .error-message, .success-message {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            border-color: #c62828;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-color: #2e7d32;
+        }
+
+        @media (max-width: 768px) {
+            .kids-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Platform Navigation -->
+    <div id="platformNavContainer"></div>
+
+    <div class="kid-prefs-container">
+        <div class="page-header">
+            <div class="page-header-left">
+                <div class="breadcrumb">
+                    <a href="/dashboard.html">Dashboard</a>
+                    <span>›</span>
+                    <span>Kid Preferences</span>
+                </div>
+                <h1>👶 Kid Preferences</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="window.location.href='/dashboard.html'">← Back</button>
+                <button class="btn btn-primary" id="addKidBtn">➕ Add Kid</button>
+            </div>
+        </div>
+
+        <div id="messageContainer"></div>
+
+        <div id="kidsGrid" class="kids-grid"></div>
+
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">👶</div>
+            <h2>No Kids Added Yet</h2>
+            <p>Add a kid profile to start tracking their activity preferences!</p>
+            <button class="btn btn-primary" onclick="document.getElementById('addKidBtn').click()">Add Your First Kid</button>
+        </div>
+    </div>
+
+    <!-- Add/Edit Kid Modal -->
+    <div id="kidModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="kidModalTitle">Add Kid</h2>
+                <button class="modal-close" onclick="closeKidModal()">×</button>
+            </div>
+            <form id="kidForm">
+                <input type="hidden" id="kidId" />
+                
+                <div class="form-group">
+                    <label for="kidName">Name *</label>
+                    <input type="text" id="kidName" required placeholder="e.g., Emma" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="kidNickname">Nickname (optional)</label>
+                    <input type="text" id="kidNickname" placeholder="e.g., Emmy" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="kidBirthDate">Birth Date (optional)</label>
+                    <input type="date" id="kidBirthDate" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="kidAvatar">Avatar Emoji *</label>
+                    <input type="text" id="kidAvatar" required readonly placeholder="Choose an emoji below" />
+                    <div class="emoji-picker" id="avatarPicker"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="kidNotes">Notes (optional)</label>
+                    <textarea id="kidNotes" placeholder="Any important notes about this child..."></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeKidModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Kid</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script>
+        // Load platform navigation
+        fetch('platform-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('platformNavContainer').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'platform-nav.js';
+                document.body.appendChild(script);
+                script.onload = () => {
+                    if (window.platformNav) {
+                        window.platformNav.setCurrentApp('kid-prefs', 'Kid Preferences', '👶');
+                    }
+                };
+            })
+            .catch(error => console.error('Error loading platform nav:', error));
+    </script>
+    <script src="kid-prefs.js"></script>
+</body>
+</html>
