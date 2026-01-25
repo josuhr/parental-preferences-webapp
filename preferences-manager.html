@@ -20,6 +20,35 @@
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .manager-header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: #1976d2;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            color: #999;
         }
 
         .manager-header h1 {
@@ -416,8 +445,44 @@
             .manager-header,
             .category-actions,
             .header-actions,
-            .add-activity-btn {
+            .add-activity-btn,
+            .fab {
                 display: none !important;
+            }
+        }
+
+        /* Floating Action Button for mobile */
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #1976d2;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab:hover {
+            background: #1565c0;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+
+        @media (max-width: 768px) {
+            .fab {
+                display: flex;
+            }
+            
+            .header-actions {
+                flex-wrap: wrap;
             }
         }
     </style>
@@ -428,9 +493,17 @@
 
     <div class="preferences-manager">
         <div class="manager-header">
-            <h1>🎨 Preferences Manager</h1>
+            <div class="manager-header-left">
+                <div class="breadcrumb">
+                    <a href="/index.html">🎨 Parental Preferences</a>
+                    <span class="breadcrumb-separator">›</span>
+                    <span>Preferences Manager</span>
+                </div>
+                <h1>Manage Your Preferences</h1>
+            </div>
             <div class="header-actions">
-                <button class="btn btn-secondary" id="importBtn">📥 Import from Google Sheets</button>
+                <button class="btn btn-secondary" onclick="window.location.href='/index.html'">👁️ View Activities</button>
+                <button class="btn btn-secondary" id="importBtn">📥 Import from Sheets</button>
                 <button class="btn btn-success" id="addCategoryBtn">➕ Add Category</button>
             </div>
         </div>
@@ -445,10 +518,18 @@
             <h2>No Preferences Yet</h2>
             <p>Get started by creating your first category of activities!</p>
             <button class="btn btn-primary" onclick="document.getElementById('addCategoryBtn').click()">Create First Category</button>
+            <div style="margin-top: 20px;">
+                <a href="/index.html" style="color: #1976d2; text-decoration: none;">← Back to Activities</a>
+            </div>
         </div>
 
         <div id="categoriesContainer" class="categories-container"></div>
     </div>
+
+    <!-- Floating Action Button (mobile) -->
+    <button class="fab" onclick="window.location.href='/index.html'" title="View Activities">
+        👁️
+    </button>
 
     <!-- Add/Edit Category Modal -->
     <div id="categoryModal" class="modal">

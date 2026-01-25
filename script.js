@@ -48,8 +48,8 @@ const sourceSheets = document.getElementById('sourceSheets');
 const sourceBuiltin = document.getElementById('sourceBuiltin');
 const managePrefsBtn = document.getElementById('managePrefsBtn');
 
-// Data source state
-let currentDataSource = 'sheets';
+// Data source state (load from localStorage or default to sheets)
+let currentDataSource = localStorage.getItem('preferredDataSource') || 'sheets';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     sourceSheets.addEventListener('change', () => {
         if (sourceSheets.checked) {
             currentDataSource = 'sheets';
+            localStorage.setItem('preferredDataSource', 'sheets');
             managePrefsBtn.style.display = 'none';
             loadData();
         }
@@ -95,10 +96,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     sourceBuiltin.addEventListener('change', () => {
         if (sourceBuiltin.checked) {
             currentDataSource = 'builtin';
+            localStorage.setItem('preferredDataSource', 'builtin');
             managePrefsBtn.style.display = 'inline-block';
             loadData();
         }
     });
+    
+    // Set initial state from localStorage
+    if (currentDataSource === 'builtin') {
+        sourceBuiltin.checked = true;
+        sourceSheets.checked = false;
+        managePrefsBtn.style.display = 'inline-block';
+    } else {
+        sourceSheets.checked = true;
+        sourceBuiltin.checked = false;
+        managePrefsBtn.style.display = 'none';
+    }
     
     // Load activities
     loadData();
