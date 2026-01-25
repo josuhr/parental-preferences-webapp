@@ -1,0 +1,17 @@
+{
+  "name": "carer-support-platform",
+  "version": "1.0.0",
+  "description": "Carer Support Platform - A suite of tools for supporting kids and families",
+  "private": true,
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build needed for static site'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "resend": "^3.2.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
