@@ -7,7 +7,7 @@ const SUPABASE_CONFIG = {
 };
 
 // Initialize Supabase client
-let supabase = null;
+let supabaseClient = null;
 
 async function initSupabase() {
     // Check if running locally or on Netlify
@@ -42,8 +42,8 @@ async function initSupabase() {
     
     // Initialize Supabase client
     if (window.supabase && SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey) {
-        supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
-        return supabase;
+        supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        return supabaseClient;
     }
     
     console.error('Supabase library not loaded or config missing');
@@ -52,11 +52,11 @@ async function initSupabase() {
 
 // Get current user
 async function getCurrentUser() {
-    if (!supabase) {
+    if (!supabaseClient) {
         await initSupabase();
     }
     
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const { data: { user }, error } = await supabaseClient.auth.getUser();
     
     if (error) {
         console.error('Error getting user:', error);
@@ -68,9 +68,9 @@ async function getCurrentUser() {
 
 // Get user profile from database
 async function getUserProfile(userId) {
-    if (!supabase) return null;
+    if (!supabaseClient) return null;
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from('users')
         .select('*')
         .eq('id', userId)
@@ -86,9 +86,9 @@ async function getUserProfile(userId) {
 
 // Get user settings
 async function getUserSettings(userId) {
-    if (!supabase) return null;
+    if (!supabaseClient) return null;
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from('user_settings')
         .select('*')
         .eq('user_id', userId)
@@ -110,9 +110,9 @@ async function isAdmin(userId) {
 
 // Sign out
 async function signOut() {
-    if (!supabase) return;
+    if (!supabaseClient) return;
     
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabaseClient.auth.signOut();
     
     if (error) {
         console.error('Error signing out:', error);
@@ -129,5 +129,5 @@ window.supabaseUtils = {
     getUserSettings,
     isAdmin,
     signOut,
-    getClient: () => supabase
+    getClient: () => supabaseClient
 };
