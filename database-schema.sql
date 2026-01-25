@@ -34,35 +34,23 @@ ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
 
 -- Users table policies
--- Users can read their own data
-CREATE POLICY "Users can view own data"
+-- Allow authenticated users to read all user data (needed for admin checks and user lists)
+CREATE POLICY "Authenticated users can view all users"
     ON public.users FOR SELECT
-    USING (auth.uid() = id);
+    TO authenticated
+    USING (true);
+
+-- Allow anon users to insert (needed for OAuth sign-up)
+CREATE POLICY "Allow user creation during sign-up"
+    ON public.users FOR INSERT
+    TO authenticated
+    WITH CHECK (auth.uid() = id);
 
 -- Users can update their own data
 CREATE POLICY "Users can update own data"
     ON public.users FOR UPDATE
+    TO authenticated
     USING (auth.uid() = id);
-
--- Admins can view all users
-CREATE POLICY "Admins can view all users"
-    ON public.users FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.users
-            WHERE id = auth.uid() AND role = 'admin'
-        )
-    );
-
--- Admins can update any user
-CREATE POLICY "Admins can update any user"
-    ON public.users FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.users
-            WHERE id = auth.uid() AND role = 'admin'
-        )
-    );
 
 -- User settings policies
 -- Users can view their own settings
