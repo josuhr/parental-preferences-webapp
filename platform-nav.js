@@ -122,7 +122,7 @@
         const urls = {
             'parental-prefs': '/index.html',
             'kid-prefs': '/kid-prefs.html',
-            'teacher-tools': '/teacher-dashboard.html'
+            'teacher-dashboard': '/teacher-dashboard.html'
         };
         return urls[slug] || '/dashboard.html';
     }
