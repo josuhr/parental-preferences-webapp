@@ -191,7 +191,11 @@ async function grantAccess() {
             .select('id')
             .eq('kid_id', kidId)
             .eq('teacher_id', teachers.id)
-            .single();
+            .maybeSingle();
+        
+        if (checkError) {
+            console.error('Error checking existing access:', checkError);
+        }
         
         if (existing) {
             showMessage('This teacher already has access. Revoke it first to change settings.', 'error');
