@@ -59,7 +59,10 @@ async function getCurrentUser() {
     const { data: { user }, error } = await supabaseClient.auth.getUser();
     
     if (error) {
-        console.error('Error getting user:', error);
+        // AuthSessionMissingError is expected when user is not logged in
+        if (error.name !== 'AuthSessionMissingError') {
+            console.error('Error getting user:', error);
+        }
         return null;
     }
     
