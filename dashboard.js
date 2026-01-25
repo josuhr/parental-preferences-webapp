@@ -1,6 +1,6 @@
 // Dashboard Logic
 
-let supabase = null;
+let supabaseClient = null;
 let currentUser = null;
 let userProfile = null;
 let userSettings = null;

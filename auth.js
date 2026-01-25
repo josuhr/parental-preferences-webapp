@@ -1,6 +1,6 @@
 // Authentication Logic
 
-let supabase = null;
+let supabaseClient = null;
 const googleSignInBtn = document.getElementById('googleSignInBtn');
 const loadingOverlay = document.getElementById('loadingOverlay');
 const errorMessage = document.getElementById('errorMessage');
@@ -8,9 +8,9 @@ const errorMessage = document.getElementById('errorMessage');
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Supabase
-    supabase = await window.supabaseUtils.initSupabase();
+    supabaseClient = await window.supabaseUtils.initSupabase();
     
-    if (!supabase) {
+    if (!supabaseClient) {
         showError('Failed to initialize authentication. Please check console for details.');
         return;
     }
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Sign in with Google
 async function signInWithGoogle() {
-    if (!supabase) {
+    if (!supabaseClient) {
         showError('Authentication not initialized');
         return;
     }
@@ -44,7 +44,7 @@ async function signInWithGoogle() {
     hideError();
     
     try {
-        const { data, error } = await supabase.auth.signInWithOAuth({
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'google',
             options: {
                 redirectTo: `${window.location.origin}/auth.html`,
@@ -71,13 +71,13 @@ async function handleOAuthCallback() {
     
     try {
         // Get the current session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
         
         if (sessionError) throw sessionError;
         
         if (session && session.user) {
             // Check if user exists in database
-            const { data: existingUser, error: fetchError } = await supabase
+            const { data: existingUser, error: fetchError } = await supabaseClient
                 .from('users')
                 .select('*')
                 .eq('google_id', session.user.id)
@@ -90,7 +90,7 @@ async function handleOAuthCallback() {
             
             // If user doesn't exist, create them
             if (!existingUser) {
-                const { error: insertError } = await supabase
+                const { error: insertError } = await supabaseClient
                     .from('users')
                     .insert([{
                         id: session.user.id,
@@ -107,7 +107,7 @@ async function handleOAuthCallback() {
                 }
             } else {
                 // Update last login
-                await supabase
+                await supabaseClient
                     .from('users')
                     .update({ last_login: new Date().toISOString() })
                     .eq('id', session.user.id);

@@ -1,6 +1,6 @@
 // Admin Panel Logic
 
-let supabase = null;
+let supabaseClient = null;
 let currentUser = null;
 let allUsers = [];
 let filteredUsers = [];
