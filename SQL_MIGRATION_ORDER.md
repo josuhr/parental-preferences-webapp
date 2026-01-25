@@ -1,0 +1,37 @@
+# SQL Migration Order
+
+Run these SQL files in Supabase SQL Editor in this exact order:
+
+## Initial Setup
+1. `database-schema.sql` - Base schema (users, settings, RLS)
+
+## Phase 1: Platform Foundation  
+2. `database-phase1.sql` - Apps registry, user types, platform nav
+
+## Phase 2: Built-in Preferences
+3. `database-phase2.sql` - Activity categories, activities, preferences
+4. `database-phase2-update.sql` - Add preference_level dimension
+5. `database-caregiver-labels.sql` - Customizable caregiver labels
+
+## Phase 3B: Dual Authentication
+6. `database-phase3b-auth.sql` - Email auth, teacher invitations table
+7. `database-phase3b-final-fix.sql` - RLS fixes for auth flows
+
+## Phase 4: Kid Preferences
+8. `database-phase4.sql` - Kids table, kid preferences, kid activities
+9. `database-phase4-app-access.sql` - Register kid-prefs app
+
+## Phase 5: Teacher Access
+10. `database-phase5-consolidated.sql` - Teacher access, observations, perspective activities
+11. `database-phase5-app-access.sql` - Register teacher-dashboard app
+
+---
+
+## Archived Files
+
+Obsolete migration files (superseded by consolidated versions above):
+- `archive/obsolete-sql/` - Old fix files, incremental migrations
+- `archive/test-files/` - Test HTML files
+- `archive/obsolete-docs/` - Superseded documentation
+
+These are kept for reference but not needed for setup.
