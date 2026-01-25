@@ -40,8 +40,6 @@ const errorEl = document.getElementById('error');
 const categoriesEl = document.getElementById('categories');
 const refreshBtn = document.getElementById('refreshBtn');
 const printBtn = document.getElementById('printBtn');
-const helpBtn = document.getElementById('helpBtn');
-const helpSection = document.getElementById('help');
 const dashboardBtn = document.getElementById('dashboardBtn');
 const adminBtn = document.getElementById('adminBtn');
 const sourceSheets = document.getElementById('sourceSheets');
@@ -81,9 +79,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Set up event listeners
     refreshBtn.addEventListener('click', loadData);
     printBtn.addEventListener('click', () => window.print());
-    helpBtn.addEventListener('click', () => {
-        helpSection.style.display = helpSection.style.display === 'none' ? 'block' : 'none';
-    });
     dashboardBtn.addEventListener('click', () => window.location.href = '/dashboard.html');
     adminBtn.addEventListener('click', () => window.location.href = '/admin.html');
     managePrefsBtn.addEventListener('click', () => window.location.href = '/preferences-manager.html');
