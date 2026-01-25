@@ -276,10 +276,16 @@
             .then(response => response.text())
             .then(html => {
                 document.getElementById('platformNavContainer').innerHTML = html;
-                // Set current app context
-                if (window.platformNav) {
-                    window.platformNav.setCurrentApp('parental-prefs', 'Admin Panel', '🛡️');
-                }
+                // Load platform nav JavaScript
+                const script = document.createElement('script');
+                script.src = 'platform-nav.js';
+                document.body.appendChild(script);
+                // Set current app context after script loads
+                script.onload = () => {
+                    if (window.platformNav) {
+                        window.platformNav.setCurrentApp('parental-prefs', 'Admin Panel', '🛡️');
+                    }
+                };
             })
             .catch(error => console.error('Error loading platform nav:', error));
     </script>
