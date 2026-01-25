@@ -367,13 +367,5 @@ GROUP BY k.id, kap.access_level, kap.granted_at, kap.expires_at, u.display_name,
 
 GRANT SELECT ON public.teacher_accessible_kids TO authenticated;
 
--- RLS for view (teachers only see kids they have access to)
-CREATE POLICY "Teachers see only their accessible kids"
-    ON public.teacher_accessible_kids FOR SELECT
-    TO authenticated
-    USING (
-        id IN (
-            SELECT kid_id FROM public.kid_access_permissions
-            WHERE teacher_id = auth.uid() AND status = 'approved'
-        )
-    );
+-- Note: Views inherit RLS from underlying tables (kids, kid_access_permissions, etc.)
+-- No need to add policies directly on the view
