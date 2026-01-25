@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In - Parental Preferences</title>
+    <title>Sign In - Carer Support Platform</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -76,7 +76,10 @@
             display: flex;
             align-items: flex-start;
             gap: 12px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #f9f9f9;
         }
         
         .feature-icon {
@@ -86,7 +89,18 @@
         
         .feature-text {
             color: #666;
-            line-height: 1.5;
+            line-height: 1.6;
+        }
+
+        .feature-text strong {
+            color: #333;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .feature-text em {
+            font-size: 0.85em;
+            color: #999;
         }
         
         .loading-overlay {
@@ -145,8 +159,8 @@
 <body>
     <div class="auth-container">
         <div class="auth-card">
-            <h1>🎨 Parental Preferences</h1>
-            <p>Track which activities Mom and Dad love to do with you!</p>
+            <h1>🌟 Carer Support Platform</h1>
+            <p>Your suite of tools for supporting kids and families</p>
             
             <button id="googleSignInBtn" class="google-btn">
                 <svg class="google-icon" viewBox="0 0 24 24">
@@ -162,20 +176,20 @@
             
             <div class="features">
                 <div class="feature">
-                    <div class="feature-icon">📊</div>
-                    <div class="feature-text">Connect your own Google Sheet</div>
-                </div>
-                <div class="feature">
                     <div class="feature-icon">🎨</div>
-                    <div class="feature-text">Customize colors and themes</div>
+                    <div class="feature-text"><strong>Parental Preferences</strong> - Track which activities parents love to do with kids</div>
                 </div>
                 <div class="feature">
-                    <div class="feature-icon">🖨️</div>
-                    <div class="feature-text">Print beautiful activity guides</div>
+                    <div class="feature-icon">👶</div>
+                    <div class="feature-text"><strong>Kid Preferences</strong> - Manage and track kids' activity preferences <em>(Coming Soon)</em></div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🏫</div>
+                    <div class="feature-text"><strong>Teacher Tools</strong> - Classroom planning and perspective-taking exercises <em>(Coming Soon)</em></div>
                 </div>
                 <div class="feature">
                     <div class="feature-icon">🔒</div>
-                    <div class="feature-text">Secure and private</div>
+                    <div class="feature-text">Secure, private, and customizable for your needs</div>
                 </div>
             </div>
         </div>
