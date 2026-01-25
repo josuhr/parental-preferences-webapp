@@ -1,0 +1,481 @@
+<!-- Platform Navigation Component -->
+<!-- Include this in all app pages -->
+<style>
+    .platform-nav {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 15px 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 0;
+    }
+    
+    .platform-nav-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .platform-brand {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .platform-brand-logo {
+        font-size: 2rem;
+    }
+    
+    .platform-brand-text h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white;
+    }
+    
+    .platform-brand-text p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .platform-nav-right {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .app-switcher {
+        position: relative;
+    }
+    
+    .app-switcher-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+    
+    .app-switcher-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .app-switcher-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 8px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        min-width: 250px;
+        z-index: 1000;
+        overflow: hidden;
+    }
+    
+    .app-switcher-menu.show {
+        display: block;
+    }
+    
+    .app-switcher-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        color: #333;
+        text-decoration: none;
+        transition: background 0.2s;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .app-switcher-item:last-child {
+        border-bottom: none;
+    }
+    
+    .app-switcher-item:hover {
+        background: #f8f9fa;
+    }
+    
+    .app-switcher-item.current {
+        background: #e7f3ff;
+        border-left: 4px solid #667eea;
+    }
+    
+    .app-switcher-item.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .app-switcher-item-icon {
+        font-size: 1.5rem;
+    }
+    
+    .app-switcher-item-text {
+        flex: 1;
+    }
+    
+    .app-switcher-item-text h3 {
+        margin: 0;
+        font-size: 1rem;
+        color: #333;
+    }
+    
+    .app-switcher-item-text p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    .app-switcher-item-badge {
+        background: #ffc107;
+        color: #000;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    
+    .user-menu {
+        position: relative;
+    }
+    
+    .user-menu-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+    
+    .user-menu-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .user-menu-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 8px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        min-width: 200px;
+        z-index: 1000;
+        overflow: hidden;
+    }
+    
+    .user-menu-dropdown.show {
+        display: block;
+    }
+    
+    .user-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        color: #333;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background 0.2s;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 0.95rem;
+    }
+    
+    .user-menu-item:last-child {
+        border-bottom: none;
+    }
+    
+    .user-menu-item:hover {
+        background: #f8f9fa;
+    }
+    
+    .user-menu-item-icon {
+        font-size: 1.2rem;
+    }
+    
+    @media (max-width: 768px) {
+        .platform-nav {
+            padding: 10px 15px;
+        }
+        
+        .platform-brand-text h1 {
+            font-size: 1.2rem;
+        }
+        
+        .platform-brand-text p {
+            display: none;
+        }
+        
+        .app-switcher-menu,
+        .user-menu-dropdown {
+            position: fixed;
+            right: 15px;
+            left: 15px;
+            width: auto;
+        }
+    }
+</style>
+
+<nav class="platform-nav no-print">
+    <div class="platform-nav-container">
+        <a href="/dashboard.html" class="platform-brand">
+            <div class="platform-brand-logo">🌟</div>
+            <div class="platform-brand-text">
+                <h1>Parent Support Platform</h1>
+                <p id="currentAppName">Parental Preferences</p>
+            </div>
+        </a>
+        
+        <div class="platform-nav-right">
+            <!-- App Switcher -->
+            <div class="app-switcher">
+                <button class="app-switcher-btn" id="appSwitcherBtn">
+                    <span id="currentAppIcon">🎨</span>
+                    <span id="currentAppTitle">Apps</span>
+                    <span>▼</span>
+                </button>
+                <div class="app-switcher-menu" id="appSwitcherMenu">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- User Menu -->
+            <div class="user-menu">
+                <button class="user-menu-btn" id="userMenuBtn">
+                    <span id="userMenuAvatar">👤</span>
+                    <span id="userMenuName">User</span>
+                    <span>▼</span>
+                </button>
+                <div class="user-menu-dropdown" id="userMenuDropdown">
+                    <a href="/dashboard.html" class="user-menu-item">
+                        <span class="user-menu-item-icon">⚙️</span>
+                        <span>Dashboard</span>
+                    </a>
+                    <div class="user-menu-item" id="adminMenuItem" style="display: none;">
+                        <span class="user-menu-item-icon">🛡️</span>
+                        <span>Admin Panel</span>
+                    </div>
+                    <div class="user-menu-item" id="signOutMenuItem">
+                        <span class="user-menu-item-icon">🚪</span>
+                        <span>Sign Out</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+// Platform Navigation JavaScript
+(function() {
+    let currentAppSlug = 'parental-prefs'; // Default
+    let apps = [];
+    let currentUser = null;
+    
+    // Initialize platform navigation
+    async function initPlatformNav() {
+        try {
+            // Get current user
+            currentUser = await window.supabaseUtils.getCurrentUser();
+            if (!currentUser) return;
+            
+            // Get user profile
+            const userProfile = await window.supabaseUtils.getUserProfile(currentUser.id);
+            if (!userProfile) return;
+            
+            // Update user menu
+            const initials = (userProfile.display_name || currentUser.email.split('@')[0]).substring(0, 2).toUpperCase();
+            document.getElementById('userMenuAvatar').textContent = initials;
+            document.getElementById('userMenuName').textContent = userProfile.display_name || currentUser.email.split('@')[0];
+            
+            // Show admin menu item if admin
+            if (userProfile.role === 'admin') {
+                document.getElementById('adminMenuItem').style.display = 'flex';
+            }
+            
+            // Load available apps
+            await loadApps();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+        } catch (error) {
+            console.error('Error initializing platform nav:', error);
+        }
+    }
+    
+    // Load available apps from database
+    async function loadApps() {
+        try {
+            const supabaseClient = window.supabaseUtils.getClient();
+            if (!supabaseClient) return;
+            
+            // Get user's accessible apps
+            const { data, error } = await supabaseClient
+                .from('user_app_access')
+                .select(`
+                    app_id,
+                    role,
+                    apps (
+                        id,
+                        slug,
+                        name,
+                        description,
+                        icon,
+                        is_active
+                    )
+                `)
+                .eq('user_id', currentUser.id);
+            
+            if (error) {
+                console.error('Error loading apps:', error);
+                return;
+            }
+            
+            apps = data || [];
+            renderAppSwitcher();
+            
+        } catch (error) {
+            console.error('Error in loadApps:', error);
+        }
+    }
+    
+    // Render app switcher menu
+    function renderAppSwitcher() {
+        const menu = document.getElementById('appSwitcherMenu');
+        if (!menu) return;
+        
+        menu.innerHTML = '';
+        
+        apps.forEach(access => {
+            const app = access.apps;
+            const isCurrent = app.slug === currentAppSlug;
+            const isDisabled = !app.is_active;
+            
+            const item = document.createElement('a');
+            item.className = 'app-switcher-item' + 
+                            (isCurrent ? ' current' : '') + 
+                            (isDisabled ? ' disabled' : '');
+            item.href = isDisabled ? '#' : getAppUrl(app.slug);
+            
+            if (isDisabled) {
+                item.onclick = (e) => {
+                    e.preventDefault();
+                    alert('This app is coming soon!');
+                };
+            }
+            
+            item.innerHTML = `
+                <div class="app-switcher-item-icon">${app.icon || '📱'}</div>
+                <div class="app-switcher-item-text">
+                    <h3>${app.name}</h3>
+                    <p>${app.description || ''}</p>
+                </div>
+                ${isDisabled ? '<span class="app-switcher-item-badge">Coming Soon</span>' : ''}
+            `;
+            
+            menu.appendChild(item);
+        });
+    }
+    
+    // Get URL for an app
+    function getAppUrl(slug) {
+        const urls = {
+            'parental-prefs': '/index.html',
+            'kid-prefs': '/kid-prefs.html',
+            'teacher-tools': '/teacher-dashboard.html'
+        };
+        return urls[slug] || '/dashboard.html';
+    }
+    
+    // Set up event listeners
+    function setupEventListeners() {
+        // App switcher toggle
+        const appSwitcherBtn = document.getElementById('appSwitcherBtn');
+        const appSwitcherMenu = document.getElementById('appSwitcherMenu');
+        
+        if (appSwitcherBtn) {
+            appSwitcherBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                appSwitcherMenu.classList.toggle('show');
+                userMenuDropdown.classList.remove('show');
+            });
+        }
+        
+        // User menu toggle
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userMenuDropdown = document.getElementById('userMenuDropdown');
+        
+        if (userMenuBtn) {
+            userMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userMenuDropdown.classList.toggle('show');
+                appSwitcherMenu.classList.remove('show');
+            });
+        }
+        
+        // Admin menu item
+        const adminMenuItem = document.getElementById('adminMenuItem');
+        if (adminMenuItem) {
+            adminMenuItem.addEventListener('click', () => {
+                window.location.href = '/admin.html';
+            });
+        }
+        
+        // Sign out
+        const signOutMenuItem = document.getElementById('signOutMenuItem');
+        if (signOutMenuItem) {
+            signOutMenuItem.addEventListener('click', async () => {
+                await window.supabaseUtils.signOut();
+            });
+        }
+        
+        // Close menus when clicking outside
+        document.addEventListener('click', () => {
+            appSwitcherMenu.classList.remove('show');
+            userMenuDropdown.classList.remove('show');
+        });
+    }
+    
+    // Set current app context
+    window.platformNav = {
+        setCurrentApp: function(slug, name, icon) {
+            currentAppSlug = slug;
+            const nameEl = document.getElementById('currentAppName');
+            const iconEl = document.getElementById('currentAppIcon');
+            if (nameEl) nameEl.textContent = name;
+            if (iconEl) iconEl.textContent = icon;
+        },
+        
+        init: initPlatformNav
+    };
+    
+    // Auto-initialize after Supabase is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initPlatformNav, 500); // Wait for supabase-config to initialize
+        });
+    } else {
+        setTimeout(initPlatformNav, 500);
+    }
+})();
+</script>

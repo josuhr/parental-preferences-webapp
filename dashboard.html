@@ -209,6 +209,9 @@
     </style>
 </head>
 <body>
+    <!-- Platform Navigation -->
+    <div id="platformNavContainer"></div>
+    
     <div class="dashboard-container">
         <div class="dashboard-header">
             <div class="user-info">
@@ -293,6 +296,19 @@
     <div id="error" class="error no-print" style="display: none;"></div>
     
     <script src="supabase-config.js"></script>
+    <script>
+        // Load platform navigation
+        fetch('platform-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('platformNavContainer').innerHTML = html;
+                // Set current app context
+                if (window.platformNav) {
+                    window.platformNav.setCurrentApp('parental-prefs', 'Dashboard', '⚙️');
+                }
+            })
+            .catch(error => console.error('Error loading platform nav:', error));
+    </script>
     <script src="dashboard.js"></script>
 </body>
 </html>

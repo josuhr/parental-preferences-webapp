@@ -8,6 +8,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <!-- Platform Navigation -->
+    <div id="platformNavContainer"></div>
+    
     <div class="no-print header">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
             <div>
@@ -48,6 +51,19 @@
     </div>
 
     <script src="supabase-config.js"></script>
+    <script>
+        // Load platform navigation
+        fetch('platform-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('platformNavContainer').innerHTML = html;
+                // Set current app context
+                if (window.platformNav) {
+                    window.platformNav.setCurrentApp('parental-prefs', 'Parental Preferences', '🎨');
+                }
+            })
+            .catch(error => console.error('Error loading platform nav:', error));
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

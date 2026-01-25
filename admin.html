@@ -207,6 +207,9 @@
     </style>
 </head>
 <body>
+    <!-- Platform Navigation -->
+    <div id="platformNavContainer"></div>
+    
     <div class="admin-container">
         <div class="admin-header">
             <h1>🛡️ Admin Panel</h1>
@@ -267,6 +270,19 @@
     <div id="error" class="error no-print" style="display: none;"></div>
     
     <script src="supabase-config.js"></script>
+    <script>
+        // Load platform navigation
+        fetch('platform-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('platformNavContainer').innerHTML = html;
+                // Set current app context
+                if (window.platformNav) {
+                    window.platformNav.setCurrentApp('parental-prefs', 'Admin Panel', '🛡️');
+                }
+            })
+            .catch(error => console.error('Error loading platform nav:', error));
+    </script>
     <script src="admin.js"></script>
 </body>
 </html>
