@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perspective Activities Library</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .library-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .header-section h1 {
+            margin: 0 0 10px 0;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar button {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .filter-bar button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .activities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .activity-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .activity-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .activity-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .activity-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .meta-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .activity-description {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .activity-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .public-badge {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 20px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .detail-section p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Platform Navigation -->
+    <div id="platformNavContainer"></div>
+
+    <div class="library-container">
+        <div class="header-section">
+            <h1>📚 Perspective-Taking Activities Library</h1>
+            <p>Resources to help kids understand different viewpoints and preferences</p>
+        </div>
+
+        <div id="messageContainer"></div>
+
+        <div class="filter-bar">
+            <button class="active" data-filter="all" onclick="filterActivities('all')">All Activities</button>
+            <button data-filter="mine" onclick="filterActivities('mine')">My Activities</button>
+            <button data-filter="public" onclick="filterActivities('public')">Community</button>
+            <button class="btn btn-primary" onclick="openActivityModal()">➕ Create Activity</button>
+        </div>
+
+        <div id="loadingContainer" class="loading" style="display: none;">
+            Loading activities...
+        </div>
+
+        <div id="activitiesContainer" class="activities-grid">
+            <!-- Activities will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Activity Details Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="detailTitle">Activity Details</h2>
+                <button class="close-btn" onclick="closeDetailModal()">×</button>
+            </div>
+            <div id="detailContent">
+                <!-- Activity details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Activity Modal -->
+    <div id="activityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Perspective Activity</h2>
+                <button class="close-btn" onclick="closeActivityModal()">×</button>
+            </div>
+            <form id="activityForm" onsubmit="event.preventDefault(); saveActivity();">
+                <div class="form-group">
+                    <label for="actTitle">Activity Title *</label>
+                    <input type="text" id="actTitle" placeholder="e.g., Understanding Friends' Favorites" required>
+                </div>
+                <div class="form-group">
+                    <label for="actDescription">Description *</label>
+                    <textarea id="actDescription" placeholder="What is this activity about?" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="actAgeRange">Age Range</label>
+                    <input type="text" id="actAgeRange" placeholder="e.g., 5-7 years">
+                </div>
+                <div class="form-group">
+                    <label for="actDuration">Duration (minutes)</label>
+                    <input type="number" id="actDuration" placeholder="30" min="5">
+                </div>
+                <div class="form-group">
+                    <label for="actMaterials">Materials Needed</label>
+                    <textarea id="actMaterials" placeholder="List materials required..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="actInstructions">Instructions *</label>
+                    <textarea id="actInstructions" placeholder="Step-by-step instructions..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="actGoals">Learning Goals</label>
+                    <textarea id="actGoals" placeholder="What will kids learn from this activity?"></textarea>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="actPublic">
+                        <label for="actPublic" style="margin: 0;">Make this activity public (share with other teachers)</label>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeActivityModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Activity</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script>
+        // Load platform navigation
+        fetch('platform-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('platformNavContainer').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'platform-nav.js';
+                document.body.appendChild(script);
+                script.onload = () => {
+                    if (window.platformNav) {
+                        window.platformNav.setCurrentApp('teacher-dashboard', 'Teacher Dashboard', '🏫');
+                    }
+                };
+            })
+            .catch(error => console.error('Error loading platform nav:', error));
+    </script>
+    <script src="perspective-activities.js"></script>
+</body>
+</html>
