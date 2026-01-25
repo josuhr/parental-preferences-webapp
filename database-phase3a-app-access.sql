@@ -30,3 +30,19 @@ ON CONFLICT (slug) DO UPDATE SET
     description = EXCLUDED.description,
     icon = EXCLUDED.icon,
     is_active = EXCLUDED.is_active;
+
+-- Grant all existing users access to recommendations app
+INSERT INTO public.user_app_access (user_id, app_id, role)
+SELECT u.id, a.id, 'user'
+FROM public.users u
+CROSS JOIN public.apps a
+WHERE a.slug = 'recommendations'
+ON CONFLICT (user_id, app_id) DO NOTHING;
+
+-- Grant all existing users access to recommendation settings app
+INSERT INTO public.user_app_access (user_id, app_id, role)
+SELECT u.id, a.id, 'user'
+FROM public.users u
+CROSS JOIN public.apps a
+WHERE a.slug = 'recommendation-settings'
+ON CONFLICT (user_id, app_id) DO NOTHING;
