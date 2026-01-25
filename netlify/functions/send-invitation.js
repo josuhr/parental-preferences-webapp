@@ -1,5 +1,7 @@
 // Netlify Function: Send Teacher Invitation Email
-// This function sends invitation emails to teachers
+// This function sends invitation emails to teachers using Resend
+
+const { Resend } = require('resend');
 
 exports.handler = async (event, context) => {
     // Only allow POST requests
@@ -23,54 +25,98 @@ exports.handler = async (event, context) => {
         
         const inviteUrl = `${process.env.URL || 'https://carer-support.netlify.app'}/teacher-invite.html?token=${token}`;
         
-        // For now, we'll return success and log the invitation details
-        // In production, you would integrate with SendGrid, Mailgun, etc.
+        // Check if Resend is configured
+        if (!process.env.RESEND_API_KEY) {
+            console.warn('RESEND_API_KEY not configured. Returning URL for manual sharing.');
+            console.log('Teacher Invitation Request:');
+            console.log('To:', email);
+            console.log('From:', inviterName);
+            console.log('Kid:', kidName);
+            console.log('Access Level:', accessLevel);
+            console.log('Invitation URL:', inviteUrl);
+            
+            return {
+                statusCode: 200,
+                body: JSON.stringify({
+                    success: true,
+                    message: 'Invitation created successfully',
+                    inviteUrl: inviteUrl,
+                    note: 'Email service not configured. Share the invite URL manually.'
+                })
+            };
+        }
         
-        console.log('Teacher Invitation Request:');
-        console.log('To:', email);
-        console.log('From:', inviterName);
-        console.log('Kid:', kidName);
-        console.log('Access Level:', accessLevel);
-        console.log('Invitation URL:', inviteUrl);
+        // Initialize Resend
+        const resend = new Resend(process.env.RESEND_API_KEY);
         
-        // TODO: Integrate with email service
-        // Example with SendGrid:
-        /*
-        const sgMail = require('@sendgrid/mail');
-        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-        
-        const msg = {
+        // Send email
+        const { data, error } = await resend.emails.send({
+            from: process.env.RESEND_FROM_EMAIL || 'Carer Support <onboarding@resend.dev>',
             to: email,
-            from: 'noreply@carer-support.netlify.app',
             subject: `${inviterName} invited you to Carer Support Platform`,
             html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h1 style="color: #667eea;">You've been invited!</h1>
-                    <p>${inviterName} has invited you to view <strong>${kidName}'s</strong> activity preferences on the Carer Support Platform.</p>
-                    <p><strong>Access Level:</strong> ${accessLevel}</p>
-                    <div style="margin: 30px 0;">
-                        <a href="${inviteUrl}" style="background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block;">
-                            Accept Invitation
-                        </a>
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                </head>
+                <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px;">
+                        <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+                            <div style="text-align: center; margin-bottom: 30px;">
+                                <h1 style="color: #667eea; font-size: 2rem; margin: 0 0 10px 0;">🎉 You've Been Invited!</h1>
+                            </div>
+                            
+                            <div style="background: #f5f7fa; padding: 20px; border-radius: 12px; margin-bottom: 30px; text-align: center;">
+                                <p style="color: #666; line-height: 1.6; margin: 10px 0;">
+                                    <strong style="color: #333; font-size: 1.1rem;">${inviterName}</strong> has invited you to view
+                                </p>
+                                <p style="font-size: 1.3rem; color: #667eea; margin: 10px 0;">
+                                    <strong>${kidName}'s</strong> activity preferences
+                                </p>
+                                <p style="color: #666; font-size: 0.9rem; margin: 10px 0;">
+                                    Access Level: <span style="display: inline-block; padding: 4px 10px; border-radius: 12px; background: #bee3f8; color: #2c5282; font-weight: bold;">${accessLevel}</span>
+                                </p>
+                            </div>
+                            
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="${inviteUrl}" style="display: inline-block; background: #667eea; color: white; padding: 15px 40px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 1.1rem;">
+                                    Accept Invitation
+                                </a>
+                            </div>
+                            
+                            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                                <p style="color: #999; font-size: 0.9rem; margin: 10px 0;">
+                                    ⏰ This invitation expires in 7 days
+                                </p>
+                                <p style="color: #999; font-size: 0.85rem; margin: 10px 0;">
+                                    If the button doesn't work, copy this link:
+                                </p>
+                                <p style="color: #667eea; font-size: 0.8rem; word-break: break-all; margin: 10px 0;">
+                                    ${inviteUrl}
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    <p style="color: #999; font-size: 0.9rem;">This invitation expires in 7 days.</p>
-                    <p style="color: #999; font-size: 0.85rem;">If the button doesn't work, copy this link: ${inviteUrl}</p>
-                </div>
+                </body>
+                </html>
             `
-        };
+        });
         
-        await sgMail.send(msg);
-        */
+        if (error) {
+            console.error('Resend error:', error);
+            throw error;
+        }
         
-        // For development/testing, return the invitation URL
+        console.log('Email sent successfully via Resend:', data);
+        
         return {
             statusCode: 200,
             body: JSON.stringify({
                 success: true,
-                message: 'Invitation created successfully',
-                // Include URL for development - remove in production
-                inviteUrl: inviteUrl,
-                note: 'Email service not configured yet. Share the invite URL manually.'
+                message: 'Invitation sent successfully!',
+                emailId: data.id
             })
         };
         
