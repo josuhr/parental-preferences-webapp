@@ -19,6 +19,15 @@ const testSheetBtn = document.getElementById('testSheetBtn');
 const saveSheetBtn = document.getElementById('saveSheetBtn');
 const saveSettingsBtn = document.getElementById('saveSettingsBtn');
 
+// Caregiver label elements
+const caregiver1LabelInput = document.getElementById('caregiver1Label');
+const caregiver1EmojiSelect = document.getElementById('caregiver1Emoji');
+const caregiver2LabelInput = document.getElementById('caregiver2Label');
+const caregiver2EmojiSelect = document.getElementById('caregiver2Emoji');
+const bothLabelInput = document.getElementById('bothLabel');
+const bothEmojiSelect = document.getElementById('bothEmoji');
+const saveCaregiverLabelsBtn = document.getElementById('saveCaregiverLabelsBtn');
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Supabase
@@ -135,6 +144,14 @@ function updateCustomizationInfo() {
         themeColorInput.value = userSettings.theme_color || '#667eea';
         colorPreview.style.background = userSettings.theme_color || '#667eea';
         fontFamilySelect.value = userSettings.font_family || 'Comic Sans MS';
+        
+        // Load caregiver labels
+        caregiver1LabelInput.value = userSettings.caregiver1_label || 'Mom';
+        caregiver1EmojiSelect.value = userSettings.caregiver1_emoji || '💗';
+        caregiver2LabelInput.value = userSettings.caregiver2_label || 'Dad';
+        caregiver2EmojiSelect.value = userSettings.caregiver2_emoji || '💙';
+        bothLabelInput.value = userSettings.both_label || 'Both';
+        bothEmojiSelect.value = userSettings.both_emoji || '💜';
     }
 }
 
@@ -151,6 +168,7 @@ function setupEventListeners() {
     testSheetBtn.addEventListener('click', testSheetConnection);
     saveSheetBtn.addEventListener('click', saveSheetId);
     saveSettingsBtn.addEventListener('click', saveUserSettings);
+    saveCaregiverLabelsBtn.addEventListener('click', saveCaregiverLabels);
 }
 
 // Test sheet connection
@@ -262,6 +280,55 @@ async function saveUserSettings() {
     } finally {
         saveSettingsBtn.disabled = false;
         saveSettingsBtn.textContent = 'Save Preferences';
+    }
+}
+
+// Save caregiver labels
+async function saveCaregiverLabels() {
+    const caregiver1Label = caregiver1LabelInput.value.trim() || 'Mom';
+    const caregiver1Emoji = caregiver1EmojiSelect.value;
+    const caregiver2Label = caregiver2LabelInput.value.trim() || 'Dad';
+    const caregiver2Emoji = caregiver2EmojiSelect.value;
+    const bothLabel = bothLabelInput.value.trim() || 'Both';
+    const bothEmoji = bothEmojiSelect.value;
+    
+    saveCaregiverLabelsBtn.disabled = true;
+    saveCaregiverLabelsBtn.textContent = 'Saving...';
+    
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+        const { error } = await supabaseClient
+            .from('user_settings')
+            .update({
+                caregiver1_label: caregiver1Label,
+                caregiver1_emoji: caregiver1Emoji,
+                caregiver2_label: caregiver2Label,
+                caregiver2_emoji: caregiver2Emoji,
+                both_label: bothLabel,
+                both_emoji: bothEmoji
+            })
+            .eq('user_id', currentUser.id);
+        
+        if (error) throw error;
+        
+        // Update local cache
+        if (userSettings) {
+            userSettings.caregiver1_label = caregiver1Label;
+            userSettings.caregiver1_emoji = caregiver1Emoji;
+            userSettings.caregiver2_label = caregiver2Label;
+            userSettings.caregiver2_emoji = caregiver2Emoji;
+            userSettings.both_label = bothLabel;
+            userSettings.both_emoji = bothEmoji;
+        }
+        
+        alert('✓ Caregiver labels saved successfully!\n\nRefresh the activities page to see your changes.');
+        
+    } catch (error) {
+        console.error('Error saving caregiver labels:', error);
+        showError('Failed to save caregiver labels');
+    } finally {
+        saveCaregiverLabelsBtn.disabled = false;
+        saveCaregiverLabelsBtn.textContent = 'Save Caregiver Labels';
     }
 }
 

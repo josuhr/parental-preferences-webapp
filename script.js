@@ -367,23 +367,31 @@ function parseActivities(table, categoryName) {
 function getParentInfo(parent) {
     const parentStr = parent.toLowerCase();
     
+    // Use custom labels from userSettings if available
+    const bothLabel = userSettings?.both_label || 'Both';
+    const bothEmoji = userSettings?.both_emoji || '💜';
+    const caregiver1Label = userSettings?.caregiver1_label || 'Mom';
+    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
+    const caregiver2Label = userSettings?.caregiver2_label || 'Dad';
+    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
+    
     // Check for emoji format first (from the sheet)
     if (parent.includes('👨') && parent.includes('👩')) {
         return {
-            emoji: '👩👨',
-            text: 'Mom & Dad',
+            emoji: bothEmoji,
+            text: bothLabel,
             class: 'both'
         };
     } else if (parent.includes('👩')) {
         return {
-            emoji: '👩',
-            text: 'Mom',
+            emoji: caregiver1Emoji,
+            text: caregiver1Label,
             class: 'mom'
         };
     } else if (parent.includes('👨')) {
         return {
-            emoji: '👨',
-            text: 'Dad',
+            emoji: caregiver2Emoji,
+            text: caregiver2Label,
             class: 'dad'
         };
     }
@@ -391,20 +399,20 @@ function getParentInfo(parent) {
     // Also check for text format (in case it's spelled out)
     if (parentStr.includes('mom') && parentStr.includes('dad')) {
         return {
-            emoji: '👩👨',
-            text: 'Mom & Dad',
+            emoji: bothEmoji,
+            text: bothLabel,
             class: 'both'
         };
     } else if (parentStr.includes('mom')) {
         return {
-            emoji: '👩',
-            text: 'Mom',
+            emoji: caregiver1Emoji,
+            text: caregiver1Label,
             class: 'mom'
         };
     } else if (parentStr.includes('dad')) {
         return {
-            emoji: '👨',
-            text: 'Dad',
+            emoji: caregiver2Emoji,
+            text: caregiver2Label,
             class: 'dad'
         };
     }
@@ -693,10 +701,18 @@ function renderBuiltinActivityCard(activity, preferenceLevel) {
 
 // Get parent info from preference level
 function getParentInfoFromLevel(level) {
+    // Use custom labels from userSettings if available
+    const bothLabel = userSettings?.both_label || 'Both';
+    const bothEmoji = userSettings?.both_emoji || '💜';
+    const caregiver1Label = userSettings?.caregiver1_label || 'Mom';
+    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
+    const caregiver2Label = userSettings?.caregiver2_label || 'Dad';
+    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
+    
     const mapping = {
-        'both': { emoji: '👩👨', text: 'Mom & Dad', class: 'both' },
-        'mom': { emoji: '👩', text: 'Mom', class: 'mom' },
-        'dad': { emoji: '👨', text: 'Dad', class: 'dad' },
+        'both': { emoji: bothEmoji, text: bothLabel, class: 'both' },
+        'mom': { emoji: caregiver1Emoji, text: caregiver1Label, class: 'mom' },
+        'dad': { emoji: caregiver2Emoji, text: caregiver2Label, class: 'dad' },
         'neither': { emoji: '⭐', text: 'On Your Own', class: 'independent' }
     };
     return mapping[level] || mapping['both'];

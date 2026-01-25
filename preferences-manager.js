@@ -7,6 +7,7 @@ let activities = [];
 let preferences = [];
 let editingCategoryId = null;
 let editingActivityId = null;
+let userSettings = null; // Store user settings for custom labels
 
 // Icons for categories
 const CATEGORY_ICONS = ['🏠', '🌳', '🎨', '🎮', '📚', '🎵', '⚽', '🍳', '🧩', '🎭', '🚗', '🏊', '🎪', '🌟', '🎁', '🎯'];
@@ -21,6 +22,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        // Load user settings for custom labels
+        userSettings = await window.supabaseUtils.getUserSettings(currentUser.id);
+        
+        // Update button labels based on user settings
+        updatePreferenceButtonLabels();
+        
         // Set up event listeners
         setupEventListeners();
         
@@ -76,6 +83,30 @@ function setupEventListeners() {
     // Import button (placeholder)
     document.getElementById('importBtn').addEventListener('click', () => {
         alert('Import from Google Sheets will be implemented in a future update.\n\nFor now, you can manually create categories and activities here.');
+    });
+}
+
+// Update preference button labels with custom caregiver names
+function updatePreferenceButtonLabels() {
+    const bothLabel = userSettings?.both_label || 'Both';
+    const bothEmoji = userSettings?.both_emoji || '💜';
+    const caregiver1Label = userSettings?.caregiver1_label || 'Mom';
+    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
+    const caregiver2Label = userSettings?.caregiver2_label || 'Dad';
+    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
+    
+    // Update the buttons in the form
+    const buttons = document.querySelectorAll('#activityForm .preference-btn');
+    buttons.forEach(btn => {
+        const level = btn.dataset.level;
+        if (level === 'both') {
+            btn.textContent = `${bothEmoji} ${bothLabel}`;
+        } else if (level === 'mom') {
+            btn.textContent = `${caregiver1Emoji} ${caregiver1Label}`;
+        } else if (level === 'dad') {
+            btn.textContent = `${caregiver2Emoji} ${caregiver2Label}`;
+        }
+        // 'neither' stays as is
     });
 }
 
@@ -184,6 +215,11 @@ function createActivityElement(activity) {
     const preferenceLevel = preference ? preference.preference_level : 'both';
     const activityPrefLevel = activity.preference_level || 'drop_anything';
     
+    // Get custom labels
+    const bothEmoji = userSettings?.both_emoji || '💜';
+    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
+    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
+    
     // Get preference level badge
     const prefLevelBadge = {
         'drop_anything': '💚 Drop Anything',
@@ -203,13 +239,13 @@ function createActivityElement(activity) {
         <div class="preference-selector">
             <button class="preference-btn ${preferenceLevel === 'both' ? 'active' : ''}" 
                     data-level="both" 
-                    onclick="updatePreference('${activity.id}', 'both')">💜</button>
+                    onclick="updatePreference('${activity.id}', 'both')">${bothEmoji}</button>
             <button class="preference-btn ${preferenceLevel === 'mom' ? 'active' : ''}" 
                     data-level="mom" 
-                    onclick="updatePreference('${activity.id}', 'mom')">💗</button>
+                    onclick="updatePreference('${activity.id}', 'mom')">${caregiver1Emoji}</button>
             <button class="preference-btn ${preferenceLevel === 'dad' ? 'active' : ''}" 
                     data-level="dad" 
-                    onclick="updatePreference('${activity.id}', 'dad')">💙</button>
+                    onclick="updatePreference('${activity.id}', 'dad')">${caregiver2Emoji}</button>
             <button class="preference-btn ${preferenceLevel === 'neither' ? 'active' : ''}" 
                     data-level="neither" 
                     onclick="updatePreference('${activity.id}', 'neither')">⚪</button>
