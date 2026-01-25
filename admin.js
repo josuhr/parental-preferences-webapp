@@ -1,6 +1,5 @@
 // Admin Panel Logic
 
-let supabaseClient = null;
 let currentUser = null;
 let allUsers = [];
 let filteredUsers = [];
@@ -16,9 +15,10 @@ const connectedSheetsEl = document.getElementById('connectedSheets');
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Supabase
-    supabase = await window.supabaseUtils.initSupabase();
+    await window.supabaseUtils.initSupabase();
     
-    if (!supabase) {
+    const supabaseClient = window.supabaseUtils.getClient();
+    if (!supabaseClient) {
         showError('Failed to initialize. Please refresh the page.');
         return;
     }
@@ -50,7 +50,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Load all users
 async function loadUsers() {
     try {
-        const { data, error } = await supabase
+        const supabaseClient = window.supabaseUtils.getClient();
+        const { data, error } = await supabaseClient
             .from('users')
             .select('*')
             .order('created_at', { ascending: false });
@@ -145,7 +146,8 @@ async function toggleUserStatus(userId, newStatus) {
     }
     
     try {
-        const { error } = await supabase
+        const supabaseClient = window.supabaseUtils.getClient();
+        const { error } = await supabaseClient
             .from('users')
             .update({ is_active: newStatus })
             .eq('id', userId);

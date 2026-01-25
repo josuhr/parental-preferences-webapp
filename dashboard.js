@@ -1,6 +1,5 @@
 // Dashboard Logic
 
-let supabaseClient = null;
 let currentUser = null;
 let userProfile = null;
 let userSettings = null;
@@ -23,9 +22,10 @@ const saveSettingsBtn = document.getElementById('saveSettingsBtn');
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Supabase
-    supabase = await window.supabaseUtils.initSupabase();
+    await window.supabaseUtils.initSupabase();
     
-    if (!supabase) {
+    const supabaseClient = window.supabaseUtils.getClient();
+    if (!supabaseClient) {
         showError('Failed to initialize. Please refresh the page.');
         return;
     }
@@ -179,7 +179,8 @@ async function saveSheetId() {
     saveSheetBtn.textContent = 'Saving...';
     
     try {
-        const { error } = await supabase
+        const supabaseClient = window.supabaseUtils.getClient();
+        const { error } = await supabaseClient
             .from('users')
             .update({ sheet_id: sheetId })
             .eq('id', currentUser.id);
@@ -208,7 +209,8 @@ async function saveUserSettings() {
     saveSettingsBtn.textContent = 'Saving...';
     
     try {
-        const { error } = await supabase
+        const supabaseClient = window.supabaseUtils.getClient();
+        const { error } = await supabaseClient
             .from('user_settings')
             .update({
                 theme_color: themeColor,

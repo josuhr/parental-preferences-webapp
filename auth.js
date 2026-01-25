@@ -1,6 +1,5 @@
 // Authentication Logic
 
-let supabaseClient = null;
 const googleSignInBtn = document.getElementById('googleSignInBtn');
 const loadingOverlay = document.getElementById('loadingOverlay');
 const errorMessage = document.getElementById('errorMessage');
@@ -8,8 +7,9 @@ const errorMessage = document.getElementById('errorMessage');
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Supabase
-    supabaseClient = await window.supabaseUtils.initSupabase();
+    await window.supabaseUtils.initSupabase();
     
+    const supabaseClient = window.supabaseUtils.getClient();
     if (!supabaseClient) {
         showError('Failed to initialize authentication. Please check console for details.');
         return;
@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Sign in with Google
 async function signInWithGoogle() {
+    const supabaseClient = window.supabaseUtils.getClient();
     if (!supabaseClient) {
         showError('Authentication not initialized');
         return;
@@ -70,6 +71,7 @@ async function handleOAuthCallback() {
     showLoading(true);
     
     try {
+        const supabaseClient = window.supabaseUtils.getClient();
         // Get the current session
         const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
         
