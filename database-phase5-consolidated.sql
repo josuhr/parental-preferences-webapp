@@ -2,7 +2,7 @@
 -- This script can be run multiple times safely
 
 -- ============================================================================
--- Drop existing policies first to avoid conflicts
+-- Drop ALL existing Phase 5 policies first to avoid conflicts
 -- ============================================================================
 
 -- Kid Access Permissions policies
@@ -15,8 +15,37 @@ DROP POLICY IF EXISTS "Parents can view permissions they granted" ON public.kid_
 DROP POLICY IF EXISTS "Parents can create access permissions" ON public.kid_access_permissions;
 DROP POLICY IF EXISTS "Parents can update permissions they granted" ON public.kid_access_permissions;
 DROP POLICY IF EXISTS "Parents can delete permissions they granted" ON public.kid_access_permissions;
+
+-- Kids table teacher access policies
 DROP POLICY IF EXISTS "Teachers can view accessible kids" ON public.kids;
 DROP POLICY IF EXISTS "Teachers can view accessible kids basic info" ON public.kids;
+
+-- Teacher Observations policies
+DROP POLICY IF EXISTS "Teachers can create observations for accessible kids" ON public.teacher_observations;
+DROP POLICY IF EXISTS "Teachers can view own observations" ON public.teacher_observations;
+DROP POLICY IF EXISTS "Parents can view observations for own kids" ON public.teacher_observations;
+DROP POLICY IF EXISTS "Teachers can update own observations" ON public.teacher_observations;
+
+-- Perspective Activities policies
+DROP POLICY IF EXISTS "Teachers can create perspective activities" ON public.perspective_activities;
+DROP POLICY IF EXISTS "Teachers can view own activities" ON public.perspective_activities;
+DROP POLICY IF EXISTS "Teachers can view public activities" ON public.perspective_activities;
+DROP POLICY IF EXISTS "Teachers can update own activities" ON public.perspective_activities;
+
+-- Perspective Activity Sessions policies
+DROP POLICY IF EXISTS "Teachers can manage own sessions" ON public.perspective_activity_sessions;
+
+-- Parent Teacher Messages policies
+DROP POLICY IF EXISTS "Parents can view messages about own kids" ON public.parent_teacher_messages;
+DROP POLICY IF EXISTS "Teachers can view own messages" ON public.parent_teacher_messages;
+DROP POLICY IF EXISTS "Users can send messages" ON public.parent_teacher_messages;
+DROP POLICY IF EXISTS "Recipients can update read status" ON public.parent_teacher_messages;
+
+-- Kid Preferences teacher access policies
+DROP POLICY IF EXISTS "Teachers can view preferences for accessible kids" ON public.kid_preferences;
+
+-- Kid Activities teacher access policies
+DROP POLICY IF EXISTS "Teachers can view activities for accessible kids" ON public.kid_activities;
 
 -- ============================================================================
 -- Create Tables (IF NOT EXISTS)
@@ -273,8 +302,6 @@ CREATE POLICY "Recipients can update read status"
 -- RLS Policies - Kid Preferences (Teacher Access)
 -- ============================================================================
 
-DROP POLICY IF EXISTS "Teachers can view preferences for accessible kids" ON public.kid_preferences;
-
 CREATE POLICY "Teachers can view preferences for accessible kids"
     ON public.kid_preferences FOR SELECT
     TO authenticated
@@ -288,8 +315,6 @@ CREATE POLICY "Teachers can view preferences for accessible kids"
 -- ============================================================================
 -- RLS Policies - Kid Activities (Teacher Access)
 -- ============================================================================
-
-DROP POLICY IF EXISTS "Teachers can view activities for accessible kids" ON public.kid_activities;
 
 CREATE POLICY "Teachers can view activities for accessible kids"
     ON public.kid_activities FOR SELECT
