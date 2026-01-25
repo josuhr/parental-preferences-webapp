@@ -81,7 +81,20 @@ async function loadAccessList() {
         
         if (error) throw error;
         
-        if (!permissions || permissions.length === 0) {
+        // Get pending invitations
+        const { data: invitations, error: inviteError } = await supabaseClient
+            .from('teacher_invitations')
+            .select('*')
+            .eq('kid_id', kidId)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+        
+        if (inviteError) console.error('Error loading invitations:', inviteError);
+        
+        const hasPermissions = permissions && permissions.length > 0;
+        const hasInvitations = invitations && invitations.length > 0;
+        
+        if (!hasPermissions && !hasInvitations) {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="icon">👥</div>
@@ -92,28 +105,38 @@ async function loadAccessList() {
             return;
         }
         
-        // Get teacher details for each permission
-        const teacherIds = permissions.map(p => p.teacher_id);
-        
-        const { data: teachers, error: teacherError } = await supabaseClient
-            .from('users')
-            .select('id, email, display_name')
-            .in('id', teacherIds);
-        
-        if (teacherError) throw teacherError;
-        
-        // Render access list
         container.innerHTML = '';
         const accessList = document.createElement('div');
         accessList.className = 'access-list';
         
-        permissions.forEach(permission => {
-            const teacher = teachers.find(t => t.id === permission.teacher_id);
-            if (teacher) {
-                const item = createAccessItem(permission, teacher);
+        // Show pending invitations first
+        if (hasInvitations) {
+            invitations.forEach(invitation => {
+                const item = createInvitationItem(invitation);
                 accessList.appendChild(item);
-            }
-        });
+            });
+        }
+        
+        // Then show granted permissions
+        if (hasPermissions) {
+            // Get teacher details
+            const teacherIds = permissions.map(p => p.teacher_id);
+            
+            const { data: teachers, error: teacherError } = await supabaseClient
+                .from('users')
+                .select('id, email, display_name')
+                .in('id', teacherIds);
+            
+            if (teacherError) throw teacherError;
+            
+            permissions.forEach(permission => {
+                const teacher = teachers.find(t => t.id === permission.teacher_id);
+                if (teacher) {
+                    const item = createAccessItem(permission, teacher);
+                    accessList.appendChild(item);
+                }
+            });
+        }
         
         container.appendChild(accessList);
         
@@ -121,6 +144,35 @@ async function loadAccessList() {
         console.error('Error loading access list:', error);
         showMessage('Failed to load access list: ' + error.message, 'error');
     }
+}
+
+// Create invitation item element
+function createInvitationItem(invitation) {
+    const item = document.createElement('div');
+    item.className = 'access-item';
+    
+    const expiresDate = new Date(invitation.expires_at).toLocaleDateString();
+    const sentDate = new Date(invitation.created_at).toLocaleDateString();
+    
+    item.innerHTML = `
+        <div class="access-info">
+            <div class="teacher-name">📧 ${invitation.email}</div>
+            <div class="teacher-email" style="font-style: italic; color: #999;">Invitation sent - waiting for acceptance</div>
+            <div class="access-details">
+                <span class="badge pending">Pending Invitation</span>
+                <span class="badge ${invitation.access_level}">${invitation.access_level}</span>
+                <span style="font-size: 0.8rem; color: #999;">Sent: ${sentDate}</span>
+                <span style="font-size: 0.8rem; color: #999;">Expires: ${expiresDate}</span>
+            </div>
+        </div>
+        <div class="access-actions">
+            <button class="btn-small btn-revoke" onclick="cancelInvitation('${invitation.id}')">
+                ❌ Cancel
+            </button>
+        </div>
+    `;
+    
+    return item;
 }
 
 // Create access item element
@@ -174,58 +226,160 @@ async function grantAccess() {
         const supabaseClient = window.supabaseUtils.getClient();
         
         // Find teacher by email
-        const { data: teachers, error: findError } = await supabaseClient
+        const { data: teacher, error: findError } = await supabaseClient
             .from('users')
-            .select('id, user_type')
+            .select('id, user_type, display_name')
             .eq('email', email)
-            .single();
-        
-        if (findError || !teachers) {
-            showMessage('Teacher not found. They need to sign up first.', 'error');
-            return;
-        }
-        
-        // Check if already granted
-        const { data: existing, error: checkError } = await supabaseClient
-            .from('kid_access_permissions')
-            .select('id')
-            .eq('kid_id', kidId)
-            .eq('teacher_id', teachers.id)
             .maybeSingle();
         
-        if (checkError) {
-            console.error('Error checking existing access:', checkError);
+        if (teacher) {
+            // User exists - grant access immediately
+            await grantAccessToExistingUser(teacher, email, accessLevel);
+        } else {
+            // User doesn't exist - offer to send invitation
+            const confirmed = confirm(
+                `${email} doesn't have an account yet.\n\n` +
+                `Would you like to send them an invitation to create an account and access ${currentKid.name}'s preferences?`
+            );
+            
+            if (confirmed) {
+                await sendTeacherInvitation(email, accessLevel);
+            }
         }
-        
-        if (existing) {
-            showMessage('This teacher already has access. Revoke it first to change settings.', 'error');
-            return;
-        }
-        
-        // Grant access
-        const { error: insertError } = await supabaseClient
-            .from('kid_access_permissions')
-            .insert({
-                kid_id: kidId,
-                teacher_id: teachers.id,
-                granted_by: currentUser.id,
-                access_level: accessLevel,
-                status: 'approved',
-                granted_at: new Date().toISOString()
-            });
-        
-        if (insertError) throw insertError;
-        
-        showMessage('✅ Access granted successfully!', 'success');
-        emailInput.value = '';
-        
-        // Reload access list
-        await loadAccessList();
         
     } catch (error) {
         console.error('Error granting access:', error);
         showMessage('Failed to grant access: ' + error.message, 'error');
     }
+}
+
+// Grant access to existing user
+async function grantAccessToExistingUser(teacher, email, accessLevel) {
+    const supabaseClient = window.supabaseUtils.getClient();
+    
+    // Check if already granted
+    const { data: existing, error: checkError } = await supabaseClient
+        .from('kid_access_permissions')
+        .select('id')
+        .eq('kid_id', kidId)
+        .eq('teacher_id', teacher.id)
+        .maybeSingle();
+    
+    if (checkError) {
+        console.error('Error checking existing access:', checkError);
+    }
+    
+    if (existing) {
+        showMessage('This teacher already has access. Revoke it first to change settings.', 'error');
+        return;
+    }
+    
+    // Grant access
+    const { error: insertError } = await supabaseClient
+        .from('kid_access_permissions')
+        .insert({
+            kid_id: kidId,
+            teacher_id: teacher.id,
+            granted_by: currentUser.id,
+            access_level: accessLevel,
+            status: 'approved',
+            granted_at: new Date().toISOString()
+        });
+    
+    if (insertError) throw insertError;
+    
+    showMessage(`✅ Access granted to ${teacher.display_name || email}!`, 'success');
+    document.getElementById('teacherEmail').value = '';
+    
+    // Reload access list
+    await loadAccessList();
+}
+
+// Send teacher invitation
+async function sendTeacherInvitation(email, accessLevel) {
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        // Generate unique token
+        const token = generateInvitationToken();
+        
+        // Set expiration (7 days from now)
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+        
+        // Check if invitation already exists
+        const { data: existingInvite } = await supabaseClient
+            .from('teacher_invitations')
+            .select('id, status')
+            .eq('email', email)
+            .eq('kid_id', kidId)
+            .eq('status', 'pending')
+            .maybeSingle();
+        
+        if (existingInvite) {
+            showMessage('An invitation has already been sent to this email address.', 'error');
+            return;
+        }
+        
+        // Store invitation
+        const { error: inviteError } = await supabaseClient
+            .from('teacher_invitations')
+            .insert({
+                invited_by: currentUser.id,
+                kid_id: kidId,
+                email: email,
+                token: token,
+                access_level: accessLevel,
+                expires_at: expiresAt.toISOString()
+            });
+        
+        if (inviteError) throw inviteError;
+        
+        // Send invitation email via Netlify function
+        try {
+            const response = await fetch('/.netlify/functions/send-invitation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    token: token,
+                    kidName: currentKid.name,
+                    inviterName: currentUser.email, // Will be updated when we have display_name
+                    accessLevel: accessLevel
+                })
+            });
+            
+            if (!response.ok) {
+                console.error('Failed to send email, but invitation created');
+                showMessage('⚠️ Invitation created, but email failed to send. Please share this link manually:\n' + 
+                           `${window.location.origin}/teacher-invite.html?token=${token}`, 'error');
+                return;
+            }
+        } catch (emailError) {
+            console.error('Email sending error:', emailError);
+            showMessage('⚠️ Invitation created, but email failed to send. Please share this link manually:\n' + 
+                       `${window.location.origin}/teacher-invite.html?token=${token}`, 'error');
+            return;
+        }
+        
+        showMessage(`✅ Invitation sent to ${email}! They have 7 days to accept.`, 'success');
+        document.getElementById('teacherEmail').value = '';
+        
+        // Reload access list to show pending invitation
+        await loadAccessList();
+        
+    } catch (error) {
+        console.error('Error sending invitation:', error);
+        showMessage('Failed to send invitation: ' + error.message, 'error');
+    }
+}
+
+// Generate unique invitation token
+function generateInvitationToken() {
+    // Create a secure random token
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
 // Revoke teacher access
@@ -252,6 +406,33 @@ async function revokeAccess(permissionId) {
     } catch (error) {
         console.error('Error revoking access:', error);
         showMessage('Failed to revoke access: ' + error.message, 'error');
+    }
+}
+
+// Cancel pending invitation
+async function cancelInvitation(invitationId) {
+    if (!confirm('Are you sure you want to cancel this invitation?')) {
+        return;
+    }
+    
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        const { error } = await supabaseClient
+            .from('teacher_invitations')
+            .update({ status: 'cancelled' })
+            .eq('id', invitationId);
+        
+        if (error) throw error;
+        
+        showMessage('Invitation cancelled', 'success');
+        
+        // Reload access list
+        await loadAccessList();
+        
+    } catch (error) {
+        console.error('Error cancelling invitation:', error);
+        showMessage('Failed to cancel invitation: ' + error.message, 'error');
     }
 }
 
