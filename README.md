@@ -1,189 +1,154 @@
-# Parental Preferences Activity Guide
+# Parental Preferences - Multi-User App
 
-A kid-friendly, printable web application that displays activity preferences for Mom and Dad, helping a 5-year-old understand which activities each parent enjoys doing together.
+A kid-friendly web application for tracking which activities Mom and Dad love to do together! Now with multi-user support, Google authentication, and personalized Google Sheets integration.
 
 ## Features
 
-- 🎨 **Colorful, Kid-Friendly Design**: Large fonts, emojis, and bright colors
-- 🔄 **Auto-Update**: Fetches latest data from Google Sheets with one click
-- 🖨️ **Print-Ready**: Optimized for 8.5×11" paper with clean black & white printing
-- 📱 **Responsive**: Works on desktop, tablet, and mobile devices
-- ⚡ **No Server Required**: Runs entirely in the browser
+### For Users
+- 🔐 **Secure Google Sign-In** - No passwords to manage
+- 📊 **Personal Google Sheet** - Connect your own preferences sheet
+- 🎨 **Custom Themes** - Pick your favorite colors and fonts
+- 🖨️ **Print-Ready** - Beautiful layouts for 8.5×11" paper
+- 👨👩 **Parent Emojis** - Visual indicators for Mom, Dad, or both
+- ⭐ **Independence Tracking** - Activities kids can do on their own
+
+### For Admins
+- 👥 **User Management** - View and manage all registered users
+- 📈 **Statistics** - Track total users and connected sheets
+- 🛡️ **Access Control** - Enable/disable user accounts
+
+## Tech Stack
+
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Authentication**: Supabase Auth with Google OAuth
+- **Database**: Supabase (PostgreSQL)
+- **Backend**: Netlify Functions (serverless)
+- **Hosting**: Netlify
+- **Data Source**: Google Sheets (user-specific)
 
 ## Quick Start
 
-### ⚠️ Important: Safari Users
-If using Safari, you need to run a local web server (see below). **Or simply use Chrome/Firefox** which work immediately!
+### For End Users
 
-### Method 1: Chrome or Firefox (Recommended - Easiest)
-1. Right-click `index.html` → "Open With" → **Chrome** or **Firefox**
-2. View activities organized by category and preference level
-3. Click "🔄 Refresh Data" to get latest updates from Google Sheets
-4. Click "🖨️ Print" or press Ctrl+P (Cmd+P on Mac) to print
+1. Visit the app URL
+2. Click "Sign in with Google"
+3. Go to Dashboard
+4. Enter your Google Sheet ID
+5. Customize your theme
+6. View your activities!
 
-### Method 2: Local Web Server (Required for Safari)
+### For Developers
+
+See [`DEPLOYMENT.md`](DEPLOYMENT.md) for complete setup instructions.
+
+**Quick setup:**
 ```bash
-# In Terminal, navigate to this folder and run:
-./start-server.sh
+# Clone the repo
+git clone https://github.com/josuhr/parental-preferences-webapp.git
+cd parental-preferences-webapp
 
-# Then open any browser and go to: http://localhost:8000
+# Install function dependencies
+cd netlify/functions
+npm install
+cd ../..
+
+# Set up Supabase (see DEPLOYMENT.md)
+# Set up Netlify environment variables
+# Deploy!
 ```
 
-**Or manually:**
-```bash
-python3 -m http.server 8000
-# Then visit: http://localhost:8000
+## Project Structure
+
+```
+parental-preferences/
+├── index.html              # Main activity viewer (auth required)
+├── auth.html               # Login/signup page
+├── dashboard.html          # User settings and sheet configuration
+├── admin.html              # Admin panel (admin role required)
+├── script.js               # Main app logic
+├── auth.js                 # Authentication logic
+├── dashboard.js            # Dashboard logic
+├── admin.js                # Admin panel logic
+├── supabase-config.js      # Supabase client configuration
+├── styles.css              # Styles with CSS variables for theming
+├── netlify.toml            # Netlify configuration
+├── database-schema.sql     # Supabase database schema
+├── DEPLOYMENT.md           # Detailed deployment guide
+├── SUPABASE_SETUP.md       # Supabase setup instructions
+└── netlify/
+    └── functions/
+        ├── get-config.js   # Returns Supabase config to frontend
+        └── package.json    # Function dependencies
 ```
 
-**Why?** Safari blocks API requests from local files for security. Chrome/Firefox are more permissive, or use a local server.
+## Database Schema
 
-## How It Works
+### Users Table
+- Stores user profiles, emails, Google IDs
+- Tracks which Google Sheet each user has configured
+- Manages admin vs regular user roles
+- Records last login times
 
-The app connects to your Google Sheet and displays activities organized by:
+### User Settings Table
+- Theme color preferences
+- Font family choices
+- Custom category tab names
+- Auto-created for each new user
 
-### Categories
+## Google Sheet Format
+
+Each user's Google Sheet should have these tabs:
 - Arts & Crafts
-- Experiential Activities
-- Games (Board, Card, Pretend)
-- Movies & TV
+- Experiential
+- Games
+- Movies
 - Music
-- Reading & Educational Activities
+- Reading & Ed
 - Video Games
 
-### Preference Levels
-- **💚 Drop Anything**: Activities Mom or Dad absolutely love to do!
-- **💛 Sometimes**: Fun activities they enjoy occasionally
-- **⭐ On Your Own**: Activities the child can do independently
+**Column Structure (per tab):**
+- Column A: Parent emoji (👨, 👩, 👨👩, or empty)
+- Column B: Activity name
+- Column C: Preference level (Drop Anything, Sometimes, On Your Own)
 
-### Parent Indicators
-- 👩 **Mom**: Mom loves this activity
-- 👨 **Dad**: Dad loves this activity
-- 👩👨 **Mom & Dad**: Both parents enjoy this activity
-- ⭐ **Independent**: Activity to do on your own
+## Environment Variables (Netlify)
 
-## Google Sheet Structure
-
-The app reads from this Google Sheet:
-- **Sheet ID**: `143M9nXKYlOo9fourw7c9SHa4C_nLBmCSdqcvJ72cjUE`
-- **URL**: https://docs.google.com/spreadsheets/d/143M9nXKYlOo9fourw7c9SHa4C_nLBmCSdqcvJ72cjUE/edit
-
-### Data Format
-Each category tab contains:
-- Column A: Parent (Mom, Dad, "Mom, Dad", or empty)
-- Column B: Category
-- Column C: Activity name
-- Column D: Preference level (Drop Anything, Sometimes, On Your Own)
-
-## Printing Tips
-
-1. **Browser Print Dialog**: 
-   - Chrome/Edge: File → Print (Ctrl+P / Cmd+P)
-   - Safari: File → Print (Cmd+P)
-   
-2. **Print Settings**:
-   - Paper size: Letter (8.5 × 11")
-   - Orientation: Portrait
-   - Margins: Default
-   - Background graphics: Optional (colors look great but not required)
-
-3. **Save as PDF**: Most browsers can "Print to PDF" to save a digital copy
-
-## Customization
-
-### Updating Google Sheet Data
-Simply edit your Google Sheet and click the "🔄 Refresh Data" button in the app. No need to change any code!
-
-### Changing Categories
-To modify which categories are displayed, edit the `CATEGORY_TABS` array in `script.js`:
-
-```javascript
-const CATEGORY_TABS = [
-    'Arts & Crafts',
-    'Experiential',
-    // Add or remove categories here
-];
+```
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
-### Styling Changes
-All visual styles are in `styles.css`. You can customize:
-- Colors and gradients
-- Font sizes and families
-- Card layouts
-- Print formatting
+## Features Roadmap
 
-## Browser Compatibility
+- [x] Google OAuth authentication
+- [x] User dashboard
+- [x] Admin panel
+- [x] Theme customization
+- [x] User-specific Google Sheets
+- [ ] Email notifications for new users
+- [ ] Activity suggestions
+- [ ] Share read-only links with family
+- [ ] Mobile app version
+- [ ] Dark mode
+- [ ] Multiple language support
 
-- ✅ Chrome (recommended)
-- ✅ Firefox
-- ✅ Safari
-- ✅ Edge
-- ✅ Any modern browser with JavaScript enabled
+## Contributing
 
-## Technical Details
-
-- **No dependencies**: Pure HTML, CSS, and JavaScript
-- **Google Sheets API**: Uses the public Google Visualization API (no authentication required)
-- **Responsive CSS Grid**: Automatically adjusts layout for different screen sizes
-- **Print CSS**: Special `@media print` rules for optimal paper output
-
-## Troubleshooting
-
-## Troubleshooting
-
-### Problem: "Failed to load data" Error
-
-This usually means the Google Sheet isn't publicly accessible. Follow these steps:
-
-#### Solution 1: Share with "Anyone with the link" (Recommended)
-
-1. Open your [Google Sheet](https://docs.google.com/spreadsheets/d/143M9nXKYlOo9fourw7c9SHa4C_nLBmCSdqcvJ72cjUE/edit)
-2. Click the **"Share"** button (top right corner)
-3. Under "General access", click the dropdown and select **"Anyone with the link"**
-4. Make sure the role is set to **"Viewer"**
-5. Click **"Done"**
-6. Refresh the app (click "🔄 Refresh Data")
-
-#### Solution 2: Publish to Web (Alternative)
-
-1. Open your Google Sheet
-2. Go to **File → Share → Publish to web**
-3. Click **"Publish"**
-4. Confirm by clicking **"OK"**
-5. Refresh the app
-
-#### Still Having Issues?
-
-1. Open `test-connection.html` in your browser to run diagnostics
-2. Check the browser console (F12 → Console tab) for detailed error messages
-3. Make sure you're connected to the internet
-4. Try a different browser (Chrome recommended)
-
-**Problem**: Data not loading
-- **Solution**: Check your internet connection and ensure the Google Sheet is public (anyone with link can view)
-
-**Problem**: Print layout looks wrong
-- **Solution**: Try different browsers; Chrome and Firefox typically have the best print rendering
-
-**Problem**: Some activities are missing
-- **Solution**: Click "🔄 Refresh Data" to fetch the latest version from Google Sheets
-
-## Privacy & Security
-
-- No data is stored locally or sent to any server
-- All data fetching happens directly from your browser to Google Sheets
-- No tracking, analytics, or third-party services
-
-## Support
-
-For issues or questions, check:
-1. Is the Google Sheet URL correct and accessible?
-2. Is your browser up to date?
-3. Are you connected to the internet?
+This is a personal/family project, but suggestions are welcome! Open an issue or submit a pull request.
 
 ## License
 
-This project is open source and free to use and modify for personal use.
+MIT License - feel free to use and modify for your own family!
+
+## Support
+
+For issues or questions:
+1. Check [`DEPLOYMENT.md`](DEPLOYMENT.md) for setup help
+2. Review browser console for errors
+3. Verify Supabase and Netlify configurations
+4. Open a GitHub issue
 
 ---
 
-Made with 💜 for family learning time!
+Made with 💜 for helping families spend quality time together!

@@ -1,0 +1,19 @@
+# Netlify Configuration
+
+[build]
+  command = "echo 'No build needed for static site'"
+  functions = "netlify/functions"
+  publish = "."
+
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"

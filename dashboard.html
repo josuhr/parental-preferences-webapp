@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Parental Preferences</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .dashboard-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .dashboard-header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .user-details h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.5rem;
+        }
+        
+        .user-details p {
+            margin: 5px 0 0;
+            color: #666;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .dashboard-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card h3 {
+            color: #667eea;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group small {
+            display: block;
+            color: #666;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .color-picker-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .color-preview {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+        }
+        
+        input[type="color"] {
+            width: 100px;
+            height: 50px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .status-badge.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-badge.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .quick-action-btn {
+            padding: 20px;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-family: inherit;
+        }
+        
+        .quick-action-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        .quick-action-btn .icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-header {
+                text-align: center;
+            }
+            
+            .user-info {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar"></div>
+                <div class="user-details">
+                    <h2 id="userName">Loading...</h2>
+                    <p id="userEmail"></p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="adminBtn" style="display: none;">Admin Panel</button>
+                <button class="btn btn-primary" onclick="window.location.href='/index.html'">View Activities</button>
+                <button class="btn btn-help" id="signOutBtn">Sign Out</button>
+            </div>
+        </div>
+        
+        <div class="dashboard-content">
+            <!-- Sheet Configuration Card -->
+            <div class="card">
+                <h3>📊 Google Sheet Configuration</h3>
+                <div class="form-group">
+                    <label for="sheetId">Google Sheet ID</label>
+                    <input type="text" id="sheetId" placeholder="Enter your Google Sheet ID">
+                    <small>Find this in your Google Sheets URL: /d/<strong>SHEET_ID</strong>/edit</small>
+                </div>
+                <div class="form-group">
+                    <label>Current Status</label>
+                    <div id="sheetStatus">
+                        <span class="status-badge warning">Not configured</span>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" id="testSheetBtn">Test Connection</button>
+                    <button class="btn btn-primary" id="saveSheetBtn">Save Sheet ID</button>
+                </div>
+            </div>
+            
+            <!-- Customization Card -->
+            <div class="card">
+                <h3>🎨 Customization</h3>
+                <div class="form-group">
+                    <label for="themeColor">Theme Color</label>
+                    <div class="color-picker-group">
+                        <input type="color" id="themeColor" value="#667eea">
+                        <div class="color-preview" id="colorPreview" style="background: #667eea;"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fontFamily">Font Family</label>
+                    <select id="fontFamily">
+                        <option value="Comic Sans MS">Comic Sans MS (Fun & Playful)</option>
+                        <option value="Arial">Arial (Clean & Simple)</option>
+                        <option value="Verdana">Verdana (Easy to Read)</option>
+                        <option value="Georgia">Georgia (Classic)</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="saveSettingsBtn">Save Preferences</button>
+            </div>
+            
+            <!-- Quick Actions Card -->
+            <div class="card">
+                <h3>⚡ Quick Actions</h3>
+                <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="window.location.href='/index.html'">
+                        <span class="icon">🎨</span>
+                        <span>View Activities</span>
+                    </button>
+                    <button class="quick-action-btn" onclick="window.open('https://docs.google.com/spreadsheets/d/' + document.getElementById('sheetId').value + '/edit', '_blank')">
+                        <span class="icon">📝</span>
+                        <span>Edit Sheet</span>
+                    </button>
+                    <button class="quick-action-btn" onclick="window.location.href='/auth.html'">
+                        <span class="icon">❓</span>
+                        <span>Help</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loadingOverlay" class="loading no-print" style="display: none;">Loading...</div>
+    <div id="error" class="error no-print" style="display: none;"></div>
+    
+    <script src="supabase-config.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

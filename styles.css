@@ -1,4 +1,10 @@
 /* Reset and Base Styles */
+:root {
+    --theme-color: #667eea;
+    --theme-color-dark: #5568d3;
+    --theme-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -7,7 +13,7 @@
 
 body {
     font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--theme-gradient);
     color: #333;
     padding: 20px;
     line-height: 1.6;
@@ -25,7 +31,7 @@ body {
 
 .header h1 {
     font-size: 2.5rem;
-    color: #667eea;
+    color: var(--theme-color);
     margin-bottom: 10px;
 }
 
@@ -60,7 +66,7 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--theme-gradient);
     color: white;
 }
 
@@ -156,10 +162,10 @@ body {
 
 .category-title {
     font-size: 2rem;
-    color: #667eea;
+    color: var(--theme-color);
     margin-bottom: 10px;
     padding-bottom: 10px;
-    border-bottom: 4px solid #667eea;
+    border-bottom: 4px solid var(--theme-color);
     text-align: center;
 }
 
@@ -249,7 +255,7 @@ body {
 }
 
 .parent-badge.both {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--theme-gradient);
     color: white;
 }
 
@@ -274,7 +280,7 @@ body {
 
 .print-footer p {
     font-size: 1.1rem;
-    color: #667eea;
+    color: var(--theme-color);
     font-weight: bold;
 }
 

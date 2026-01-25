@@ -42,8 +42,9 @@ yarn-error.log*
 *.sln
 *.sw?
 
-# Node modules (if ever needed)
+# Node modules
 node_modules/
+netlify/functions/node_modules/
 
 # Python
 __pycache__/
@@ -54,6 +55,17 @@ __pycache__/
 coverage/
 .nyc_output/
 
+# Build outputs
+dist/
+build/
+.netlify/
+
 # Misc
 *.swp
 *~
+
+# Local development
+.env.development.local
+.env.test.local
+.env.production.local
+

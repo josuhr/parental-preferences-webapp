@@ -1,5 +1,8 @@
 // Configuration
-const SHEET_ID = '143M9nXKYlOo9fourw7c9SHa4C_nLBmCSdqcvJ72cjUE';
+let SHEET_ID = ''; // Will be loaded from user profile
+let currentUser = null;
+let userProfile = null;
+let userSettings = null;
 
 // Tab names and their corresponding GIDs (sheet IDs)
 // To find GIDs: Open each tab, the URL will show #gid=XXXXXX
@@ -14,7 +17,7 @@ const CATEGORY_TABS = {
 };
 
 // Since we don't have GIDs, we'll use the tab name approach
-const CATEGORY_TAB_NAMES = [
+let CATEGORY_TAB_NAMES = [
     'Arts & Crafts',
     'Experiential',
     'Games',
@@ -39,16 +42,100 @@ const refreshBtn = document.getElementById('refreshBtn');
 const printBtn = document.getElementById('printBtn');
 const helpBtn = document.getElementById('helpBtn');
 const helpSection = document.getElementById('help');
+const dashboardBtn = document.getElementById('dashboardBtn');
+const adminBtn = document.getElementById('adminBtn');
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    loadData();
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize Supabase
+    const supabase = await window.supabaseUtils.initSupabase();
+    
+    if (!supabase) {
+        showError('Failed to initialize authentication');
+        return;
+    }
+    
+    // Check authentication
+    currentUser = await window.supabaseUtils.getCurrentUser();
+    
+    if (!currentUser) {
+        // Not logged in, redirect to auth
+        window.location.href = '/auth.html';
+        return;
+    }
+    
+    // Load user data
+    await loadUserData();
+    
+    // Set up event listeners
     refreshBtn.addEventListener('click', loadData);
     printBtn.addEventListener('click', () => window.print());
     helpBtn.addEventListener('click', () => {
         helpSection.style.display = helpSection.style.display === 'none' ? 'block' : 'none';
     });
+    dashboardBtn.addEventListener('click', () => window.location.href = '/dashboard.html');
+    adminBtn.addEventListener('click', () => window.location.href = '/admin.html');
+    
+    // Load activities
+    loadData();
 });
+
+// Load user data
+async function loadUserData() {
+    try {
+        userProfile = await window.supabaseUtils.getUserProfile(currentUser.id);
+        userSettings = await window.supabaseUtils.getUserSettings(currentUser.id);
+        
+        if (!userProfile) {
+            showError('Failed to load user profile');
+            return;
+        }
+        
+        // Set sheet ID
+        SHEET_ID = userProfile.sheet_id || '';
+        
+        if (!SHEET_ID) {
+            showError('No Google Sheet configured. Please go to Dashboard to set up your sheet.');
+            dashboardBtn.style.display = 'inline-block';
+            return;
+        }
+        
+        // Show dashboard button
+        dashboardBtn.style.display = 'inline-block';
+        
+        // Show admin button if user is admin
+        if (userProfile.role === 'admin') {
+            adminBtn.style.display = 'inline-block';
+        }
+        
+        // Apply user customization
+        if (userSettings) {
+            applyUserCustomization(userSettings);
+        }
+        
+    } catch (error) {
+        console.error('Error loading user data:', error);
+        showError('Failed to load user data');
+    }
+}
+
+// Apply user customization
+function applyUserCustomization(settings) {
+    // Apply theme color
+    if (settings.theme_color) {
+        document.documentElement.style.setProperty('--theme-color', settings.theme_color);
+    }
+    
+    // Apply font family
+    if (settings.font_family) {
+        document.body.style.fontFamily = `${settings.font_family}, sans-serif`;
+    }
+    
+    // Apply custom category tabs if present
+    if (settings.category_tabs && Array.isArray(settings.category_tabs)) {
+        CATEGORY_TAB_NAMES = settings.category_tabs;
+    }
+}
 
 // Show/Hide Loading State
 function showLoading(show) {
