@@ -1,8 +1,24 @@
 // Authentication Logic
 
-const googleSignInBtn = document.getElementById('googleSignInBtn');
 const loadingOverlay = document.getElementById('loadingOverlay');
 const errorMessage = document.getElementById('errorMessage');
+
+// Tab switching
+function switchTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(tabName + 'Tab').classList.add('active');
+    
+    hideError();
+}
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -33,8 +49,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     
-    // Set up sign-in button
-    googleSignInBtn.addEventListener('click', signInWithGoogle);
+    // Set up Google sign-in button
+    const googleSignInBtn = document.getElementById('googleSignInBtn');
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener('click', signInWithGoogle);
+    }
 });
 
 // Sign in with Google
@@ -203,4 +222,168 @@ function showError(message) {
 // Hide error message
 function hideError() {
     errorMessage.classList.remove('show');
+}
+
+// ============================================================================
+// Email/Password Authentication
+// ============================================================================
+
+// Sign up with email
+async function signUpWithEmail() {
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+    
+    // Validation
+    if (!name || !email || !password) {
+        showError('Please fill in all fields');
+        return;
+    }
+    
+    if (password !== passwordConfirm) {
+        showError('Passwords do not match');
+        return;
+    }
+    
+    if (password.length < 8) {
+        showError('Password must be at least 8 characters');
+        return;
+    }
+    
+    showLoading(true);
+    hideError();
+    
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        // Sign up with Supabase Auth
+        const { data, error } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    display_name: name
+                },
+                emailRedirectTo: `${window.location.origin}/verify-email.html`
+            }
+        });
+        
+        if (error) throw error;
+        
+        if (data.user) {
+            // Create user record in database
+            const { error: insertError } = await supabaseClient
+                .from('users')
+                .insert({
+                    id: data.user.id,
+                    email: email,
+                    display_name: name,
+                    auth_method: 'email',
+                    email_verified: false,
+                    role: 'user'
+                });
+            
+            if (insertError) {
+                console.error('Error creating user record:', insertError);
+                // Continue anyway - the user is created in Supabase Auth
+            }
+            
+            // Show success message
+            showLoading(false);
+            alert('Account created! Please check your email to verify your account before signing in.');
+            
+            // Switch to sign in tab
+            switchTab('signin');
+            
+            // Clear form
+            document.getElementById('emailSignUpForm').reset();
+        }
+    } catch (error) {
+        console.error('Sign up error:', error);
+        showError(error.message || 'Failed to create account. Please try again.');
+        showLoading(false);
+    }
+}
+
+// Sign in with email
+async function signInWithEmail() {
+    const email = document.getElementById('signinEmail').value.trim();
+    const password = document.getElementById('signinPassword').value;
+    
+    if (!email || !password) {
+        showError('Please enter email and password');
+        return;
+    }
+    
+    showLoading(true);
+    hideError();
+    
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+        
+        if (error) throw error;
+        
+        if (data.user) {
+            // Check if email is verified
+            if (!data.user.email_confirmed_at) {
+                showError('Please verify your email before signing in. Check your inbox for the verification link.');
+                await supabaseClient.auth.signOut();
+                showLoading(false);
+                return;
+            }
+            
+            // Update last login
+            await supabaseClient
+                .from('users')
+                .update({ last_login: new Date().toISOString() })
+                .eq('id', data.user.id);
+            
+            // Redirect to dashboard
+            window.location.href = '/dashboard.html';
+        }
+    } catch (error) {
+        console.error('Sign in error:', error);
+        showError(error.message || 'Invalid email or password');
+        showLoading(false);
+    }
+}
+
+// Show forgot password prompt
+function showForgotPassword() {
+    const email = prompt('Enter your email address to reset your password:');
+    
+    if (email) {
+        requestPasswordReset(email.trim());
+    }
+}
+
+// Request password reset
+async function requestPasswordReset(email) {
+    if (!email) return;
+    
+    showLoading(true);
+    hideError();
+    
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/reset-password.html`
+        });
+        
+        if (error) throw error;
+        
+        showLoading(false);
+        alert('Password reset link sent! Please check your email.');
+    } catch (error) {
+        console.error('Password reset error:', error);
+        showError(error.message || 'Failed to send reset email');
+        showLoading(false);
+    }
 }
