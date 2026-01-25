@@ -116,7 +116,7 @@ function setupEventListeners() {
     adminBtn.addEventListener('click', () => window.location.href = '/admin.html');
     testSheetBtn.addEventListener('click', testSheetConnection);
     saveSheetBtn.addEventListener('click', saveSheetId);
-    saveSettingsBtn.addEventListener('click', saveUserSettings');
+    saveSettingsBtn.addEventListener('click', saveUserSettings);
 }
 
 // Test sheet connection
