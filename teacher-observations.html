@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Observations - Teacher Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .observations-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .breadcrumb {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .header-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .header-section h1 {
+            margin: 0 0 10px 0;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .observations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .observation-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .observation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .observation-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .badge.preference { background: #ffd4e5; color: #c2185b; }
+        .badge.behavior { background: #d4e5ff; color: #1565c0; }
+        .badge.growth { background: #d4ffd4; color: #2e7d32; }
+        .badge.challenge { background: #ffecd4; color: #ef6c00; }
+        .badge.success { background: #e1f5d1; color: #558b2f; }
+
+        .observation-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .observation-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .observation-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #dfd;
+            color: #060;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Platform Navigation -->
+    <div id="platformNavContainer"></div>
+
+    <div class="observations-container">
+        <div class="breadcrumb">
+            <a href="/teacher-dashboard.html">Teacher Dashboard</a> &gt; Observations
+        </div>
+
+        <div class="header-section">
+            <h1>📝 Observations</h1>
+            <p>Record and track observations about kids' engagement and preferences</p>
+        </div>
+
+        <div id="messageContainer"></div>
+
+        <div class="filter-bar">
+            <select id="kidFilter" onchange="loadObservations()">
+                <option value="">All Kids</option>
+            </select>
+            <select id="typeFilter" onchange="loadObservations()">
+                <option value="">All Types</option>
+                <option value="preference">Preference</option>
+                <option value="behavior">Behavior</option>
+                <option value="growth">Growth</option>
+                <option value="challenge">Challenge</option>
+                <option value="success">Success</option>
+            </select>
+            <button class="btn btn-primary" onclick="openObservationModal()">
+                ➕ Add Observation
+            </button>
+        </div>
+
+        <div id="loadingContainer" class="loading" style="display: none;">
+            Loading observations...
+        </div>
+
+        <div id="observationsContainer" class="observations-list">
+            <!-- Observations will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Add/Edit Observation Modal -->
+    <div id="observationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Observation</h2>
+                <button class="close-btn" onclick="closeObservationModal()">×</button>
+            </div>
+            <form id="observationForm" onsubmit="event.preventDefault(); saveObservation();">
+                <div class="form-group">
+                    <label for="obsKid">Kid *</label>
+                    <select id="obsKid" required>
+                        <option value="">Select a kid...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="obsType">Observation Type *</label>
+                    <select id="obsType" required>
+                        <option value="preference">Preference - About their likes/dislikes</option>
+                        <option value="behavior">Behavior - How they interacted</option>
+                        <option value="growth">Growth - Progress or development</option>
+                        <option value="challenge">Challenge - Difficulty they experienced</option>
+                        <option value="success">Success - Achievement or milestone</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="obsTitle">Title *</label>
+                    <input type="text" id="obsTitle" placeholder="Brief summary..." required>
+                </div>
+                <div class="form-group">
+                    <label for="obsDescription">Description</label>
+                    <textarea id="obsDescription" placeholder="Detailed observation..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="obsDate">Date Observed</label>
+                    <input type="date" id="obsDate" value="">
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="obsVisibleToParent" checked>
+                        <label for="obsVisibleToParent" style="margin: 0;">Visible to parent</label>
+                    </div>
+                    <small style="color: #666;">Uncheck if this is a private note for your records only</small>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeObservationModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Observation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script>
+        // Load platform navigation
+        fetch('platform-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('platformNavContainer').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'platform-nav.js';
+                document.body.appendChild(script);
+                script.onload = () => {
+                    if (window.platformNav) {
+                        window.platformNav.setCurrentApp('teacher-dashboard', 'Teacher Dashboard', '🏫');
+                    }
+                };
+            })
+            .catch(error => console.error('Error loading platform nav:', error));
+    </script>
+    <script src="teacher-observations.js"></script>
+</body>
+</html>
