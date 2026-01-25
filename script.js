@@ -576,78 +576,82 @@ function renderBuiltinCategory(category, activities, preferences) {
     title.innerHTML = `${category.icon} ${category.name}`;
     section.appendChild(title);
     
-    // Group activities by preference level
+    // Group activities by preference level (how much they like it)
     const grouped = {
-        'both': [],
-        'mom': [],
-        'dad': [],
-        'neither': []
+        'drop_anything': [],
+        'sometimes': [],
+        'on_your_own': []
     };
     
     activities.forEach(activity => {
+        const prefLevel = activity.preference_level || 'drop_anything';
         const pref = preferences.find(p => p.activity_id === activity.id);
-        const level = pref ? pref.preference_level : 'both';
-        grouped[level].push(activity);
+        const parentPref = pref ? pref.preference_level : 'both';
+        
+        grouped[prefLevel].push({
+            ...activity,
+            parent_preference: parentPref
+        });
     });
     
-    // Render Both Parents section
-    if (grouped['both'].length > 0) {
-        const bothSection = document.createElement('div');
-        bothSection.className = 'preference-section';
+    // Render Drop Anything section (highest priority)
+    if (grouped['drop_anything'].length > 0) {
+        const dropSection = document.createElement('div');
+        dropSection.className = 'preference-section';
         
-        const bothTitle = document.createElement('div');
-        bothTitle.className = 'preference-title drop-anything';
-        bothTitle.textContent = '💜 Both Parents Love These!';
-        bothSection.appendChild(bothTitle);
+        const dropTitle = document.createElement('div');
+        dropTitle.className = 'preference-title drop-anything';
+        dropTitle.textContent = '💚 Drop Anything - Love to do!';
+        dropSection.appendChild(dropTitle);
         
-        const bothGrid = document.createElement('div');
-        bothGrid.className = 'activities-grid';
-        grouped['both'].forEach(activity => {
-            const card = renderBuiltinActivityCard(activity, 'both');
-            bothGrid.appendChild(card);
+        const dropGrid = document.createElement('div');
+        dropGrid.className = 'activities-grid';
+        grouped['drop_anything'].forEach(activity => {
+            const card = renderBuiltinActivityCard(activity, activity.parent_preference);
+            dropGrid.appendChild(card);
         });
-        bothSection.appendChild(bothGrid);
-        section.appendChild(bothSection);
+        dropSection.appendChild(dropGrid);
+        section.appendChild(dropSection);
     }
     
-    // Render Mom's Favorites
-    if (grouped['mom'].length > 0) {
-        const momSection = document.createElement('div');
-        momSection.className = 'preference-section';
+    // Render Sometimes section
+    if (grouped['sometimes'].length > 0) {
+        const sometimesSection = document.createElement('div');
+        sometimesSection.className = 'preference-section';
         
-        const momTitle = document.createElement('div');
-        momTitle.className = 'preference-title sometimes';
-        momTitle.textContent = '💗 Mom\'s Favorites';
-        momSection.appendChild(momTitle);
+        const sometimesTitle = document.createElement('div');
+        sometimesTitle.className = 'preference-title sometimes';
+        sometimesTitle.textContent = '💛 Sometimes - Sounds fun!';
+        sometimesSection.appendChild(sometimesTitle);
         
-        const momGrid = document.createElement('div');
-        momGrid.className = 'activities-grid';
-        grouped['mom'].forEach(activity => {
-            const card = renderBuiltinActivityCard(activity, 'mom');
-            momGrid.appendChild(card);
+        const sometimesGrid = document.createElement('div');
+        sometimesGrid.className = 'activities-grid';
+        grouped['sometimes'].forEach(activity => {
+            const card = renderBuiltinActivityCard(activity, activity.parent_preference);
+            sometimesGrid.appendChild(card);
         });
-        momSection.appendChild(momGrid);
-        section.appendChild(momSection);
+        sometimesSection.appendChild(sometimesGrid);
+        section.appendChild(sometimesSection);
     }
     
-    // Render Dad's Favorites
-    if (grouped['dad'].length > 0) {
-        const dadSection = document.createElement('div');
-        dadSection.className = 'preference-section';
+    // Render On Your Own section
+    if (grouped['on_your_own'].length > 0) {
+        const ownSection = document.createElement('div');
+        ownSection.className = 'preference-section';
         
-        const dadTitle = document.createElement('div');
-        dadTitle.className = 'preference-title on-your-own';
-        dadTitle.textContent = '💙 Dad\'s Favorites';
-        dadSection.appendChild(dadTitle);
+        const ownTitle = document.createElement('div');
+        ownTitle.className = 'preference-title on-your-own';
+        ownTitle.textContent = '⭐ On Your Own - You can do this!';
+        ownSection.appendChild(ownTitle);
         
-        const dadGrid = document.createElement('div');
-        dadGrid.className = 'activities-grid';
-        grouped['dad'].forEach(activity => {
-            const card = renderBuiltinActivityCard(activity, 'dad');
-            dadGrid.appendChild(card);
+        const ownGrid = document.createElement('div');
+        ownGrid.className = 'activities-grid';
+        grouped['on_your_own'].forEach(activity => {
+            const card = renderBuiltinActivityCard(activity, activity.parent_preference);
+            ownGrid.appendChild(card);
         });
-        dadSection.appendChild(dadGrid);
-        section.appendChild(dadSection);
+        ownSection.appendChild(ownGrid);
+        section.appendChild(ownSection);
     }
     
     return section;

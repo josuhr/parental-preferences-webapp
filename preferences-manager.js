@@ -64,6 +64,15 @@ function setupEventListeners() {
         });
     });
     
+    // Preference level selector buttons
+    document.querySelectorAll('#activityForm .preference-level-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#activityForm .preference-level-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('activityPreferenceLevel').value = btn.dataset.level;
+        });
+    });
+    
     // Import button (placeholder)
     document.getElementById('importBtn').addEventListener('click', () => {
         alert('Import from Google Sheets will be implemented in a future update.\n\nFor now, you can manually create categories and activities here.');
@@ -173,6 +182,14 @@ function createCategoryCard(category, categoryActivities) {
 function createActivityElement(activity) {
     const preference = preferences.find(p => p.activity_id === activity.id);
     const preferenceLevel = preference ? preference.preference_level : 'both';
+    const activityPrefLevel = activity.preference_level || 'drop_anything';
+    
+    // Get preference level badge
+    const prefLevelBadge = {
+        'drop_anything': '💚 Drop Anything',
+        'sometimes': '💛 Sometimes',
+        'on_your_own': '⭐ On Your Own'
+    }[activityPrefLevel];
     
     const div = document.createElement('div');
     div.className = 'activity-item';
@@ -180,6 +197,7 @@ function createActivityElement(activity) {
     div.innerHTML = `
         <div class="activity-info">
             <div class="activity-name">${activity.name}</div>
+            <div style="font-size: 11px; color: #888; margin-top: 2px;">${prefLevelBadge}</div>
             ${activity.description ? `<div class="activity-description">${activity.description}</div>` : ''}
         </div>
         <div class="preference-selector">
@@ -381,6 +399,11 @@ function openActivityModal(categoryId, activityId = null) {
     document.querySelector('#activityForm .preference-btn[data-level="both"]').classList.add('active');
     document.getElementById('activityPreference').value = 'both';
     
+    // Reset preference level buttons
+    document.querySelectorAll('#activityForm .preference-level-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('#activityForm .preference-level-btn[data-level="drop_anything"]').classList.add('active');
+    document.getElementById('activityPreferenceLevel').value = 'drop_anything';
+    
     if (activityId) {
         title.textContent = 'Edit Activity';
         const activity = activities.find(a => a.id === activityId);
@@ -390,6 +413,13 @@ function openActivityModal(categoryId, activityId = null) {
             document.getElementById('activityName').value = activity.name;
             document.getElementById('activityDescription').value = activity.description || '';
             
+            // Set preference level
+            const prefLevel = activity.preference_level || 'drop_anything';
+            document.querySelectorAll('#activityForm .preference-level-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`#activityForm .preference-level-btn[data-level="${prefLevel}"]`).classList.add('active');
+            document.getElementById('activityPreferenceLevel').value = prefLevel;
+            
+            // Set parent preference
             if (preference) {
                 const level = preference.preference_level;
                 document.querySelectorAll('#activityForm .preference-btn').forEach(b => b.classList.remove('active'));
@@ -418,6 +448,7 @@ async function saveActivity() {
         const description = document.getElementById('activityDescription').value.trim();
         const categoryId = document.getElementById('activityCategoryId').value;
         const preferenceLevel = document.getElementById('activityPreference').value;
+        const activityPrefLevel = document.getElementById('activityPreferenceLevel').value;
         
         if (!name) {
             showError('Please enter an activity name');
@@ -428,7 +459,12 @@ async function saveActivity() {
             // Update existing activity
             const { error: actError } = await supabaseClient
                 .from('activities')
-                .update({ name, description, updated_at: new Date().toISOString() })
+                .update({ 
+                    name, 
+                    description, 
+                    preference_level: activityPrefLevel,
+                    updated_at: new Date().toISOString() 
+                })
                 .eq('id', editingActivityId);
             
             if (actError) throw actError;
@@ -437,6 +473,7 @@ async function saveActivity() {
             if (activity) {
                 activity.name = name;
                 activity.description = description;
+                activity.preference_level = activityPrefLevel;
             }
             
             // Update preference
@@ -451,6 +488,7 @@ async function saveActivity() {
                     category_id: categoryId,
                     name,
                     description,
+                    preference_level: activityPrefLevel,
                     sort_order: categoryActivities.length
                 })
                 .select()

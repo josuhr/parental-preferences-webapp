@@ -202,6 +202,43 @@
             color: #424242;
         }
 
+        .preference-level-btn {
+            padding: 6px 12px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .preference-level-btn:hover {
+            border-color: #1976d2;
+        }
+
+        .preference-level-btn.active {
+            font-weight: 600;
+            border-width: 2px;
+        }
+
+        .preference-level-btn[data-level="drop_anything"].active {
+            background: #c8e6c9;
+            border-color: #4caf50;
+            color: #1b5e20;
+        }
+
+        .preference-level-btn[data-level="sometimes"].active {
+            background: #fff9c4;
+            border-color: #ffeb3b;
+            color: #f57f17;
+        }
+
+        .preference-level-btn[data-level="on_your_own"].active {
+            background: #fff3e0;
+            border-color: #ff9800;
+            color: #e65100;
+        }
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -466,6 +503,15 @@
                         <button type="button" class="preference-btn" data-level="neither">⚪ Neither</button>
                     </div>
                     <input type="hidden" id="activityPreference" value="both" />
+                </div>
+                <div class="form-group">
+                    <label>How much do they like it?</label>
+                    <div class="preference-selector">
+                        <button type="button" class="preference-level-btn active" data-level="drop_anything">💚 Drop Anything</button>
+                        <button type="button" class="preference-level-btn" data-level="sometimes">💛 Sometimes</button>
+                        <button type="button" class="preference-level-btn" data-level="on_your_own">⭐ On Your Own</button>
+                    </div>
+                    <input type="hidden" id="activityPreferenceLevel" value="drop_anything" />
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeActivityModal()">Cancel</button>
