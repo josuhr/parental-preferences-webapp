@@ -2,7 +2,7 @@
 let currentUserId = null;
 let rules = {};
 let hasChanges = false;
-let supabase = null;
+let supabaseClient = null;
 
 // Preset configurations
 const presets = {
@@ -59,7 +59,7 @@ const ruleMapping = {
 document.addEventListener('DOMContentLoaded', async () => {
     // Get Supabase client
     await window.supabaseUtils.initSupabase();
-    supabase = window.supabaseUtils.getClient();
+    supabaseClient = window.supabaseUtils.getClient();
     
     await loadPlatformNav();
     await checkAuth();

@@ -2,13 +2,13 @@
 let currentKidId = null;
 let currentContext = {};
 let recommendations = [];
-let supabase = null;
+let supabaseClient = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     // Get Supabase client
     await window.supabaseUtils.initSupabase();
-    supabase = window.supabaseUtils.getClient();
+    supabaseClient = window.supabaseUtils.getClient();
     
     await loadPlatformNav();
     await checkAuth();
@@ -125,7 +125,7 @@ async function loadRecommendations() {
     
     try {
         // Call the get_recommendations_for_kid function
-        const { data, error } = await supabase.rpc('get_recommendations_for_kid', {
+        const { data, error } = await supabaseClient.rpc('get_recommendations_for_kid', {
             p_kid_id: currentKidId,
             p_context_json: currentContext,
             p_limit: 20
@@ -288,7 +288,7 @@ async function handleRecommendationAction(e) {
     
     try {
         // Record feedback
-        const { error } = await supabase.rpc('record_recommendation_feedback', {
+        const { error } = await supabaseClient.rpc('record_recommendation_feedback', {
             p_kid_id: currentKidId,
             p_activity_id: activityId,
             p_action: action,
