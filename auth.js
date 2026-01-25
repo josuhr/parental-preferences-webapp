@@ -15,18 +15,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     
-    // Check if user is already logged in
+    // IMPORTANT: Check for OAuth callback FIRST before checking if logged in
+    // This ensures user record is created before redirecting to dashboard
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    if (hashParams.get('access_token')) {
+        console.log('OAuth callback detected - processing...');
+        await handleOAuthCallback();
+        return; // handleOAuthCallback will redirect to dashboard
+    }
+    
+    // Check if user is already logged in (no OAuth callback in progress)
     const user = await window.supabaseUtils.getCurrentUser();
     if (user) {
+        console.log('User already logged in, redirecting to dashboard');
         // User is logged in, redirect to dashboard
         window.location.href = '/dashboard.html';
         return;
-    }
-    
-    // Check for OAuth callback
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    if (hashParams.get('access_token')) {
-        handleOAuthCallback();
     }
     
     // Set up sign-in button
