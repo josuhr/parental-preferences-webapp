@@ -22,6 +22,22 @@
                 <button id="adminBtn" class="btn btn-help" style="display: none;">🛡️ Admin</button>
             </div>
         </div>
+        <div class="data-source-switcher" style="margin-bottom: 15px; padding: 12px; background: #f5f5f5; border-radius: 8px;">
+            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                <label style="font-weight: 600; color: #555;">📊 Data Source:</label>
+                <div style="display: flex; gap: 10px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="dataSource" value="sheets" id="sourceSheets" checked>
+                        <span>Google Sheets</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="dataSource" value="builtin" id="sourceBuiltin">
+                        <span>Built-in Preferences</span>
+                    </label>
+                </div>
+                <button id="managePrefsBtn" class="btn btn-secondary" style="display: none;">✏️ Manage Preferences</button>
+            </div>
+        </div>
         <div class="controls">
             <button id="refreshBtn" class="btn btn-primary">🔄 Refresh Data</button>
             <button id="printBtn" class="btn btn-secondary">🖨️ Print</button>

@@ -44,6 +44,12 @@ const helpBtn = document.getElementById('helpBtn');
 const helpSection = document.getElementById('help');
 const dashboardBtn = document.getElementById('dashboardBtn');
 const adminBtn = document.getElementById('adminBtn');
+const sourceSheets = document.getElementById('sourceSheets');
+const sourceBuiltin = document.getElementById('sourceBuiltin');
+const managePrefsBtn = document.getElementById('managePrefsBtn');
+
+// Data source state
+let currentDataSource = 'sheets';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -75,6 +81,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     dashboardBtn.addEventListener('click', () => window.location.href = '/dashboard.html');
     adminBtn.addEventListener('click', () => window.location.href = '/admin.html');
+    managePrefsBtn.addEventListener('click', () => window.location.href = '/preferences-manager.html');
+    
+    // Data source switcher
+    sourceSheets.addEventListener('change', () => {
+        if (sourceSheets.checked) {
+            currentDataSource = 'sheets';
+            managePrefsBtn.style.display = 'none';
+            loadData();
+        }
+    });
+    
+    sourceBuiltin.addEventListener('change', () => {
+        if (sourceBuiltin.checked) {
+            currentDataSource = 'builtin';
+            managePrefsBtn.style.display = 'inline-block';
+            loadData();
+        }
+    });
     
     // Load activities
     loadData();
@@ -470,6 +494,199 @@ function renderCategory(categoryName, activities) {
 
 // Load and render all data
 async function loadData() {
+    if (currentDataSource === 'sheets') {
+        await loadDataFromSheets();
+    } else {
+        await loadDataFromBuiltin();
+    }
+}
+
+// Load data from built-in preferences
+async function loadDataFromBuiltin() {
+    showLoading(true);
+    categoriesEl.innerHTML = '';
+    
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        // Load categories
+        const { data: categories, error: catError } = await supabaseClient
+            .from('activity_categories')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .order('sort_order', { ascending: true });
+        
+        if (catError) throw catError;
+        
+        if (!categories || categories.length === 0) {
+            categoriesEl.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📋</div>
+                    <h2 style="color: #666; margin-bottom: 10px;">No Preferences Yet</h2>
+                    <p style="color: #999; margin-bottom: 20px;">Create your first category to get started!</p>
+                    <button onclick="window.location.href='/preferences-manager.html'" class="btn btn-primary">
+                        ✏️ Manage Preferences
+                    </button>
+                </div>
+            `;
+            showLoading(false);
+            return;
+        }
+        
+        // Load all activities and preferences
+        const { data: activities, error: actError } = await supabaseClient
+            .from('activities')
+            .select('*')
+            .order('sort_order', { ascending: true });
+        
+        if (actError) throw actError;
+        
+        const { data: preferences, error: prefError } = await supabaseClient
+            .from('parent_preferences')
+            .select('*')
+            .eq('user_id', currentUser.id);
+        
+        if (prefError) throw prefError;
+        
+        // Render each category
+        categories.forEach(category => {
+            const categoryActivities = activities.filter(a => a.category_id === category.id);
+            if (categoryActivities.length > 0) {
+                const section = renderBuiltinCategory(category, categoryActivities, preferences);
+                categoriesEl.appendChild(section);
+            }
+        });
+        
+        showLoading(false);
+        
+    } catch (error) {
+        showLoading(false);
+        showError('Failed to load built-in preferences: ' + error.message);
+        console.error('Error loading built-in data:', error);
+    }
+}
+
+// Render built-in category
+function renderBuiltinCategory(category, activities, preferences) {
+    const section = document.createElement('div');
+    section.className = 'category-section';
+    
+    const title = document.createElement('h2');
+    title.className = 'category-title';
+    title.innerHTML = `${category.icon} ${category.name}`;
+    section.appendChild(title);
+    
+    // Group activities by preference level
+    const grouped = {
+        'both': [],
+        'mom': [],
+        'dad': [],
+        'neither': []
+    };
+    
+    activities.forEach(activity => {
+        const pref = preferences.find(p => p.activity_id === activity.id);
+        const level = pref ? pref.preference_level : 'both';
+        grouped[level].push(activity);
+    });
+    
+    // Render Both Parents section
+    if (grouped['both'].length > 0) {
+        const bothSection = document.createElement('div');
+        bothSection.className = 'preference-section';
+        
+        const bothTitle = document.createElement('div');
+        bothTitle.className = 'preference-title drop-anything';
+        bothTitle.textContent = '💜 Both Parents Love These!';
+        bothSection.appendChild(bothTitle);
+        
+        const bothGrid = document.createElement('div');
+        bothGrid.className = 'activities-grid';
+        grouped['both'].forEach(activity => {
+            const card = renderBuiltinActivityCard(activity, 'both');
+            bothGrid.appendChild(card);
+        });
+        bothSection.appendChild(bothGrid);
+        section.appendChild(bothSection);
+    }
+    
+    // Render Mom's Favorites
+    if (grouped['mom'].length > 0) {
+        const momSection = document.createElement('div');
+        momSection.className = 'preference-section';
+        
+        const momTitle = document.createElement('div');
+        momTitle.className = 'preference-title sometimes';
+        momTitle.textContent = '💗 Mom\'s Favorites';
+        momSection.appendChild(momTitle);
+        
+        const momGrid = document.createElement('div');
+        momGrid.className = 'activities-grid';
+        grouped['mom'].forEach(activity => {
+            const card = renderBuiltinActivityCard(activity, 'mom');
+            momGrid.appendChild(card);
+        });
+        momSection.appendChild(momGrid);
+        section.appendChild(momSection);
+    }
+    
+    // Render Dad's Favorites
+    if (grouped['dad'].length > 0) {
+        const dadSection = document.createElement('div');
+        dadSection.className = 'preference-section';
+        
+        const dadTitle = document.createElement('div');
+        dadTitle.className = 'preference-title on-your-own';
+        dadTitle.textContent = '💙 Dad\'s Favorites';
+        dadSection.appendChild(dadTitle);
+        
+        const dadGrid = document.createElement('div');
+        dadGrid.className = 'activities-grid';
+        grouped['dad'].forEach(activity => {
+            const card = renderBuiltinActivityCard(activity, 'dad');
+            dadGrid.appendChild(card);
+        });
+        dadSection.appendChild(dadGrid);
+        section.appendChild(dadSection);
+    }
+    
+    return section;
+}
+
+// Render built-in activity card
+function renderBuiltinActivityCard(activity, preferenceLevel) {
+    const parentInfo = getParentInfoFromLevel(preferenceLevel);
+    
+    const card = document.createElement('div');
+    card.className = 'activity-card';
+    
+    card.innerHTML = `
+        <div class="activity-name">${activity.name}</div>
+        ${activity.description ? `<div style="font-size: 12px; color: #666; margin-top: 4px;">${activity.description}</div>` : ''}
+        <div class="parent-info">
+            <div class="parent-badge ${parentInfo.class}">
+                <span class="parent-emoji">${parentInfo.emoji}</span>
+                <span>${parentInfo.text}</span>
+            </div>
+        </div>
+    `;
+    
+    return card;
+}
+
+// Get parent info from preference level
+function getParentInfoFromLevel(level) {
+    const mapping = {
+        'both': { emoji: '👩👨', text: 'Mom & Dad', class: 'both' },
+        'mom': { emoji: '👩', text: 'Mom', class: 'mom' },
+        'dad': { emoji: '👨', text: 'Dad', class: 'dad' },
+        'neither': { emoji: '⭐', text: 'On Your Own', class: 'independent' }
+    };
+    return mapping[level] || mapping['both'];
+}
+
+// Load data from Google Sheets (original implementation)
+async function loadDataFromSheets() {
     showLoading(true);
     categoriesEl.innerHTML = '';
     
