@@ -47,7 +47,7 @@ async function loadKids() {
     try {
         const user = await window.supabaseUtils.getCurrentUser();
         
-        const { data: kids, error } = await supabase
+        const { data: kids, error } = await supabaseClient
             .from('kids')
             .select('*')
             .eq('parent_id', user.id)
