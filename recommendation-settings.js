@@ -1,9 +1,8 @@
-import { supabase } from './supabase-config.js';
-
 // State
 let currentUserId = null;
 let rules = {};
 let hasChanges = false;
+let supabase = null;
 
 // Preset configurations
 const presets = {
@@ -58,6 +57,10 @@ const ruleMapping = {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+    // Get Supabase client
+    await window.supabaseUtils.initSupabase();
+    supabase = window.supabaseUtils.getClient();
+    
     await loadPlatformNav();
     await checkAuth();
     await loadSettings();
@@ -81,7 +84,7 @@ async function loadPlatformNav() {
 
 // Check authentication
 async function checkAuth() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await window.supabaseUtils.getCurrentUser();
     
     if (!user) {
         window.location.href = 'auth.html';
@@ -266,4 +269,4 @@ window.addEventListener('beforeunload', (e) => {
     }
 });
 
-export { applyPreset, saveSettings };
+// No ES6 exports - using global scope for compatibility

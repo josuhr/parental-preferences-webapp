@@ -1,12 +1,15 @@
-import { supabase } from './supabase-config.js';
-
 // State
 let currentKidId = null;
 let currentContext = {};
 let recommendations = [];
+let supabase = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
+    // Get Supabase client
+    await window.supabaseUtils.initSupabase();
+    supabase = window.supabaseUtils.getClient();
+    
     await loadPlatformNav();
     await checkAuth();
     await loadKids();
@@ -31,7 +34,7 @@ async function loadPlatformNav() {
 
 // Check authentication
 async function checkAuth() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await window.supabaseUtils.getCurrentUser();
     
     if (!user) {
         window.location.href = 'auth.html';
@@ -42,7 +45,7 @@ async function checkAuth() {
 // Load kids
 async function loadKids() {
     try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const user = await window.supabaseUtils.getCurrentUser();
         
         const { data: kids, error } = await supabase
             .from('kids')
@@ -324,4 +327,5 @@ async function handleRecommendationAction(e) {
 }
 
 // Export for use in other modules if needed
-export { loadRecommendations, currentKidId };
+// (Keep for backwards compatibility but note: no ES6 exports used)
+// export { loadRecommendations, currentKidId };
