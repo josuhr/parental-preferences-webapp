@@ -2,35 +2,31 @@
 -- Register the recommendations app in the platform
 
 -- Register recommendations app
-INSERT INTO public.apps (name, description, url, icon, category, is_active, sort_order)
+INSERT INTO public.apps (slug, name, description, icon, is_active)
 VALUES (
+    'recommendations',
     'Activity Recommendations',
     'Get personalized activity recommendations based on preferences, similar kids, and context',
-    'recommendations.html',
     '✨',
-    'features',
-    true,
-    6
+    true
 )
-ON CONFLICT (name) DO UPDATE SET
+ON CONFLICT (slug) DO UPDATE SET
+    name = EXCLUDED.name,
     description = EXCLUDED.description,
-    url = EXCLUDED.url,
     icon = EXCLUDED.icon,
     is_active = EXCLUDED.is_active;
 
 -- Register recommendation settings app
-INSERT INTO public.apps (name, description, url, icon, category, is_active, sort_order)
+INSERT INTO public.apps (slug, name, description, icon, is_active)
 VALUES (
+    'recommendation-settings',
     'Recommendation Settings',
     'Customize how recommendations are generated for your family',
-    'recommendation-settings.html',
     '⚙️',
-    'settings',
-    true,
-    7
+    true
 )
-ON CONFLICT (name) DO UPDATE SET
+ON CONFLICT (slug) DO UPDATE SET
+    name = EXCLUDED.name,
     description = EXCLUDED.description,
-    url = EXCLUDED.url,
     icon = EXCLUDED.icon,
     is_active = EXCLUDED.is_active;
