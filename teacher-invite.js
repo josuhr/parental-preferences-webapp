@@ -126,7 +126,13 @@ async function acceptInvitation() {
             }
         });
         
-        if (signUpError) throw signUpError;
+        if (signUpError) {
+            // Handle rate limit error specifically
+            if (signUpError.message && signUpError.message.includes('rate limit')) {
+                throw new Error('Too many signup attempts. Please wait a few minutes and try again, or contact the person who invited you.');
+            }
+            throw signUpError;
+        }
         
         if (!authData.user) {
             throw new Error('Failed to create account');
