@@ -150,6 +150,9 @@ function createKidCard(kid) {
             <button class="btn btn-primary btn-small" onclick="managePreferences('${kid.id}')">
                 ✏️ Preferences
             </button>
+            <button class="btn btn-secondary btn-small" onclick="manageAccess('${kid.id}')">
+                👥 Teachers
+            </button>
             <button class="btn btn-secondary btn-small" onclick="editKid('${kid.id}')">
                 Edit
             </button>
@@ -309,6 +312,11 @@ async function deleteKid(kidId) {
 function managePreferences(kidId) {
     // Navigate to kid preferences manager
     window.location.href = `/kid-preferences-manager.html?kid=${kidId}`;
+}
+
+// Manage teacher access for a kid
+function manageAccess(kidId) {
+    window.location.href = `/kid-access-management.html?kid=${kidId}`;
 }
 
 // Render avatar picker

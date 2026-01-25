@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Teacher Access - Kid Preferences</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .access-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .breadcrumb {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .kid-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .kid-header .avatar {
+            font-size: 4rem;
+        }
+
+        .kid-header h1 {
+            margin: 0 0 5px 0;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            margin: 0 0 20px 0;
+            color: #333;
+        }
+
+        .grant-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .grant-form input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .grant-form select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .access-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .access-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .access-info {
+            flex: 1;
+        }
+
+        .access-info .teacher-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .access-info .teacher-email {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .access-info .access-details {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .badge.approved {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge.pending {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .badge.denied {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .badge.view {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .badge.comment {
+            background: #fbb6ce;
+            color: #702459;
+        }
+
+        .badge.full {
+            background: #fed7e2;
+            color: #702459;
+        }
+
+        .access-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-revoke {
+            background: #fc8181;
+            color: white;
+        }
+
+        .btn-revoke:hover {
+            background: #f56565;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .message.success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .message.error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+    </style>
+</head>
+<body>
+    <!-- Platform Navigation -->
+    <div id="platformNavContainer"></div>
+
+    <div class="access-container">
+        <div class="breadcrumb">
+            <a href="/kid-prefs.html">Kid Preferences</a> &gt; Manage Teacher Access
+        </div>
+
+        <div class="kid-header">
+            <div class="avatar" id="kidAvatar">👶</div>
+            <div>
+                <h1 id="kidName">Loading...</h1>
+                <p style="margin: 0;">Manage which teachers can view this kid's preferences</p>
+            </div>
+        </div>
+
+        <div id="messageContainer"></div>
+
+        <div class="section">
+            <h2>🎓 Grant Teacher Access</h2>
+            <p style="color: #666; margin-bottom: 20px;">Enter a teacher's email address to grant them access to <span id="kidNameInline">this kid's</span> preferences.</p>
+            
+            <div class="grant-form">
+                <input 
+                    type="email" 
+                    id="teacherEmail" 
+                    placeholder="teacher@example.com"
+                    required
+                >
+                <select id="accessLevel">
+                    <option value="view">View Only</option>
+                    <option value="comment">View & Comment</option>
+                    <option value="full">Full Access</option>
+                </select>
+                <button class="btn btn-primary" onclick="grantAccess()">
+                    ✅ Grant Access
+                </button>
+            </div>
+
+            <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; font-size: 0.9rem;">
+                <strong>Access Levels:</strong>
+                <ul style="margin: 10px 0 0 20px; color: #666;">
+                    <li><strong>View Only:</strong> Teacher can see preferences but not add observations</li>
+                    <li><strong>View & Comment:</strong> Teacher can view preferences and add observations</li>
+                    <li><strong>Full Access:</strong> Teacher has complete access (future features)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>👥 Current Access</h2>
+            <div id="accessListContainer">
+                <div style="text-align: center; padding: 20px; color: #666;">
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script>
+        // Load platform navigation
+        fetch('platform-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('platformNavContainer').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'platform-nav.js';
+                document.body.appendChild(script);
+                script.onload = () => {
+                    if (window.platformNav) {
+                        window.platformNav.setCurrentApp('kid-prefs', 'Kid Preferences', '👶');
+                    }
+                };
+            })
+            .catch(error => console.error('Error loading platform nav:', error));
+    </script>
+    <script src="kid-access-management.js"></script>
+</body>
+</html>
