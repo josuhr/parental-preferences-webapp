@@ -49,9 +49,13 @@ exports.handler = async (event, context) => {
         // Initialize Resend
         const resend = new Resend(process.env.RESEND_API_KEY);
         
+        // Determine from address
+        // If no custom from email is set, or if domain verification fails, use Resend's test domain
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+        
         // Send email
         const { data, error } = await resend.emails.send({
-            from: process.env.RESEND_FROM_EMAIL || 'Carer Support <onboarding@resend.dev>',
+            from: fromEmail,
             to: email,
             subject: `${inviterName} invited you to Carer Support Platform`,
             html: `
@@ -106,6 +110,21 @@ exports.handler = async (event, context) => {
         
         if (error) {
             console.error('Resend error:', error);
+            
+            // If domain verification error, return URL for manual sharing
+            if (error.statusCode === 403 && error.name === 'validation_error') {
+                console.log('Domain not verified. Returning invite URL for manual sharing.');
+                return {
+                    statusCode: 200,
+                    body: JSON.stringify({
+                        success: true,
+                        message: 'Invitation created successfully',
+                        inviteUrl: inviteUrl,
+                        note: 'Domain not verified. Please share this invitation link manually, or verify your domain at resend.com/domains'
+                    })
+                };
+            }
+            
             throw error;
         }
         
