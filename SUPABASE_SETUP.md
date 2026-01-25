@@ -107,6 +107,117 @@ SET role = 'admin'
 WHERE email = 'your-email@gmail.com';
 ```
 
+## Troubleshooting
+
+### Issue: User Stuck on "Loading..." After Sign-In
+
+If a new user signs in successfully but gets stuck on the dashboard showing "Loading..." or sees "Account Setup Error", their user record was not automatically created in the database.
+
+**Symptoms:**
+- User can sign in with Google OAuth
+- Redirects to dashboard
+- Dashboard shows "Loading..." that never completes, or shows "Account Setup Error"
+- Console shows error: "User profile not found in database"
+
+**Solution: Manually Create User Record**
+
+1. Get the user's information:
+   - Email: (they should provide this)
+   - User ID: Check browser console for the error message showing the User ID
+   - OR have them visit the dashboard and check the console logs
+
+2. Run this SQL in Supabase SQL Editor:
+
+```sql
+-- First, find the user's auth ID
+-- Have the user visit the site and check their browser console for "User ID: xxx"
+-- OR query the auth.users table:
+SELECT id, email FROM auth.users WHERE email = 'user-email@example.com';
+
+-- Then insert the user record (replace values):
+INSERT INTO public.users (id, email, display_name, google_id, role, is_active, created_at, last_login)
+VALUES (
+    'USER_AUTH_ID_HERE',           -- From auth.users or console
+    'user-email@example.com',      -- Their actual email
+    'Display Name',                -- Their name or email username
+    'USER_AUTH_ID_HERE',           -- Same as id above
+    'user',                        -- Role: 'user' or 'admin'
+    true,                          -- Active status
+    NOW(),                         -- Created timestamp
+    NOW()                          -- Last login timestamp
+)
+ON CONFLICT (id) DO UPDATE
+SET last_login = NOW();
+```
+
+3. Example with real values:
+
+```sql
+INSERT INTO public.users (id, email, display_name, google_id, role, is_active, created_at, last_login)
+VALUES (
+    'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    'laura.suhr@gmail.com',
+    'Laura Suhr',
+    'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    'user',
+    true,
+    NOW(),
+    NOW()
+);
+```
+
+4. After running this SQL:
+   - Have the user refresh the dashboard page
+   - They should now see their profile loaded correctly
+
+### Issue: User Creation Fails During Sign-Up
+
+If the INSERT policy is preventing automatic user creation:
+
+1. Verify the INSERT policy exists:
+
+```sql
+-- Check existing policies on users table
+SELECT * FROM pg_policies WHERE tablename = 'users';
+```
+
+2. If the INSERT policy is missing, create it:
+
+```sql
+CREATE POLICY "Allow user creation during sign-up"
+    ON public.users FOR INSERT
+    TO authenticated
+    WITH CHECK (auth.uid() = id);
+```
+
+3. Verify RLS is enabled:
+
+```sql
+-- Check if RLS is enabled on users table
+SELECT tablename, rowsecurity 
+FROM pg_tables 
+WHERE schemaname = 'public' AND tablename = 'users';
+```
+
+### Issue: Cannot Find User's Auth ID
+
+If you need to find a user's auth ID to create their record:
+
+1. Have the user sign in and visit the dashboard
+2. Open browser console (F12 or Right-click → Inspect → Console)
+3. Look for the error message that includes their User ID
+4. OR run this query in Supabase SQL Editor:
+
+```sql
+-- List all auth users not in the users table
+SELECT au.id, au.email, au.created_at
+FROM auth.users au
+LEFT JOIN public.users pu ON au.id = pu.id
+WHERE pu.id IS NULL;
+```
+
+This will show all authenticated Google users who don't have a record in the public.users table.
+
 ## Complete!
 
 Your Supabase backend is now configured. The app will automatically connect using the environment variables.

@@ -49,16 +49,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Load user data
 async function loadUserData() {
     try {
+        console.log('Loading user data for:', currentUser.email, 'ID:', currentUser.id);
+        
         // Get user profile
         userProfile = await window.supabaseUtils.getUserProfile(currentUser.id);
         
         if (!userProfile) {
-            showError('Failed to load user profile');
+            console.error('User profile not found in database for:', currentUser.email);
+            
+            // Update UI to show error state instead of "Loading..."
+            userName.textContent = 'Account Setup Error';
+            userName.style.color = '#c62828';
+            userEmail.textContent = currentUser.email;
+            userAvatar.textContent = '⚠️';
+            userAvatar.style.background = '#ffebee';
+            
+            // Show detailed error with instructions
+            const errorMsg = `Your account (${currentUser.email}) was authenticated but not found in the database.\n\n` +
+                           `This may happen if you just signed up. Please contact the administrator with this information:\n\n` +
+                           `Email: ${currentUser.email}\n` +
+                           `User ID: ${currentUser.id}\n\n` +
+                           `The administrator can create your account manually.`;
+            
+            showError(errorMsg);
+            
+            // Disable all action buttons except sign out
+            if (testSheetBtn) testSheetBtn.disabled = true;
+            if (saveSheetBtn) saveSheetBtn.disabled = true;
+            if (saveSettingsBtn) saveSettingsBtn.disabled = true;
+            
             return;
         }
         
+        console.log('User profile loaded successfully:', userProfile);
+        
         // Get user settings
         userSettings = await window.supabaseUtils.getUserSettings(currentUser.id);
+        console.log('User settings loaded:', userSettings);
         
         // Update UI
         updateUserInfo();
@@ -71,7 +98,14 @@ async function loadUserData() {
         }
     } catch (error) {
         console.error('Error loading user data:', error);
-        showError('Failed to load user data');
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        
+        // Update UI to show error state
+        userName.textContent = 'Error Loading Profile';
+        userName.style.color = '#c62828';
+        userEmail.textContent = currentUser.email;
+        
+        showError(`Failed to load user data: ${error.message || 'Unknown error'}`);
     }
 }
 
@@ -237,9 +271,16 @@ function showError(message) {
     if (errorEl) {
         errorEl.textContent = message;
         errorEl.style.display = 'block';
-        setTimeout(() => {
-            errorEl.style.display = 'none';
-        }, 5000);
+        errorEl.style.whiteSpace = 'pre-wrap'; // Support multiline
+        errorEl.style.padding = '20px';
+        errorEl.style.marginTop = '20px';
+        errorEl.style.background = '#ffebee';
+        errorEl.style.color = '#c62828';
+        errorEl.style.borderRadius = '10px';
+        errorEl.style.maxWidth = '100%';
+        errorEl.style.fontSize = '0.95rem';
+        errorEl.style.lineHeight = '1.6';
+        // Don't auto-hide - let user read the full message
     } else {
         alert(message);
     }

@@ -40,7 +40,9 @@ CREATE POLICY "Authenticated users can view all users"
     TO authenticated
     USING (true);
 
--- Allow anon users to insert (needed for OAuth sign-up)
+-- Allow authenticated users to insert their own user record during OAuth sign-up
+-- This policy requires that the user's auth.uid() matches the id being inserted
+-- This ensures users can only create records for themselves during sign-up
 CREATE POLICY "Allow user creation during sign-up"
     ON public.users FOR INSERT
     TO authenticated
