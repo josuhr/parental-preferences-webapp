@@ -47,9 +47,14 @@ const adminBtn = document.getElementById('adminBtn');
 const sourceSheets = document.getElementById('sourceSheets');
 const sourceBuiltin = document.getElementById('sourceBuiltin');
 const managePrefsBtn = document.getElementById('managePrefsBtn');
+const viewByLevel = document.getElementById('viewByLevel');
+const viewByWho = document.getElementById('viewByWho');
 
 // Data source state (load from localStorage or default to sheets)
 let currentDataSource = localStorage.getItem('preferredDataSource') || 'sheets';
+
+// View mode state (load from localStorage or default to 'level')
+let currentViewMode = localStorage.getItem('preferredViewMode') || 'level';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -102,6 +107,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
     
+    // View mode switcher
+    viewByLevel.addEventListener('change', () => {
+        if (viewByLevel.checked) {
+            currentViewMode = 'level';
+            localStorage.setItem('preferredViewMode', 'level');
+            loadData();
+        }
+    });
+    
+    viewByWho.addEventListener('change', () => {
+        if (viewByWho.checked) {
+            currentViewMode = 'who';
+            localStorage.setItem('preferredViewMode', 'who');
+            loadData();
+        }
+    });
+    
     // Set initial state from localStorage
     if (currentDataSource === 'builtin') {
         sourceBuiltin.checked = true;
@@ -111,6 +133,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         sourceSheets.checked = true;
         sourceBuiltin.checked = false;
         managePrefsBtn.style.display = 'none';
+    }
+    
+    // Set initial view mode from localStorage
+    if (currentViewMode === 'who') {
+        viewByWho.checked = true;
+        viewByLevel.checked = false;
+    } else {
+        viewByLevel.checked = true;
+        viewByWho.checked = false;
     }
     
     // Load activities
@@ -493,18 +524,127 @@ function renderCategory(categoryName, activities) {
     title.textContent = categoryName;
     section.appendChild(title);
     
-    // Group activities by preference level
-    const grouped = groupByPreference(activities);
+    if (currentViewMode === 'level') {
+        // Group activities by preference level
+        const grouped = groupByPreference(activities);
+        
+        // Render each preference level in order
+        ['Drop Anything', 'Sometimes', 'On Your Own'].forEach(pref => {
+            const prefSection = renderPreferenceSection(pref, grouped[pref]);
+            if (prefSection) {
+                section.appendChild(prefSection);
+            }
+        });
+    } else {
+        // Group activities by who likes them
+        const grouped = groupByCaregiver(activities);
+        
+        // Render each caregiver group
+        ['both', 'mom', 'dad', 'neither'].forEach(who => {
+            const whoSection = renderCaregiverSection(who, grouped[who]);
+            if (whoSection) {
+                section.appendChild(whoSection);
+            }
+        });
+    }
     
-    // Render each preference level in order
-    ['Drop Anything', 'Sometimes', 'On Your Own'].forEach(pref => {
-        const prefSection = renderPreferenceSection(pref, grouped[pref]);
-        if (prefSection) {
-            section.appendChild(prefSection);
+    return section;
+}
+
+// Group activities by caregiver for sheets
+function groupByCaregiver(activities) {
+    const groups = {
+        'both': [],
+        'mom': [],
+        'dad': [],
+        'neither': []
+    };
+    
+    activities.forEach(activity => {
+        const parentInfo = getParentInfo(activity.parent);
+        const caregiverClass = parentInfo.class;
+        
+        // Map classes to groups
+        if (caregiverClass === 'both') {
+            groups['both'].push(activity);
+        } else if (caregiverClass === 'mom') {
+            groups['mom'].push(activity);
+        } else if (caregiverClass === 'dad') {
+            groups['dad'].push(activity);
+        } else {
+            groups['neither'].push(activity);
         }
     });
     
+    return groups;
+}
+
+// Render caregiver section for sheets
+function renderCaregiverSection(caregiver, activities) {
+    if (activities.length === 0) return null;
+    
+    const bothLabel = userSettings?.both_label || 'Both';
+    const bothEmoji = userSettings?.both_emoji || '💜';
+    const caregiver1Label = userSettings?.caregiver1_label || 'Mom';
+    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
+    const caregiver2Label = userSettings?.caregiver2_label || 'Dad';
+    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
+    
+    const caregiverInfo = {
+        'both': { emoji: bothEmoji, text: bothLabel, class: 'both' },
+        'mom': { emoji: caregiver1Emoji, text: caregiver1Label, class: 'mom' },
+        'dad': { emoji: caregiver2Emoji, text: caregiver2Label, class: 'dad' },
+        'neither': { emoji: '⭐', text: 'On Your Own', class: 'independent' }
+    };
+    
+    const info = caregiverInfo[caregiver];
+    
+    const section = document.createElement('div');
+    section.className = 'preference-section';
+    
+    const title = document.createElement('div');
+    title.className = `preference-title ${info.class}`;
+    title.innerHTML = `${info.emoji} ${info.text}`;
+    section.appendChild(title);
+    
+    const grid = document.createElement('div');
+    grid.className = 'activities-grid';
+    
+    activities.forEach(activity => {
+        const card = renderActivityCardSimple(activity);
+        grid.appendChild(card);
+    });
+    
+    section.appendChild(grid);
+    
     return section;
+}
+
+// Render simple activity card for sheets (no parent badge)
+function renderActivityCardSimple(activity) {
+    const card = document.createElement('div');
+    card.className = 'activity-card';
+    
+    // Show preference level as badge
+    const prefBadges = {
+        'Drop Anything': { emoji: '💚', text: 'Love it!', class: 'drop-anything' },
+        'Sometimes': { emoji: '💛', text: 'Sounds fun', class: 'sometimes' },
+        'On Your Own': { emoji: '⭐', text: 'You can do this', class: 'on-your-own' }
+    };
+    
+    const badgeInfo = prefBadges[activity.preference] || { emoji: '💚', text: 'Love it!', class: 'drop-anything' };
+    
+    card.innerHTML = `
+        <div class="activity-name">${activity.name}</div>
+        <div class="parent-info">
+            <div class="parent-badge ${badgeInfo.class}">
+                <span class="parent-emoji">${badgeInfo.emoji}</span>
+                <span>${badgeInfo.text}</span>
+            </div>
+        </div>
+    `;
+    
+    return card;
 }
 
 // Load and render all data
@@ -591,7 +731,19 @@ function renderBuiltinCategory(category, activities, preferences) {
     title.innerHTML = `${category.icon} ${category.name}`;
     section.appendChild(title);
     
-    // Group activities by preference level (how much they like it)
+    if (currentViewMode === 'level') {
+        // Group by preference level (how much they like it)
+        renderByPreferenceLevel(section, activities, preferences);
+    } else {
+        // Group by who likes it (caregiver)
+        renderByCaregiver(section, activities, preferences);
+    }
+    
+    return section;
+}
+
+// Render activities grouped by preference level
+function renderByPreferenceLevel(section, activities, preferences) {
     const grouped = {
         'drop_anything': [],
         'sometimes': [],
@@ -668,8 +820,141 @@ function renderBuiltinCategory(category, activities, preferences) {
         ownSection.appendChild(ownGrid);
         section.appendChild(ownSection);
     }
+}
+
+// Render activities grouped by caregiver
+function renderByCaregiver(section, activities, preferences) {
+    const bothLabel = userSettings?.both_label || 'Both';
+    const bothEmoji = userSettings?.both_emoji || '💜';
+    const caregiver1Label = userSettings?.caregiver1_label || 'Mom';
+    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
+    const caregiver2Label = userSettings?.caregiver2_label || 'Dad';
+    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
     
-    return section;
+    const grouped = {
+        'both': [],
+        'mom': [],
+        'dad': [],
+        'neither': []
+    };
+    
+    activities.forEach(activity => {
+        const pref = preferences.find(p => p.activity_id === activity.id);
+        const parentPref = pref ? pref.preference_level : 'both';
+        
+        grouped[parentPref].push({
+            ...activity,
+            parent_preference: parentPref
+        });
+    });
+    
+    // Render Both section
+    if (grouped['both'].length > 0) {
+        const bothSection = document.createElement('div');
+        bothSection.className = 'preference-section';
+        
+        const bothTitle = document.createElement('div');
+        bothTitle.className = 'preference-title both';
+        bothTitle.innerHTML = `${bothEmoji} ${bothLabel}`;
+        bothSection.appendChild(bothTitle);
+        
+        const bothGrid = document.createElement('div');
+        bothGrid.className = 'activities-grid';
+        grouped['both'].forEach(activity => {
+            const card = renderBuiltinActivityCardSimple(activity);
+            bothGrid.appendChild(card);
+        });
+        bothSection.appendChild(bothGrid);
+        section.appendChild(bothSection);
+    }
+    
+    // Render Caregiver 1 section
+    if (grouped['mom'].length > 0) {
+        const momSection = document.createElement('div');
+        momSection.className = 'preference-section';
+        
+        const momTitle = document.createElement('div');
+        momTitle.className = 'preference-title mom';
+        momTitle.innerHTML = `${caregiver1Emoji} ${caregiver1Label}`;
+        momSection.appendChild(momTitle);
+        
+        const momGrid = document.createElement('div');
+        momGrid.className = 'activities-grid';
+        grouped['mom'].forEach(activity => {
+            const card = renderBuiltinActivityCardSimple(activity);
+            momGrid.appendChild(card);
+        });
+        momSection.appendChild(momGrid);
+        section.appendChild(momSection);
+    }
+    
+    // Render Caregiver 2 section
+    if (grouped['dad'].length > 0) {
+        const dadSection = document.createElement('div');
+        dadSection.className = 'preference-section';
+        
+        const dadTitle = document.createElement('div');
+        dadTitle.className = 'preference-title dad';
+        dadTitle.innerHTML = `${caregiver2Emoji} ${caregiver2Label}`;
+        dadSection.appendChild(dadTitle);
+        
+        const dadGrid = document.createElement('div');
+        dadGrid.className = 'activities-grid';
+        grouped['dad'].forEach(activity => {
+            const card = renderBuiltinActivityCardSimple(activity);
+            dadGrid.appendChild(card);
+        });
+        dadSection.appendChild(dadGrid);
+        section.appendChild(dadSection);
+    }
+    
+    // Render On Your Own section
+    if (grouped['neither'].length > 0) {
+        const neitherSection = document.createElement('div');
+        neitherSection.className = 'preference-section';
+        
+        const neitherTitle = document.createElement('div');
+        neitherTitle.className = 'preference-title independent';
+        neitherTitle.innerHTML = `⭐ On Your Own`;
+        neitherSection.appendChild(neitherTitle);
+        
+        const neitherGrid = document.createElement('div');
+        neitherGrid.className = 'activities-grid';
+        grouped['neither'].forEach(activity => {
+            const card = renderBuiltinActivityCardSimple(activity);
+            neitherGrid.appendChild(card);
+        });
+        neitherSection.appendChild(neitherGrid);
+        section.appendChild(neitherSection);
+    }
+}
+
+// Render simple activity card (for "who" view - no parent badge needed)
+function renderBuiltinActivityCardSimple(activity) {
+    const card = document.createElement('div');
+    card.className = 'activity-card';
+    
+    // Add preference level badge
+    const levelBadges = {
+        'drop_anything': { text: 'Love it!', emoji: '💚', class: 'drop-anything' },
+        'sometimes': { text: 'Sounds fun', emoji: '💛', class: 'sometimes' },
+        'on_your_own': { text: 'You can do this', emoji: '⭐', class: 'on-your-own' }
+    };
+    
+    const levelInfo = levelBadges[activity.preference_level] || levelBadges['drop_anything'];
+    
+    card.innerHTML = `
+        <div class="activity-name">${activity.name}</div>
+        ${activity.description ? `<div style="font-size: 12px; color: #666; margin-top: 4px;">${activity.description}</div>` : ''}
+        <div class="parent-info">
+            <div class="parent-badge ${levelInfo.class}">
+                <span class="parent-emoji">${levelInfo.emoji}</span>
+                <span>${levelInfo.text}</span>
+            </div>
+        </div>
+    `;
+    
+    return card;
 }
 
 // Render built-in activity card
