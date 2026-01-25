@@ -183,12 +183,15 @@
             display: flex;
             gap: 8px;
             margin-top: 15px;
+            flex-wrap: wrap;
         }
 
         .btn-small {
-            flex: 1;
+            flex: 1 1 calc(50% - 4px); /* Two buttons per row, accounting for gap */
+            min-width: 100px;
             padding: 8px 12px;
             font-size: 13px;
+            white-space: nowrap;
         }
 
         .empty-state {
