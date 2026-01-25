@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommendation Settings - Parental Preferences</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .settings-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .settings-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .settings-section h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .settings-section h3 {
+            color: #666;
+            font-size: 16px;
+            margin: 25px 0 15px 0;
+        }
+
+        .setting-item {
+            margin-bottom: 30px;
+        }
+
+        .setting-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .setting-value {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .slider-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            background: #5568d3;
+            transform: scale(1.1);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .slider::-moz-range-thumb:hover {
+            background: #5568d3;
+            transform: scale(1.1);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .setting-description {
+            color: #666;
+            font-size: 14px;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .preset-button {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .preset-button:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .preset-button.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .preset-button h4 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+        }
+
+        .preset-button p {
+            margin: 0;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .save-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .save-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .save-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .reset-button {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #666;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .reset-button:hover {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .info-box h4 {
+            margin: 0 0 8px 0;
+            color: #667eea;
+        }
+
+        .info-box p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div id="platform-nav-container"></div>
+
+    <div class="settings-container">
+        <a href="recommendations.html" class="back-link">← Back to Recommendations</a>
+        
+        <h1>Recommendation Settings</h1>
+
+        <div id="successMessage" class="success-message">
+            Settings saved successfully!
+        </div>
+
+        <div class="settings-section">
+            <h2>Quick Presets</h2>
+            <p>Choose a preset that matches your family's style, or customize below.</p>
+            
+            <div class="preset-buttons">
+                <button class="preset-button" data-preset="balanced">
+                    <h4>⚖️ Balanced</h4>
+                    <p>Mix of kid preferences, parent input, and variety</p>
+                </button>
+                <button class="preset-button" data-preset="kid-led">
+                    <h4>🎨 Kid-Led</h4>
+                    <p>Focus on what kids love, minimize parent influence</p>
+                </button>
+                <button class="preset-button" data-preset="parent-guided">
+                    <h4>👨‍👩‍👧 Parent-Guided</h4>
+                    <p>Emphasize parent preferences and guidance</p>
+                </button>
+                <button class="preset-button" data-preset="discovery">
+                    <h4>🔍 Discovery</h4>
+                    <p>Promote trying new activities and variety</p>
+                </button>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>Recommendation Weights</h2>
+            <p>Adjust how much each factor influences recommendations for your family.</p>
+
+            <div class="info-box">
+                <h4>How It Works</h4>
+                <p>Each slider controls the importance of a specific factor. Higher values mean that factor has more influence on recommendations. The system combines all factors to create personalized suggestions.</p>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>Kid's Direct Preferences</span>
+                    <span class="setting-value" id="preferenceValue">40%</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="100" value="40" class="slider" id="preferenceWeight">
+                </div>
+                <div class="slider-labels">
+                    <span>Less Important</span>
+                    <span>More Important</span>
+                </div>
+                <div class="setting-description">
+                    How much weight to give to activities your kid already loves or likes.
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>Parent Preferences</span>
+                    <span class="setting-value" id="parentValue">20%</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="100" value="20" class="slider" id="parentWeight">
+                </div>
+                <div class="slider-labels">
+                    <span>Less Important</span>
+                    <span>More Important</span>
+                </div>
+                <div class="setting-description">
+                    Influence of your own activity preferences on recommendations.
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>Similar Kids' Preferences</span>
+                    <span class="setting-value" id="similarKidsValue">20%</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="100" value="20" class="slider" id="similarKidsWeight">
+                </div>
+                <div class="slider-labels">
+                    <span>Less Important</span>
+                    <span>More Important</span>
+                </div>
+                <div class="setting-description">
+                    Recommend activities that kids with similar interests enjoy.
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>Teacher Observations</span>
+                    <span class="setting-value" id="teacherValue">10%</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="100" value="10" class="slider" id="teacherWeight">
+                </div>
+                <div class="slider-labels">
+                    <span>Less Important</span>
+                    <span>More Important</span>
+                </div>
+                <div class="setting-description">
+                    Weight given to teacher observations and suggestions.
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>Context Matching</span>
+                    <span class="setting-value" id="contextValue">10%</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="100" value="10" class="slider" id="contextWeight">
+                </div>
+                <div class="slider-labels">
+                    <span>Less Important</span>
+                    <span>More Important</span>
+                </div>
+                <div class="setting-description">
+                    Match activities to current context (time of day, weather, energy level).
+                </div>
+            </div>
+
+            <h3>Advanced Settings</h3>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>Novelty Boost</span>
+                    <span class="setting-value" id="noveltyValue">5%</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="50" value="5" class="slider" id="noveltyWeight">
+                </div>
+                <div class="slider-labels">
+                    <span>Stick to Favorites</span>
+                    <span>Try New Things</span>
+                </div>
+                <div class="setting-description">
+                    Boost score for activities your kid hasn't tried yet.
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <span>Recency Penalty</span>
+                    <span class="setting-value" id="recencyValue">15%</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="50" value="15" class="slider" id="recencyWeight">
+                </div>
+                <div class="slider-labels">
+                    <span>Repeat Often</span>
+                    <span>Promote Variety</span>
+                </div>
+                <div class="setting-description">
+                    Reduce score for activities done recently to promote variety.
+                </div>
+            </div>
+        </div>
+
+        <button id="saveButton" class="save-button">Save Settings</button>
+        <button id="resetButton" class="reset-button">Reset to Defaults</button>
+    </div>
+
+    <script type="module" src="recommendation-settings.js"></script>
+</body>
+</html>
