@@ -131,12 +131,6 @@ async function loadUserData() {
         // Set sheet ID
         SHEET_ID = userProfile.sheet_id || '';
         
-        if (!SHEET_ID) {
-            showError('No Google Sheet configured. Please go to Dashboard to set up your sheet.');
-            dashboardBtn.style.display = 'inline-block';
-            return;
-        }
-        
         // Show dashboard button
         dashboardBtn.style.display = 'inline-block';
         
@@ -720,6 +714,14 @@ function getParentInfoFromLevel(level) {
 
 // Load data from Google Sheets (original implementation)
 async function loadDataFromSheets() {
+    // Check if sheet ID is configured
+    if (!SHEET_ID) {
+        showError('No Google Sheet configured. Please go to Dashboard to set up your sheet.');
+        categoriesEl.innerHTML = '';
+        showLoading(false);
+        return;
+    }
+    
     showLoading(true);
     categoriesEl.innerHTML = '';
     
