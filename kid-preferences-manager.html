@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kid Activity Preferences - Carer Support Platform</title>
+    <link rel="stylesheet" href="auth-styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .preferences-manager {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .manager-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .manager-header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: #1976d2;
+            text-decoration: none;
+        }
+
+        .kid-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .kid-avatar-large {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+
+        .kid-name {
+            font-size: 2rem;
+            color: #1976d2;
+            margin: 0;
+        }
+
+        /* Reuse styles from preferences-manager.html */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .categories-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .category-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .category-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .btn-icon:hover {
+            background: #f5f5f5;
+        }
+
+        .activities-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border-left: 4px solid #1976d2;
+        }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .preference-selector {
+            display: flex;
+            gap: 5px;
+        }
+
+        .preference-btn {
+            padding: 6px 12px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .preference-btn:hover {
+            border-color: #1976d2;
+        }
+
+        .preference-btn.active {
+            font-weight: 600;
+            border-width: 2px;
+        }
+
+        .preference-btn[data-level="loves"].active {
+            background: #ffcdd2;
+            border-color: #f44336;
+            color: #b71c1c;
+        }
+
+        .preference-btn[data-level="likes"].active {
+            background: #c8e6c9;
+            border-color: #4caf50;
+            color: #1b5e20;
+        }
+
+        .preference-btn[data-level="neutral"].active {
+            background: #fff9c4;
+            border-color: #ffeb3b;
+            color: #f57f17;
+        }
+
+        .preference-btn[data-level="dislikes"].active {
+            background: #ffe0b2;
+            border-color: #ff9800;
+            color: #e65100;
+        }
+
+        .preference-btn[data-level="refuses"].active {
+            background: #f5f5f5;
+            border-color: #757575;
+            color: #424242;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .add-activity-btn {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .icon-picker {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+        }
+
+        .icon-option {
+            padding: 10px;
+            font-size: 24px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .icon-option.selected {
+            border-color: #1976d2;
+            background: #e3f2fd;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Platform Navigation -->
+    <div id="platformNavContainer"></div>
+
+    <div class="preferences-manager">
+        <div class="manager-header">
+            <div class="manager-header-left">
+                <div class="breadcrumb">
+                    <a href="/kid-prefs.html">Kid Preferences</a>
+                    <span>›</span>
+                    <span id="kidBreadcrumb">Manage Activities</span>
+                </div>
+                <div class="kid-header">
+                    <div class="kid-avatar-large" id="kidAvatar">👶</div>
+                    <h1 class="kid-name" id="kidName">Loading...</h1>
+                </div>
+            </div>
+            <div class="header-actions" style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="window.location.href='/kid-prefs.html'">← Back</button>
+                <button class="btn btn-success" id="addCategoryBtn">➕ Add Category</button>
+            </div>
+        </div>
+
+        <div id="messageContainer"></div>
+
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">📋</div>
+            <h2>No Categories Yet</h2>
+            <p>Create your first category to start tracking activities!</p>
+            <button class="btn btn-primary" onclick="document.getElementById('addCategoryBtn').click()">Create First Category</button>
+        </div>
+
+        <div id="categoriesContainer" class="categories-container"></div>
+    </div>
+
+    <!-- Add/Edit Category Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <h2 id="categoryModalTitle">Add Category</h2>
+                <button class="modal-close" onclick="closeCategoryModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">×</button>
+            </div>
+            <form id="categoryForm">
+                <input type="hidden" id="categoryId" />
+                <div class="form-group">
+                    <label>Category Name *</label>
+                    <input type="text" id="categoryName" required placeholder="e.g., Outdoor Activities" />
+                </div>
+                <div class="form-group">
+                    <label>Icon *</label>
+                    <input type="text" id="categoryIcon" required readonly placeholder="Choose an icon below" />
+                    <div class="icon-picker" id="iconPicker"></div>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Activity Modal -->
+    <div id="activityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <h2 id="activityModalTitle">Add Activity</h2>
+                <button class="modal-close" onclick="closeActivityModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">×</button>
+            </div>
+            <form id="activityForm">
+                <input type="hidden" id="activityId" />
+                <input type="hidden" id="activityCategoryId" />
+                <div class="form-group">
+                    <label>Activity Name *</label>
+                    <input type="text" id="activityName" required placeholder="e.g., Playing at the park" />
+                </div>
+                <div class="form-group">
+                    <label>Description (optional)</label>
+                    <textarea id="activityDescription" placeholder="Any notes..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>How does <span id="kidNameInModal"></span> feel about this?</label>
+                    <div class="preference-selector">
+                        <button type="button" class="preference-btn" data-level="loves">❤️ Loves</button>
+                        <button type="button" class="preference-btn" data-level="likes">😊 Likes</button>
+                        <button type="button" class="preference-btn" data-level="neutral">😐 Neutral</button>
+                        <button type="button" class="preference-btn" data-level="dislikes">😟 Dislikes</button>
+                        <button type="button" class="preference-btn" data-level="refuses">❌ Refuses</button>
+                    </div>
+                    <input type="hidden" id="activityPreference" value="likes" />
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeActivityModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script>
+        // Load platform navigation
+        fetch('platform-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('platformNavContainer').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'platform-nav.js';
+                document.body.appendChild(script);
+                script.onload = () => {
+                    if (window.platformNav) {
+                        window.platformNav.setCurrentApp('kid-prefs', 'Kid Preferences', '👶');
+                    }
+                };
+            })
+            .catch(error => console.error('Error loading platform nav:', error));
+    </script>
+    <script src="kid-preferences-manager.js"></script>
+</body>
+</html>
