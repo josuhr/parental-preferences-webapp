@@ -20,14 +20,15 @@ Run these SQL files in Supabase SQL Editor in this exact order:
 ## Phase 4: Kid Preferences
 8. `database-phase4.sql` - Kids table, kid preferences, kid activities
 9. `database-phase4-app-access.sql` - Register kid-prefs app
+10. `database-phase4-universal-activities.sql` - Convert activities to universal (shared across all users)
 
 ## Phase 3A: Recommendations Engine
-10. `database-phase3a-recommendations.sql` - Recommendation contexts, similarity, rules, algorithm
-11. `database-phase3a-app-access.sql` - Register recommendations apps
+11. `database-phase3a-recommendations.sql` - Recommendation contexts, similarity, rules, algorithm
+12. `database-phase3a-app-access.sql` - Register recommendations apps
 
 ## Phase 5: Teacher Access
-12. `database-phase5-consolidated.sql` - Teacher access, observations, perspective activities
-13. `database-phase5-app-access.sql` - Register teacher-dashboard app
+13. `database-phase5-consolidated.sql` - Teacher access, observations, perspective activities
+14. `database-phase5-app-access.sql` - Register teacher-dashboard app
 
 ---
 

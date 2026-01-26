@@ -1,14 +1,9 @@
--- Populate Kid Activities from Google Sheet + Additional Activities
--- Run this after you've verified your user ID and want to add test activities
--- Replace 'YOUR_USER_ID' with your actual user ID from the users table
-
--- First, get your user ID by running: SELECT id, email FROM users WHERE email = 'your-email@example.com';
--- Then replace the placeholder below
+-- Populate Universal Kid Activities from Google Sheet + Additional Activities
+-- This script creates universal activities visible to ALL users
+-- Run this once in your Supabase SQL editor to populate the activity library
 
 DO $$
 DECLARE
-    v_user_id UUID := 'YOUR_USER_ID'; -- REPLACE THIS WITH YOUR ACTUAL USER ID
-    
     -- Category IDs
     v_arts_crafts_id UUID;
     v_experiential_id UUID;
@@ -18,33 +13,33 @@ DECLARE
     v_reading_id UUID;
     v_video_games_id UUID;
 BEGIN
-    -- Create Kid Activity Categories
+    -- Create Universal Kid Activity Categories (visible to all users)
     INSERT INTO public.kid_activity_categories (parent_id, name, icon, sort_order)
-    VALUES (v_user_id, 'Arts & Crafts', '🎨', 1)
+    VALUES (NULL, 'Arts & Crafts', '🎨', 1)
     RETURNING id INTO v_arts_crafts_id;
     
     INSERT INTO public.kid_activity_categories (parent_id, name, icon, sort_order)
-    VALUES (v_user_id, 'Experiential Activities', '🌍', 2)
+    VALUES (NULL, 'Experiential Activities', '🌍', 2)
     RETURNING id INTO v_experiential_id;
     
     INSERT INTO public.kid_activity_categories (parent_id, name, icon, sort_order)
-    VALUES (v_user_id, 'Games: Board, Card, Pretend', '🎲', 3)
+    VALUES (NULL, 'Games: Board, Card, Pretend', '🎲', 3)
     RETURNING id INTO v_games_id;
     
     INSERT INTO public.kid_activity_categories (parent_id, name, icon, sort_order)
-    VALUES (v_user_id, 'Movies & TV', '🎬', 4)
+    VALUES (NULL, 'Movies & TV', '🎬', 4)
     RETURNING id INTO v_movies_id;
     
     INSERT INTO public.kid_activity_categories (parent_id, name, icon, sort_order)
-    VALUES (v_user_id, 'Music', '🎵', 5)
+    VALUES (NULL, 'Music', '🎵', 5)
     RETURNING id INTO v_music_id;
     
     INSERT INTO public.kid_activity_categories (parent_id, name, icon, sort_order)
-    VALUES (v_user_id, 'Reading & Educational', '📚', 6)
+    VALUES (NULL, 'Reading & Educational', '📚', 6)
     RETURNING id INTO v_reading_id;
     
     INSERT INTO public.kid_activity_categories (parent_id, name, icon, sort_order)
-    VALUES (v_user_id, 'Video Games', '🎮', 7)
+    VALUES (NULL, 'Video Games', '🎮', 7)
     RETURNING id INTO v_video_games_id;
     
     -- Arts & Crafts Activities (from sheet + additions)
