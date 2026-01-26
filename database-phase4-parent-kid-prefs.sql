@@ -68,7 +68,8 @@ CREATE INDEX idx_parent_kid_prefs_activity
 -- Update Recommendation Function
 -- ============================================================================
 
--- Drop and recreate the get_recommendations_for_kid function to use the new table
+-- Drop existing function variants (specify all possible signatures)
+DROP FUNCTION IF EXISTS get_recommendations_for_kid(p_kid_id UUID, p_context TEXT, p_limit INTEGER);
 DROP FUNCTION IF EXISTS get_recommendations_for_kid(UUID, TEXT, INTEGER);
 
 CREATE OR REPLACE FUNCTION get_recommendations_for_kid(
