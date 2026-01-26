@@ -109,21 +109,28 @@ async function loadAllData() {
     try {
         const supabaseClient = window.supabaseUtils.getClient();
         
-        // Load categories
+        // Load categories (universal + user's custom)
         const { data: catData, error: catError } = await supabaseClient
             .from('kid_activity_categories')
             .select('*')
-            .eq('parent_id', currentUser.id)
+            .or(`parent_id.is.null,parent_id.eq.${currentUser.id}`)
             .order('sort_order');
         
         if (catError) throw catError;
         categories = catData || [];
         
-        // Load activities
-        const { data: actData, error: actError } = await supabaseClient
+        // Load activities (only from the categories we have access to)
+        const categoryIds = categories.map(c => c.id);
+        let activities_query = supabaseClient
             .from('kid_activities')
             .select('*')
             .order('sort_order');
+        
+        if (categoryIds.length > 0) {
+            activities_query = activities_query.in('category_id', categoryIds);
+        }
+        
+        const { data: actData, error: actError } = await activities_query;
         
         if (actError) throw actError;
         activities = actData || [];
