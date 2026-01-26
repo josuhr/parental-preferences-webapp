@@ -192,5 +192,5 @@ SELECT
     COUNT(ka.id) as activity_count
 FROM kid_activity_categories kac
 LEFT JOIN kid_activities ka ON ka.category_id = kac.id
-GROUP BY kac.name
+GROUP BY kac.name, kac.sort_order
 ORDER BY kac.sort_order;
