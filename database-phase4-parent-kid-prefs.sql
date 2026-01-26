@@ -68,9 +68,15 @@ CREATE INDEX idx_parent_kid_prefs_activity
 -- Update Recommendation Function
 -- ============================================================================
 
--- Drop existing function variants (specify all possible signatures)
-DROP FUNCTION IF EXISTS get_recommendations_for_kid(p_kid_id UUID, p_context TEXT, p_limit INTEGER);
-DROP FUNCTION IF EXISTS get_recommendations_for_kid(UUID, TEXT, INTEGER);
+-- Drop all existing function variants using CASCADE
+DO $$ 
+BEGIN
+    -- Drop all overloaded versions of the function
+    EXECUTE 'DROP FUNCTION IF EXISTS get_recommendations_for_kid CASCADE';
+EXCEPTION
+    WHEN undefined_function THEN
+        NULL; -- Function doesn't exist, that's fine
+END $$;
 
 CREATE OR REPLACE FUNCTION get_recommendations_for_kid(
     p_kid_id UUID,
