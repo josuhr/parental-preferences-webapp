@@ -1,5 +1,5 @@
 // Preferences Manager JavaScript
-// Handles CRUD operations for categories, activities, and preferences
+// Handles parent preferences for universal kid activities
 
 let currentUser = null;
 let categories = [];
@@ -8,6 +8,9 @@ let preferences = [];
 let editingCategoryId = null;
 let editingActivityId = null;
 let userSettings = null; // Store user settings for custom labels
+
+// NEW: Using universal kid activities
+const USE_KID_ACTIVITIES = true;
 
 // Icons for categories
 const CATEGORY_ICONS = ['🏠', '🌳', '🎨', '🎮', '📚', '🎵', '⚽', '🍳', '🧩', '🎭', '🚗', '🏊', '🎪', '🌟', '🎁', '🎯'];
@@ -117,28 +120,35 @@ async function loadAllData() {
     try {
         const supabaseClient = window.supabaseUtils.getClient();
         
-        // Load categories
+        // Load universal kid activity categories
         const { data: categoriesData, error: categoriesError } = await supabaseClient
-            .from('activity_categories')
+            .from('kid_activity_categories')
             .select('*')
-            .eq('user_id', currentUser.id)
+            .is('parent_id', null)
             .order('sort_order', { ascending: true });
         
         if (categoriesError) throw categoriesError;
         categories = categoriesData || [];
         
-        // Load activities
-        const { data: activitiesData, error: activitiesError } = await supabaseClient
-            .from('activities')
+        // Load kid activities (only from universal categories)
+        const categoryIds = categories.map(c => c.id);
+        let activitiesQuery = supabaseClient
+            .from('kid_activities')
             .select('*')
             .order('sort_order', { ascending: true });
+        
+        if (categoryIds.length > 0) {
+            activitiesQuery = activitiesQuery.in('category_id', categoryIds);
+        }
+        
+        const { data: activitiesData, error: activitiesError } = await activitiesQuery;
         
         if (activitiesError) throw activitiesError;
         activities = activitiesData || [];
         
-        // Load preferences
+        // Load parent preferences for kid activities
         const { data: preferencesData, error: preferencesError } = await supabaseClient
-            .from('parent_preferences')
+            .from('parent_kid_activity_preferences')
             .select('*')
             .eq('user_id', currentUser.id);
         
@@ -187,16 +197,10 @@ function createCategoryCard(category, categoryActivities) {
             <div class="category-title">
                 <span class="category-icon">${category.icon}</span>
                 <span>${category.name}</span>
-            </div>
-            <div class="category-actions">
-                <button class="btn-icon" onclick="editCategory('${category.id}')" title="Edit category">✏️</button>
-                <button class="btn-icon" onclick="deleteCategory('${category.id}')" title="Delete category">🗑️</button>
+                <span style="font-size: 11px; color: #888; margin-left: 10px;">(${categoryActivities.length} activities)</span>
             </div>
         </div>
         <div class="activities-list" id="activities-${category.id}"></div>
-        <button class="add-activity-btn" onclick="openActivityModal('${category.id}')">
-            ➕ Add Activity
-        </button>
     `;
     
     // Render activities
@@ -212,20 +216,7 @@ function createCategoryCard(category, categoryActivities) {
 // Create activity element
 function createActivityElement(activity) {
     const preference = preferences.find(p => p.activity_id === activity.id);
-    const preferenceLevel = preference ? preference.preference_level : 'both';
-    const activityPrefLevel = activity.preference_level || 'drop_anything';
-    
-    // Get custom labels
-    const bothEmoji = userSettings?.both_emoji || '💜';
-    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
-    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
-    
-    // Get preference level badge
-    const prefLevelBadge = {
-        'drop_anything': '💚 Drop Anything',
-        'sometimes': '💛 Sometimes',
-        'on_your_own': '⭐ On Your Own'
-    }[activityPrefLevel];
+    const preferenceLevel = preference ? preference.preference_level : 'sometimes';
     
     const div = document.createElement('div');
     div.className = 'activity-item';
@@ -233,26 +224,21 @@ function createActivityElement(activity) {
     div.innerHTML = `
         <div class="activity-info">
             <div class="activity-name">${activity.name}</div>
-            <div style="font-size: 11px; color: #888; margin-top: 2px;">${prefLevelBadge}</div>
             ${activity.description ? `<div class="activity-description">${activity.description}</div>` : ''}
         </div>
         <div class="preference-selector">
-            <button class="preference-btn ${preferenceLevel === 'both' ? 'active' : ''}" 
-                    data-level="both" 
-                    onclick="updatePreference('${activity.id}', 'both')">${bothEmoji}</button>
-            <button class="preference-btn ${preferenceLevel === 'mom' ? 'active' : ''}" 
-                    data-level="mom" 
-                    onclick="updatePreference('${activity.id}', 'mom')">${caregiver1Emoji}</button>
-            <button class="preference-btn ${preferenceLevel === 'dad' ? 'active' : ''}" 
-                    data-level="dad" 
-                    onclick="updatePreference('${activity.id}', 'dad')">${caregiver2Emoji}</button>
-            <button class="preference-btn ${preferenceLevel === 'neither' ? 'active' : ''}" 
-                    data-level="neither" 
-                    onclick="updatePreference('${activity.id}', 'neither')">⚪</button>
-        </div>
-        <div class="category-actions">
-            <button class="btn-icon" onclick="editActivity('${activity.id}')" title="Edit activity">✏️</button>
-            <button class="btn-icon" onclick="deleteActivity('${activity.id}')" title="Delete activity">🗑️</button>
+            <button class="preference-btn ${preferenceLevel === 'drop_anything' ? 'active' : ''}" 
+                    data-level="drop_anything" 
+                    onclick="updatePreference('${activity.id}', 'drop_anything')" 
+                    title="Drop anything to do this">💚</button>
+            <button class="preference-btn ${preferenceLevel === 'sometimes' ? 'active' : ''}" 
+                    data-level="sometimes" 
+                    onclick="updatePreference('${activity.id}', 'sometimes')" 
+                    title="Enjoy doing this sometimes">💛</button>
+            <button class="preference-btn ${preferenceLevel === 'on_your_own' ? 'active' : ''}" 
+                    data-level="on_your_own" 
+                    onclick="updatePreference('${activity.id}', 'on_your_own')" 
+                    title="Kid should do independently">⭐</button>
         </div>
     `;
     
@@ -268,7 +254,7 @@ async function updatePreference(activityId, level) {
         if (existingPref) {
             // Update existing preference
             const { error } = await supabaseClient
-                .from('parent_preferences')
+                .from('parent_kid_activity_preferences')
                 .update({ preference_level: level, updated_at: new Date().toISOString() })
                 .eq('id', existingPref.id);
             
@@ -278,7 +264,7 @@ async function updatePreference(activityId, level) {
         } else {
             // Create new preference
             const { data, error } = await supabaseClient
-                .from('parent_preferences')
+                .from('parent_kid_activity_preferences')
                 .insert({
                     activity_id: activityId,
                     user_id: currentUser.id,
