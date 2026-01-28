@@ -816,6 +816,10 @@ function openBulkAddModal() {
     
     modal.style.display = 'flex';
     console.log('Modal opened');
+    console.log('Modal display style:', modal.style.display);
+    console.log('Modal computed display:', window.getComputedStyle(modal).display);
+    console.log('Modal computed z-index:', window.getComputedStyle(modal).zIndex);
+    console.log('Modal element:', modal);
 }
 
 // Close bulk add modal
