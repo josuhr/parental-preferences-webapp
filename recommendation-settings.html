@@ -18,15 +18,51 @@
             background: white;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 30px;
             margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .settings-section summary {
+            padding: 20px 30px;
+            cursor: pointer;
+            user-select: none;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            transition: background 0.2s;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .settings-section summary:hover {
+            background: #f5f7fa;
+        }
+
+        .settings-section summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .settings-section summary::after {
+            content: '▼';
+            font-size: 0.8rem;
+            color: #667eea;
+            transition: transform 0.3s;
+        }
+
+        .settings-section[open] summary::after {
+            transform: rotate(-180deg);
+        }
+
+        .settings-section-content {
+            padding: 0 30px 30px 30px;
         }
 
         .settings-section h2 {
-            margin-top: 0;
+            margin: 0;
             color: #333;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
         }
 
         .settings-section h3 {
@@ -366,42 +402,12 @@
             Settings saved successfully!
         </div>
 
-        <!-- Google Sheet Configuration -->
-        <div class="settings-section">
-            <h2>📊 Google Sheet Integration</h2>
-            <p>Connect your Google Sheets to sync activities</p>
-            
-            <div style="background: #fff3e0; border-left: 4px solid #f57c00; padding: 15px; margin: 20px 0; border-radius: 4px;">
-                <h4 style="margin: 0 0 8px 0; color: #e65100; font-size: 0.95rem;">⚠️ Legacy Feature</h4>
-                <p style="margin: 0; color: #666; font-size: 0.85rem; line-height: 1.5;">
-                    Google Sheets integration is a legacy feature and may be deprecated in the future. 
-                    We recommend using the built-in activity database and preferences system instead, 
-                    which provides a more integrated experience with the recommendations engine.
-                </p>
-            </div>
-            
-            <div class="form-group">
-                <label for="sheetId">Google Sheet ID</label>
-                <input type="text" id="sheetId" placeholder="Enter your Google Sheet ID">
-                <small>Find this in your Google Sheets URL: /d/<strong>SHEET_ID</strong>/edit</small>
-            </div>
-            
-            <div class="form-group">
-                <label>Current Status</label>
-                <div id="sheetStatus">
-                    <span class="status-badge warning">Not configured</span>
-                </div>
-            </div>
-            
-            <div class="btn-group">
-                <button class="btn btn-secondary" id="testSheetBtn">Test Connection</button>
-                <button class="btn btn-primary" id="saveSheetBtn">Save Sheet ID</button>
-            </div>
-        </div>
-
         <!-- Caregiver Labels -->
-        <div class="settings-section">
-            <h2>👥 Caregiver Labels</h2>
+        <details class="settings-section">
+            <summary>
+                <h2>👥 Caregiver Labels</h2>
+            </summary>
+            <div class="settings-section-content">
             <p>Customize how caregivers are labeled in your household</p>
             
             <div class="form-group">
@@ -462,11 +468,52 @@
             <div class="btn-group">
                 <button class="btn btn-primary" id="saveCaregiverLabelsBtn">Save Caregiver Labels</button>
             </div>
-        </div>
+            </div>
+        </details>
+
+        <!-- Google Sheet Configuration -->
+        <details class="settings-section">
+            <summary>
+                <h2>📊 Google Sheet Integration</h2>
+            </summary>
+            <div class="settings-section-content">
+            <p>Connect your Google Sheets to sync activities</p>
+            
+            <div style="background: #fff3e0; border-left: 4px solid #f57c00; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                <h4 style="margin: 0 0 8px 0; color: #e65100; font-size: 0.95rem;">⚠️ Legacy Feature</h4>
+                <p style="margin: 0; color: #666; font-size: 0.85rem; line-height: 1.5;">
+                    Google Sheets integration is a legacy feature and may be deprecated in the future. 
+                    We recommend using the built-in activity database and preferences system instead, 
+                    which provides a more integrated experience with the recommendations engine.
+                </p>
+            </div>
+            
+            <div class="form-group">
+                <label for="sheetId">Google Sheet ID</label>
+                <input type="text" id="sheetId" placeholder="Enter your Google Sheet ID">
+                <small>Find this in your Google Sheets URL: /d/<strong>SHEET_ID</strong>/edit</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Current Status</label>
+                <div id="sheetStatus">
+                    <span class="status-badge warning">Not configured</span>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="testSheetBtn">Test Connection</button>
+                <button class="btn btn-primary" id="saveSheetBtn">Save Sheet ID</button>
+            </div>
+            </div>
+        </details>
 
         <!-- Recommendation Settings -->
-        <div class="settings-section">
-            <h2>⚙️ Recommendation Settings</h2>
+        <details class="settings-section">
+            <summary>
+                <h2>⚙️ Recommendation Settings</h2>
+            </summary>
+            <div class="settings-section-content">
             <p>Adjust how recommendations are generated for your family</p>
 
             <h3>Quick Presets</h3>
@@ -619,7 +666,8 @@
 
             <button id="saveRecommendationBtn" class="save-button">Save Recommendation Settings</button>
             <button id="resetButton" class="reset-button">Reset to Defaults</button>
-        </div>
+            </div>
+        </details>
     </div>
         </div>
     </div>
