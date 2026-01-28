@@ -574,13 +574,58 @@ function displaySummary(summary) {
     document.getElementById('summaryActions').style.display = 'flex';
 }
 
-// Format summary text with proper HTML paragraphs
+// Format summary text - convert markdown to HTML
 function formatSummaryText(text) {
-    // Split by double newlines to get paragraphs
-    const paragraphs = text.split(/\n\n+/);
-    return paragraphs
-        .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
-        .join('');
+    let html = text;
+    
+    // Convert markdown headers (## Header) to h2
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    
+    // Convert bold text (**text** or __text__)
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+    
+    // Convert italic text (*text* or _text_)
+    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+    
+    // Convert bullet points - group consecutive bullets into ul
+    const lines = html.split('\n');
+    let inList = false;
+    let result = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const bulletMatch = line.match(/^[-*•]\s+(.+)$/);
+        
+        if (bulletMatch) {
+            if (!inList) {
+                result.push('<ul>');
+                inList = true;
+            }
+            result.push(`<li>${bulletMatch[1]}</li>`);
+        } else {
+            if (inList) {
+                result.push('</ul>');
+                inList = false;
+            }
+            // Skip empty lines between sections but keep content
+            if (line.trim() || line.startsWith('<h2>')) {
+                // Wrap non-header, non-empty lines in paragraphs if they're plain text
+                if (!line.startsWith('<h2>') && !line.startsWith('<ul>') && !line.startsWith('</ul>') && line.trim()) {
+                    result.push(`<p>${line}</p>`);
+                } else {
+                    result.push(line);
+                }
+            }
+        }
+    }
+    
+    if (inList) {
+        result.push('</ul>');
+    }
+    
+    return result.join('\n');
 }
 
 // Display error in the summary modal

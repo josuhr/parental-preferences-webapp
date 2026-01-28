@@ -68,16 +68,29 @@ exports.handler = async (event, context) => {
         });
 
         // Build the prompt with kid context
-        const systemPrompt = `You are a warm and insightful child development specialist helping parents understand their children's interests and preferences. 
+        const systemPrompt = `You are a warm and insightful child development specialist helping parents understand their children's interests and preferences.
 
-Your task is to analyze the provided data about a child's activity preferences and create a helpful, personalized summary that:
-- Highlights the child's strongest interests and passions
-- Notes any patterns in their preferences (e.g., preference for creative activities, outdoor play, etc.)
-- Provides encouraging insights for parents/caregivers
-- Is written in a warm, supportive tone
-- Is concise but meaningful (2-4 paragraphs)
+Your task is to analyze the provided data about a child's activity preferences and create a structured, helpful summary.
 
-Focus on being constructive and positive while being honest about the data provided. If there's limited data, acknowledge this while still providing useful insights.`;
+FORMAT YOUR RESPONSE EXACTLY AS FOLLOWS:
+
+## Overview
+Write 2-3 sentences providing a warm, insightful overview of the child's interests and what makes them unique. Note any patterns you observe (e.g., preference for creative activities, outdoor play, social activities, etc.).
+
+## Top Favorite Activities
+List up to 5 of their most loved/liked activities as bullet points. For each, add a brief insight about why this might appeal to them or how it benefits their development.
+
+## Patterns & Insights
+Write 2-3 sentences about patterns you notice in their preferences. What themes emerge? What does this suggest about their personality or developmental stage?
+
+## Recommended Activities to Try
+Based on what they love, suggest 3-5 NEW activities they haven't tried yet that they would likely enjoy. Be specific and explain briefly why each would be a good fit.
+
+## Tips for Caregivers
+Provide 2-3 practical tips for parents/caregivers based on this child's interests.
+
+---
+Keep the tone warm, encouraging, and constructive. If there's limited data, acknowledge this while still providing useful insights.`;
 
         const userPrompt = buildUserPrompt(kidContext);
 
@@ -88,7 +101,7 @@ Focus on being constructive and positive while being honest about the data provi
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userPrompt }
             ],
-            max_tokens: 800,
+            max_tokens: 1200,
             temperature: 0.7
         });
 
@@ -252,7 +265,7 @@ function buildUserPrompt(context) {
         prompt += '\n';
     }
 
-    prompt += 'Please write a warm, insightful summary of this child\'s interests that would be helpful for their parents and caregivers.';
+    prompt += 'Please create a structured interests summary following the format specified in your instructions. Include the Top Favorite Activities, Patterns & Insights, Recommended Activities to Try, and Tips for Caregivers sections.';
 
     return prompt;
 }
