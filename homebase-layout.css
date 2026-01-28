@@ -39,8 +39,47 @@ body.sidebar-collapsed {
 /* Main content wrapper */
 .main-content {
     min-height: calc(100vh - var(--topnav-height));
-    padding: var(--spacing-large);
+    padding: 0;
     background: #f5f7fa;
+    width: 100%;
+}
+
+/* Breadcrumb navigation */
+.breadcrumb-nav {
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.breadcrumb-nav a {
+    color: #667eea;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.breadcrumb-nav a:hover {
+    color: #5568d3;
+    text-decoration: underline;
+}
+
+.breadcrumb-nav .separator {
+    color: #999;
+}
+
+.breadcrumb-nav .current {
+    color: #333;
+    font-weight: 500;
+}
+
+/* Content area with padding */
+.content-area {
+    padding: var(--spacing-large);
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
 /* Compact card design */
