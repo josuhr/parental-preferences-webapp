@@ -817,8 +817,33 @@ function openBulkAddModal() {
     modal.style.display = 'flex';
     console.log('Modal opened');
     console.log('Modal display style:', modal.style.display);
-    console.log('Modal computed display:', window.getComputedStyle(modal).display);
-    console.log('Modal computed z-index:', window.getComputedStyle(modal).zIndex);
+    
+    const computedStyle = window.getComputedStyle(modal);
+    console.log('Modal computed styles:', {
+        display: computedStyle.display,
+        position: computedStyle.position,
+        zIndex: computedStyle.zIndex,
+        top: computedStyle.top,
+        left: computedStyle.left,
+        right: computedStyle.right,
+        bottom: computedStyle.bottom,
+        width: computedStyle.width,
+        height: computedStyle.height,
+        opacity: computedStyle.opacity,
+        visibility: computedStyle.visibility,
+        background: computedStyle.background
+    });
+    
+    const rect = modal.getBoundingClientRect();
+    console.log('Modal bounding rect:', {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        right: rect.right,
+        bottom: rect.bottom
+    });
+    
     console.log('Modal element:', modal);
 }
 
