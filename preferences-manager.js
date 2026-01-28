@@ -257,7 +257,7 @@ function createCategoryCard(category, categoryActivities) {
             </div>
         </div>
         <div class="activities-table">
-            <div class="table-header" style="display: grid; grid-template-columns: 2fr repeat(3, 1fr)`;
+            <div class="table-header" style="display: grid; grid-template-columns: 2fr repeat(2, 1fr)`;
     
     // Add kid columns
     const visibleKids = kids.filter(k => visibleKidIds.has(k.id));
@@ -269,8 +269,7 @@ function createCategoryCard(category, categoryActivities) {
     headerHTML += `
                 <div class="col-activity">Activity</div>
                 <div class="col-pref">${caregiver1Label}</div>
-                <div class="col-pref">${caregiver2Label}</div>
-                <div class="col-pref">${bothLabel}</div>`;
+                <div class="col-pref">${caregiver2Label}</div>`;
     
     // Add kid column headers
     visibleKids.forEach(kid => {
@@ -304,7 +303,7 @@ function createActivityRow(householdId, activity) {
     const visibleKids = kids.filter(k => visibleKidIds.has(k.id));
     
     // Build grid template matching header
-    let gridTemplate = '2fr repeat(3, 1fr)';
+    let gridTemplate = '2fr repeat(2, 1fr)';
     visibleKids.forEach(() => {
         gridTemplate += ' 1fr';
     });
@@ -325,9 +324,6 @@ function createActivityRow(householdId, activity) {
         </div>
         <div class="col-pref">
             ${createPreferenceButtons(householdId, 'caregiver2', preference?.caregiver2_preference)}
-        </div>
-        <div class="col-pref">
-            ${createPreferenceButtons(householdId, 'both', preference?.both_preference)}
         </div>`;
     
     // Add kid preference columns
@@ -372,9 +368,8 @@ function createKidPreferenceButtons(kidId, activityId, currentPreference) {
     const levels = [
         { value: 'loves', emoji: '💚', title: 'Loves' },
         { value: 'likes', emoji: '💙', title: 'Likes' },
-        { value: 'neutral', emoji: '💛', title: 'Neutral' },
-        { value: 'dislikes', emoji: '🧡', title: 'Dislikes' },
-        { value: 'refuses', emoji: '❤️', title: 'Refuses' }
+        { value: 'neutral', emoji: '😐', title: 'Not Interested' },
+        { value: 'refuses', emoji: '⭐', title: 'Not Yet Tried' }
     ];
     
     return levels.map(level => {

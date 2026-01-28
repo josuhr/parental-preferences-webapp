@@ -169,18 +169,13 @@
         }
         
         .kid-preference-btn.active[data-level="neutral"] {
-            background: #fff9c4;
-            border-color: #ffeb3b;
-        }
-        
-        .kid-preference-btn.active[data-level="dislikes"] {
-            background: #ffccbc;
-            border-color: #ff5722;
+            background: #ffe0b2;
+            border-color: #ff9800;
         }
         
         .kid-preference-btn.active[data-level="refuses"] {
-            background: #ffcdd2;
-            border-color: #f44336;
+            background: #e1e8ed;
+            border-color: #90a4ae;
         }
         
         .kid-column {
@@ -351,6 +346,12 @@
     <div id="sidebar-nav-container"></div>
 
     <div class="main-content">
+        <nav class="breadcrumb-nav">
+            <a href="/dashboard.html">Dashboard</a>
+            <span class="separator">›</span>
+            <span class="current">Activity Preferences</span>
+        </nav>
+        <div class="content-area">
         <div class="preferences-manager">
         <div class="manager-header">
             <h1>❤️ Activity Preferences</h1>
@@ -395,6 +396,7 @@
                 </div>
                 <button type="submit" class="btn-primary" style="width: 100%;">Add to Household</button>
             </form>
+        </div>
         </div>
     </div>
     </div>
