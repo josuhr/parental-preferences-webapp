@@ -17,8 +17,8 @@
             icon: '❤️',
             expanded: true,
             items: [
-                { name: 'Household Preferences', icon: '🏠', url: '/preferences-manager.html', slug: 'preferences-manager.html' },
-                { name: 'Kid Preferences', icon: '👶', url: '/kid-preferences-manager.html', slug: 'kid-preferences-manager.html' },
+                { name: 'Activity Preferences', icon: '❤️', url: '/preferences-manager.html', slug: 'preferences-manager.html' },
+                { name: 'Kid Management', icon: '👶', url: '/kid-prefs.html', slug: 'kid-prefs.html' },
                 { name: 'Who Likes What?', icon: '👨‍👩‍👧‍👦', url: '/kids-activity-view.html', slug: 'kids-activity-view.html' },
                 { name: 'Recommendations', icon: '✨', url: '/recommendations.html', slug: 'recommendations.html' },
                 { name: 'Settings', icon: '⚙️', url: '/recommendation-settings.html', slug: 'recommendation-settings.html' }
