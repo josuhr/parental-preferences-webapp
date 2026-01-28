@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parental Preferences - Activity Guide</title>
+    <title>Activity Guide - HomeBase</title>
+    <link rel="stylesheet" href="homebase-layout.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Platform Navigation -->
     <div id="platformNavContainer"></div>
+    <div id="sidebar-nav-container"></div>
     
-    <div class="no-print header">
+    <div class="main-content">
+        <div class="no-print header">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
             <div>
                 <h1>🎨 Parental Preferences Activity Guide</h1>
@@ -68,6 +71,7 @@
     <div class="print-footer">
         <p>💜 Activities updated from Google Sheets | Made with love for learning together!</p>
     </div>
+    </div>
 
     <script src="supabase-config.js"></script>
     <script>
@@ -76,18 +80,21 @@
             .then(response => response.text())
             .then(html => {
                 document.getElementById('platformNavContainer').innerHTML = html;
-                // Load platform nav JavaScript
                 const script = document.createElement('script');
                 script.src = 'platform-nav.js';
                 document.body.appendChild(script);
-                // Set current app context after script loads
-                script.onload = () => {
-                    if (window.platformNav) {
-                        window.platformNav.setCurrentApp('parental-prefs', 'Parental Preferences', '🎨');
-                    }
-                };
             })
             .catch(error => console.error('Error loading platform nav:', error));
+        
+        // Load sidebar navigation
+        fetch('sidebar-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-nav-container').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'sidebar-nav.js';
+                document.body.appendChild(script);
+            });
     </script>
     <script src="script.js"></script>
 </body>

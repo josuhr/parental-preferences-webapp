@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Who Likes What? - Parent Support Platform</title>
-    <link rel="stylesheet" href="auth-styles.css">
+    <title>Who Likes What? - What We Like - HomeBase</title>
+    <link rel="stylesheet" href="homebase-layout.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .kids-view-container {
@@ -229,8 +229,10 @@
 </head>
 <body>
     <div id="platform-nav-container"></div>
+    <div id="sidebar-nav-container"></div>
 
-    <div class="kids-view-container">
+    <div class="main-content">
+        <div class="kids-view-container">
         <div class="page-header">
             <h1>👨‍👩‍👧‍👦 Who Likes What?</h1>
             <p>See which activities your caregivers enjoy!</p>
@@ -262,9 +264,30 @@
 
         <div id="activitiesContainer"></div>
     </div>
+    </div>
 
     <script src="supabase-config.js"></script>
-    <script src="platform-nav.js"></script>
+    <script>
+        // Load platform navigation
+        fetch('platform-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('platform-nav-container').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'platform-nav.js';
+                document.body.appendChild(script);
+            });
+        
+        // Load sidebar navigation
+        fetch('sidebar-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-nav-container').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'sidebar-nav.js';
+                document.body.appendChild(script);
+            });
+    </script>
     <script src="kids-activity-view.js"></script>
 </body>
 </html>

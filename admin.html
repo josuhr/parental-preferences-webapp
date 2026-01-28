@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Parental Preferences</title>
+    <title>Admin Panel - HomeBase</title>
+    <link rel="stylesheet" href="homebase-layout.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -209,8 +210,10 @@
 <body>
     <!-- Platform Navigation -->
     <div id="platformNavContainer"></div>
+    <div id="sidebar-nav-container"></div>
     
-    <div class="admin-container">
+    <div class="main-content">
+        <div class="admin-container">
         <div class="admin-header">
             <h1>🛡️ Admin Panel</h1>
             <div class="header-actions">
@@ -268,6 +271,7 @@
     
     <div id="loadingOverlay" class="loading no-print" style="display: none;">Loading...</div>
     <div id="error" class="error no-print" style="display: none;"></div>
+    </div>
     
     <script src="supabase-config.js"></script>
     <script>
@@ -276,18 +280,21 @@
             .then(response => response.text())
             .then(html => {
                 document.getElementById('platformNavContainer').innerHTML = html;
-                // Load platform nav JavaScript
                 const script = document.createElement('script');
                 script.src = 'platform-nav.js';
                 document.body.appendChild(script);
-                // Set current app context after script loads
-                script.onload = () => {
-                    if (window.platformNav) {
-                        window.platformNav.setCurrentApp('parental-prefs', 'Admin Panel', '🛡️');
-                    }
-                };
             })
             .catch(error => console.error('Error loading platform nav:', error));
+        
+        // Load sidebar navigation
+        fetch('sidebar-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-nav-container').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'sidebar-nav.js';
+                document.body.appendChild(script);
+            });
     </script>
     <script src="admin.js"></script>
 </body>

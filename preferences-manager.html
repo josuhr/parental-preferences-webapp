@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Household Activity Preferences - Parent Support Platform</title>
-    <link rel="stylesheet" href="auth-styles.css">
+    <title>Household Preferences - What We Like - HomeBase</title>
+    <link rel="stylesheet" href="homebase-layout.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .preferences-manager {
@@ -284,8 +284,10 @@
 </head>
 <body>
     <div id="platform-nav-container"></div>
+    <div id="sidebar-nav-container"></div>
 
-    <div class="preferences-manager">
+    <div class="main-content">
+        <div class="preferences-manager">
         <div class="manager-header">
             <h1>🏠 Household Activity Preferences</h1>
             <button id="addActivityBtn" class="btn-primary">➕ Add Activity</button>
@@ -322,9 +324,30 @@
             </form>
         </div>
     </div>
+    </div>
 
     <script src="supabase-config.js"></script>
-    <script src="platform-nav.js"></script>
+    <script>
+        // Load platform navigation
+        fetch('platform-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('platform-nav-container').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'platform-nav.js';
+                document.body.appendChild(script);
+            });
+        
+        // Load sidebar navigation
+        fetch('sidebar-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-nav-container').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'sidebar-nav.js';
+                document.body.appendChild(script);
+            });
+    </script>
     <script src="preferences-manager.js"></script>
 </body>
 </html>

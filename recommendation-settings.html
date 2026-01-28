@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recommendation Settings - Parental Preferences</title>
+    <title>Settings - What We Like - HomeBase</title>
+    <link rel="stylesheet" href="homebase-layout.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -285,8 +286,10 @@
 </head>
 <body>
     <div id="platform-nav-container"></div>
+    <div id="sidebar-nav-container"></div>
 
-    <div class="settings-container">
+    <div class="main-content">
+        <div class="settings-container">
         <a href="recommendations.html" class="back-link">← Back to Recommendations</a>
         
         <h1>Recommendation Settings</h1>
@@ -453,8 +456,30 @@
         <button id="saveButton" class="save-button">Save Settings</button>
         <button id="resetButton" class="reset-button">Reset to Defaults</button>
     </div>
+    </div>
 
     <script src="supabase-config.js"></script>
+    <script>
+        // Load platform navigation
+        fetch('platform-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('platform-nav-container').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'platform-nav.js';
+                document.body.appendChild(script);
+            });
+        
+        // Load sidebar navigation
+        fetch('sidebar-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-nav-container').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'sidebar-nav.js';
+                document.body.appendChild(script);
+            });
+    </script>
     <script src="recommendation-settings.js"></script>
 </body>
 </html>

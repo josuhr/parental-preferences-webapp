@@ -1,29 +1,47 @@
-# Parental Preferences - Multi-User App
+# HomeBase - Family Activity Platform
 
-A kid-friendly web application for tracking which activities Mom and Dad love to do together! Now with multi-user support, Google authentication, and personalized Google Sheets integration.
+**HomeBase** is a comprehensive family activity platform featuring "What We Like" - an integrated app for tracking activity preferences, managing kid profiles, and getting smart recommendations for quality family time.
 
-## Features
+## Platform Overview
+
+**HomeBase** consolidates family activity management with a modern, intuitive interface featuring collapsible sidebar navigation and a unified "What We Like" app.
+
+### Navigation Structure
+
+```
+HomeBase Platform
+├── What We Like (Primary App)
+│   ├── Household Preferences - Multi-caregiver activity preferences
+│   ├── Kid Preferences - Individual kid activity tracking
+│   ├── Who Likes What? - Visual preference explorer for kids
+│   ├── Recommendations - Smart activity suggestions
+│   └── Settings - Customize recommendation algorithm
+├── Teacher Dashboard - Professional insights and observations
+└── [Future Apps] - House Rules, Food Explorer, Try This, Little Earners
+```
 
 ### Core Features
 - 🔐 **Secure Authentication** - Google OAuth and email-based login
-- 📊 **Activity Preferences** - Track what activities kids and parents enjoy
+- 🏠 **Household Preferences** - Set preferences for multiple caregivers (with customizable labels)
 - 👶 **Kid Profiles** - Manage multiple kids with individual preferences
+- 👨‍👩‍👧‍👦 **Who Likes What?** - Visual view showing which caregivers prefer which activities
+- ✨ **Smart Recommendations** - Multi-factor AI-powered activity suggestions
 - 👩‍🏫 **Teacher Access** - Invite teachers to view and observe kids
-- ✨ **Smart Recommendations** - AI-powered activity suggestions based on preferences
-- 🎨 **Custom Themes** - Personalize colors and fonts
-- 🖨️ **Print-Ready** - Beautiful layouts for physical reference
+- 🎨 **Collapsible Sidebar** - Modern navigation with hierarchical app structure
+- 📱 **Responsive Design** - Compact, parent-friendly UI
 
 ### For Parents
-- Manage activity preferences (built-in or Google Sheets)
-- Create and track kid profiles with preference levels
+- Curate household activity lists from 114+ universal activities
+- Set preferences for Caregiver1, Caregiver2, and "Both" for each activity
+- Create and track kid profiles with detailed preference levels
 - Get personalized activity recommendations for each kid
-- Customize recommendation algorithm weights
+- Customize recommendation algorithm weights and factors
 - Grant teacher access to specific kids
-- View teacher observations and insights
+- View teacher observations and professional insights
 
 ### For Teachers
 - View authorized kid profiles and preferences
-- Create observations and track progress
+- Create detailed observations and track progress
 - Design perspective-building activities
 - Message parents about kid development
 - Share professional insights
@@ -37,15 +55,18 @@ A kid-friendly web application for tracking which activities Mom and Dad love to
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              USER INTERFACES                                 │
+│                        HOMEBASE USER INTERFACES                              │
+│                    (Sidebar Navigation + Top Bar)                            │
 ├──────────────┬──────────────────────┬──────────────────────┬────────────────┤
 │   Parents    │      Teachers        │      Admins          │   Anonymous    │
 │              │                      │                      │                │
 │  Dashboard   │  Teacher Dashboard   │  Admin Panel         │  Auth Page     │
-│  Prefs Mgmt  │  Kid View           │  User Management     │  (Login/Signup)│
-│  Kid Prefs   │  Observations       │  Statistics          │                │
-│  Recommend.  │  Activities         │  Access Control      │                │
-│  Settings    │  Messages           │                      │                │
+│  What We Like:                      │  User Management     │  (Login/Signup)│
+│  ├─Household │  Kid View           │  Statistics          │                │
+│  ├─Kid Prefs │  Observations       │  Access Control      │                │
+│  ├─Who Likes │  Activities         │                      │                │
+│  ├─Recomm.   │  Messages           │                      │                │
+│  └─Settings  │                      │                      │                │
 └──────┬───────┴──────────┬───────────┴───────────┬──────────┴────────┬───────┘
        │                  │                       │                   │
        │                  │                       │                   │
@@ -69,7 +90,9 @@ A kid-friendly web application for tracking which activities Mom and Dad love to
 │  ┌────────────────────────────────────────────────────────────────┐         │
 │  │                    Frontend (Vanilla JS)                       │         │
 │  │                                                                 │         │
-│  │  • Platform Navigation (platform-nav.js)                       │         │
+│  │  • Sidebar Navigation (sidebar-nav.js) - Hierarchical menu    │         │
+│  │  • Top Navigation (platform-nav.js) - HomeBase branding       │         │
+│  │  • Layout System (homebase-layout.css) - Compact design       │         │
 │  │  • Supabase Client (supabase-config.js)                       │         │
 │  │  • Page Controllers (script.js, auth.js, etc.)                │         │
 │  │  • Recommendation Engine UI (recommendations.js)               │         │
@@ -100,11 +123,14 @@ A kid-friendly web application for tracking which activities Mom and Dad love to
 │  │                   │  │                   │  │  (Phase 3A)          │   │
 │  │  • users          │  │  • activities     │  │  • contexts          │   │
 │  │  • user_settings  │  │  • categories     │  │  • activity_contexts │   │
-│  │  • apps           │  │  • parent_prefs   │  │  • similarity cache  │   │
-│  │  • user_app_access│  │  • kids           │  │  • rules & weights   │   │
-│  │  • auth tables    │  │  • kid_activities │  │  • history & feedback│   │
-│  └───────────────────┘  │  • kid_prefs      │  └──────────────────────┘   │
-│                         └───────────────────┘                               │
+│  │  • apps           │  │  • household_     │  │  • similarity cache  │   │
+│  │  • user_app_access│  │    activities     │  │  • rules & weights   │   │
+│  │  • auth tables    │  │  • household_     │  │  • history & feedback│   │
+│  │                   │  │    activity_prefs │  │                      │   │
+│  │                   │  │  • kids           │  │  Multi-caregiver     │   │
+│  │                   │  │  • kid_activities │  │  preferences (C1,    │   │
+│  │                   │  │  • kid_prefs      │  │  C2, Both) support   │   │
+│  └───────────────────┘  └───────────────────┘  └──────────────────────┘   │
 │  ┌───────────────────┐  ┌───────────────────┐                              │
 │  │  Teacher System   │  │  Insights & Obs   │                              │
 │  │  (Phase 5)        │  │                   │                              │
@@ -215,19 +241,19 @@ parental-preferences/
 │   ├── auth.html                     # Login/signup page
 │   ├── dashboard.html                # User dashboard
 │   ├── admin.html                    # Admin panel
-│   └── platform-nav.html             # Universal navigation
+│   ├── platform-nav.html             # Top navigation (HomeBase branding)
+│   └── sidebar-nav.html              # Hierarchical sidebar navigation
 │
-├── Preferences Management
-│   ├── preferences-manager.html      # Parent activity preferences
+├── What We Like App
+│   ├── preferences-manager.html      # Household activity preferences
 │   ├── kid-preferences-manager.html  # Kid profile management
 │   ├── kid-prefs.html               # Kid preference editor
+│   ├── kids-activity-view.html      # "Who Likes What?" visual explorer
+│   ├── recommendations.html          # Activity recommendations
+│   ├── recommendation-settings.html  # Algorithm customization
 │   └── kid-access-management.html   # Teacher access control
 │
-├── Recommendations (Phase 3A)
-│   ├── recommendations.html          # Activity recommendations
-│   └── recommendation-settings.html  # Algorithm customization
-│
-├── Teacher Features (Phase 5)
+├── Teacher Features
 │   ├── teacher-invite.html          # Invite teachers
 │   ├── teacher-dashboard.html       # Teacher home
 │   ├── teacher-kid-view.html        # Kid profiles (teacher view)
@@ -236,9 +262,15 @@ parental-preferences/
 │
 ├── JavaScript Modules
 │   ├── supabase-config.js           # Supabase client
+│   ├── platform-nav.js              # Top navigation logic
+│   ├── sidebar-nav.js               # Sidebar navigation logic
 │   ├── script.js, auth.js, etc.     # Page-specific logic
 │   ├── recommendations.js           # Recommendation UI
 │   └── recommendation-settings.js   # Settings UI
+│
+├── Styles
+│   ├── homebase-layout.css          # Core layout & sidebar styles
+│   └── styles.css                   # Legacy/additional styles
 │
 ├── Database Migrations
 │   ├── database-schema.sql          # Base schema
@@ -291,11 +323,13 @@ parental-preferences/
 - **email_auth_users** - Email-based authentication support
 - **teacher_invitations** - Teacher invitation workflow
 
-### Phase 4: Kid Preferences
+### Phase 4: Kid Preferences & Household System
 - **kids** - Kid profiles with birth dates and avatars
-- **kid_activity_categories** - Kid-specific categories
-- **kid_activities** - Activities for kids
+- **kid_activity_categories** - Universal activity categories (shared across users)
+- **kid_activities** - Universal activities (114+ activities)
 - **kid_preferences** - Kid preference levels (loves/likes/neutral)
+- **household_activities** - User-curated subset of universal activities
+- **household_activity_preferences** - Multi-caregiver preferences (Caregiver1, Caregiver2, Both)
 - **kid_insights** - Auto-generated insights about kids
 
 ### Phase 5: Teacher Access
@@ -348,14 +382,23 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ## Features Roadmap
 
 ### Completed ✅
+- [x] **HomeBase Platform Rebrand** 
+  - [x] Collapsible sidebar navigation
+  - [x] Hierarchical app structure
+  - [x] Compact, modern UI design
+  - [x] Top navigation with HomeBase branding
+- [x] **"What We Like" Consolidated App**
+  - [x] Household activity preferences (multi-caregiver support)
+  - [x] Universal activity library (114+ activities)
+  - [x] "Who Likes What?" visual explorer for kids
+  - [x] Smart recommendations engine
+  - [x] Customizable algorithm settings
 - [x] Google OAuth authentication
 - [x] Email-based authentication
 - [x] User dashboard and settings
 - [x] Admin panel
-- [x] Theme customization
-- [x] Built-in preference management
 - [x] Kid profile management
-- [x] Kid preference tracking
+- [x] Kid preference tracking (loves/likes/neutral/dislikes/refuses)
 - [x] Teacher invitation system
 - [x] Teacher dashboard and observations
 - [x] **Smart Recommendations Engine** (Phase 3A)
@@ -366,11 +409,17 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
   - [x] Feedback tracking system
 
 ### In Progress 🚧
-- [ ] Mobile-responsive design improvements
+- [ ] Teacher page UI updates for HomeBase
+- [ ] Mobile-responsive sidebar improvements
 - [ ] Recommendation analytics dashboard
 - [ ] Weather API integration for auto-context
 
 ### Planned 📋
+- [ ] **Future HomeBase Apps**
+  - [ ] House Rules - Values-driven house rules builder
+  - [ ] Food Explorer - Food preference tracker and expansion tool
+  - [ ] Try This - Gamified real-world experiences
+  - [ ] Little Earners - Task-based allowance system
 - [ ] Machine learning model training from feedback
 - [ ] Activity duration matching
 - [ ] Community activity discovery

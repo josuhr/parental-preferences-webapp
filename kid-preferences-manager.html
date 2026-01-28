@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kid Activity Preferences - Carer Support Platform</title>
-    <link rel="stylesheet" href="auth-styles.css">
+    <title>Kid Preferences - What We Like - HomeBase</title>
+    <link rel="stylesheet" href="homebase-layout.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .preferences-manager {
@@ -323,8 +323,10 @@
 <body>
     <!-- Platform Navigation -->
     <div id="platformNavContainer"></div>
+    <div id="sidebar-nav-container"></div>
 
-    <div class="preferences-manager">
+    <div class="main-content">
+        <div class="preferences-manager">
         <div class="manager-header">
             <div class="manager-header-left">
                 <div class="breadcrumb">
@@ -417,6 +419,7 @@
             </form>
         </div>
     </div>
+    </div>
 
     <script src="supabase-config.js"></script>
     <script>
@@ -428,13 +431,18 @@
                 const script = document.createElement('script');
                 script.src = 'platform-nav.js';
                 document.body.appendChild(script);
-                script.onload = () => {
-                    if (window.platformNav) {
-                        window.platformNav.setCurrentApp('kid-prefs', 'Kid Preferences', '👶');
-                    }
-                };
             })
             .catch(error => console.error('Error loading platform nav:', error));
+        
+        // Load sidebar navigation
+        fetch('sidebar-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-nav-container').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'sidebar-nav.js';
+                document.body.appendChild(script);
+            });
     </script>
     <script src="kid-preferences-manager.js"></script>
 </body>
