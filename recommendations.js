@@ -47,7 +47,7 @@ async function loadKids() {
     try {
         const user = await window.supabaseUtils.getCurrentUser();
         
-        const { data: kids, error } = await supabaseClient
+        const { data: kids, error } = await supabaseDb
             .from('kids')
             .select('*')
             .eq('parent_id', user.id)
@@ -125,9 +125,10 @@ async function loadRecommendations() {
     
     try {
         // Call the get_recommendations_for_kid function
+        // Note: p_context parameter is defined in the function but not currently used
         const { data, error } = await supabaseDb.rpc('get_recommendations_for_kid', {
             p_kid_id: currentKidId,
-            p_context_json: currentContext,
+            p_context: null,  // Context filtering not yet implemented in function
             p_limit: 20
         });
         
