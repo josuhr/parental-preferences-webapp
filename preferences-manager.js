@@ -686,14 +686,13 @@ async function createAndAddNewActivity() {
         
         const supabaseClient = window.supabaseUtils.getClient();
         
-        // Create the activity (universal - parent_id is NULL)
+        // Create the activity as a universal activity
         const { data: newActivity, error: activityError } = await supabaseClient
             .from('kid_activities')
             .insert({
                 category_id: categoryId,
                 name: name,
-                description: description || null,
-                parent_id: null // Universal activity
+                description: description || null
             })
             .select()
             .single();
