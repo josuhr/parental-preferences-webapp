@@ -194,6 +194,136 @@
             white-space: nowrap;
         }
 
+        .btn-ai {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        .btn-ai:hover {
+            background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Interests Summary Modal Styles */
+        .summary-modal .modal-content {
+            max-width: 700px;
+        }
+
+        .summary-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .summary-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .summary-loading-text {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .summary-content {
+            line-height: 1.8;
+            color: #333;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            white-space: pre-wrap;
+        }
+
+        .summary-content p {
+            margin-bottom: 1em;
+        }
+
+        .summary-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .summary-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn-copy {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-copy.copied {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .summary-error {
+            text-align: center;
+            padding: 40px 20px;
+            color: #c62828;
+        }
+
+        .summary-error-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .summary-kid-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .summary-kid-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .summary-kid-info h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .summary-kid-info .ai-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 11px;
+            border-radius: 12px;
+            margin-top: 4px;
+        }
+
         .empty-state {
             text-align: center;
             padding: 80px 20px;
@@ -421,6 +551,45 @@
                     <button type="submit" class="btn btn-primary">Save Kid</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Interests Summary Modal -->
+    <div id="summaryModal" class="modal summary-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Interests Summary</h2>
+                <button class="modal-close" onclick="closeSummaryModal()">×</button>
+            </div>
+            
+            <div id="summaryKidHeader" class="summary-kid-header" style="display: none;">
+                <div class="summary-kid-avatar" id="summaryKidAvatar"></div>
+                <div class="summary-kid-info">
+                    <h3 id="summaryKidName"></h3>
+                    <span class="ai-badge">AI Generated</span>
+                </div>
+            </div>
+            
+            <div id="summaryLoading" class="summary-loading">
+                <div class="summary-spinner"></div>
+                <div class="summary-loading-text">Analyzing interests and generating summary...</div>
+            </div>
+            
+            <div id="summaryContent" class="summary-content" style="display: none;"></div>
+            
+            <div id="summaryError" class="summary-error" style="display: none;">
+                <div class="summary-error-icon">⚠️</div>
+                <h3>Unable to Generate Summary</h3>
+                <p id="summaryErrorMessage"></p>
+            </div>
+            
+            <div id="summaryActions" class="summary-actions" style="display: none;">
+                <button type="button" class="btn btn-secondary btn-copy" onclick="copySummaryToClipboard()">
+                    <span id="copyIcon">📋</span>
+                    <span id="copyText">Copy to Clipboard</span>
+                </button>
+                <button type="button" class="btn btn-primary" onclick="closeSummaryModal()">Close</button>
+            </div>
         </div>
     </div>
         </div>

@@ -147,6 +147,9 @@ function createKidCard(kid) {
         </div>
         
         <div class="kid-actions">
+            <button class="btn btn-ai btn-small" onclick="showInterestsSummary('${kid.id}')">
+                ✨ Interests Summary
+            </button>
             <button class="btn btn-primary btn-small" onclick="manageAccess('${kid.id}')">
                 👥 Teachers
             </button>
@@ -344,4 +347,284 @@ function showSuccess(message) {
     setTimeout(() => {
         container.innerHTML = '';
     }, 3000);
+}
+
+// ===== AI Interests Summary Feature =====
+
+let currentSummaryKid = null;
+let currentSummaryText = '';
+
+// Show interests summary for a kid
+async function showInterestsSummary(kidId) {
+    const kid = kids.find(k => k.id === kidId);
+    if (!kid) {
+        showError('Kid not found');
+        return;
+    }
+    
+    currentSummaryKid = kid;
+    
+    // Open modal with loading state
+    openSummaryModal(kid);
+    
+    try {
+        // Gather all context data for the kid
+        const kidContext = await gatherKidContext(kid);
+        
+        // Call the AI function to generate summary
+        const summary = await generateSummary(kidContext);
+        
+        // Display the summary
+        displaySummary(summary);
+        
+    } catch (error) {
+        console.error('Error generating interests summary:', error);
+        displaySummaryError(error.message || 'Failed to generate summary. Please try again.');
+    }
+}
+
+// Open the summary modal
+function openSummaryModal(kid) {
+    const modal = document.getElementById('summaryModal');
+    
+    // Set kid header info
+    document.getElementById('summaryKidAvatar').textContent = kid.avatar_emoji;
+    document.getElementById('summaryKidName').textContent = kid.name + "'s Interests";
+    document.getElementById('summaryKidHeader').style.display = 'flex';
+    
+    // Show loading, hide content and error
+    document.getElementById('summaryLoading').style.display = 'flex';
+    document.getElementById('summaryContent').style.display = 'none';
+    document.getElementById('summaryError').style.display = 'none';
+    document.getElementById('summaryActions').style.display = 'none';
+    
+    // Reset copy button
+    resetCopyButton();
+    
+    modal.classList.add('show');
+}
+
+// Close the summary modal
+function closeSummaryModal() {
+    document.getElementById('summaryModal').classList.remove('show');
+    currentSummaryKid = null;
+    currentSummaryText = '';
+}
+
+// Gather all relevant context data for the kid
+async function gatherKidContext(kid) {
+    const supabaseClient = window.supabaseUtils.getClient();
+    
+    // Calculate age
+    let age = null;
+    if (kid.birth_date) {
+        const birthDate = new Date(kid.birth_date);
+        age = Math.floor((new Date() - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
+    }
+    
+    // Get kid preferences with activity details
+    const { data: preferences, error: prefError } = await supabaseClient
+        .from('kid_preferences')
+        .select(`
+            id,
+            preference_level,
+            notes,
+            activity_id,
+            kid_activities (
+                id,
+                name,
+                description,
+                category_id,
+                kid_activity_categories (
+                    id,
+                    name
+                )
+            )
+        `)
+        .eq('kid_id', kid.id);
+    
+    if (prefError) {
+        console.error('Error fetching preferences:', prefError);
+    }
+    
+    // Organize preferences by level
+    const preferenceCounts = {
+        loves: 0,
+        likes: 0,
+        neutral: 0,
+        dislikes: 0,
+        refuses: 0
+    };
+    
+    const lovedActivities = [];
+    const likedActivities = [];
+    const dislikedActivities = [];
+    const categoryCount = {};
+    
+    if (preferences) {
+        preferences.forEach(pref => {
+            const level = pref.preference_level;
+            if (preferenceCounts.hasOwnProperty(level)) {
+                preferenceCounts[level]++;
+            }
+            
+            const activity = pref.kid_activities;
+            if (activity) {
+                const activityData = {
+                    name: activity.name,
+                    description: activity.description,
+                    category: activity.kid_activity_categories?.name || null
+                };
+                
+                // Track category counts
+                if (activityData.category) {
+                    categoryCount[activityData.category] = (categoryCount[activityData.category] || 0) + 1;
+                }
+                
+                if (level === 'loves') {
+                    lovedActivities.push(activityData);
+                } else if (level === 'likes') {
+                    likedActivities.push(activityData);
+                } else if (level === 'dislikes' || level === 'refuses') {
+                    dislikedActivities.push(activityData);
+                }
+            }
+        });
+    }
+    
+    // Get top categories
+    const topCategories = Object.entries(categoryCount)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+    
+    // Try to get teacher observations (may not exist for all kids)
+    let teacherObservations = [];
+    try {
+        const { data: observations, error: obsError } = await supabaseClient
+            .from('teacher_observations')
+            .select('id, observation_type, title, description')
+            .eq('kid_id', kid.id)
+            .eq('is_visible_to_parent', true)
+            .order('created_at', { ascending: false })
+            .limit(10);
+        
+        if (!obsError && observations) {
+            teacherObservations = observations.map(obs => ({
+                type: obs.observation_type,
+                title: obs.title,
+                description: obs.description
+            }));
+        }
+    } catch (e) {
+        // Table may not exist, that's okay
+        console.log('Teacher observations not available');
+    }
+    
+    return {
+        kidName: kid.name,
+        age: age,
+        parentNotes: kid.notes,
+        preferenceCounts,
+        lovedActivities,
+        likedActivities,
+        dislikedActivities,
+        teacherObservations,
+        topCategories
+    };
+}
+
+// Call the Netlify function to generate summary
+async function generateSummary(kidContext) {
+    const response = await fetch('/.netlify/functions/generate-interests-summary', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(kidContext)
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+        throw new Error(data.message || 'Failed to generate summary');
+    }
+    
+    return data.summary;
+}
+
+// Display the generated summary
+function displaySummary(summary) {
+    currentSummaryText = summary;
+    
+    // Hide loading
+    document.getElementById('summaryLoading').style.display = 'none';
+    
+    // Format and show summary content
+    const contentEl = document.getElementById('summaryContent');
+    contentEl.innerHTML = formatSummaryText(summary);
+    contentEl.style.display = 'block';
+    
+    // Show actions
+    document.getElementById('summaryActions').style.display = 'flex';
+}
+
+// Format summary text with proper HTML paragraphs
+function formatSummaryText(text) {
+    // Split by double newlines to get paragraphs
+    const paragraphs = text.split(/\n\n+/);
+    return paragraphs
+        .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
+        .join('');
+}
+
+// Display error in the summary modal
+function displaySummaryError(message) {
+    document.getElementById('summaryLoading').style.display = 'none';
+    document.getElementById('summaryContent').style.display = 'none';
+    document.getElementById('summaryActions').style.display = 'none';
+    
+    document.getElementById('summaryErrorMessage').textContent = message;
+    document.getElementById('summaryError').style.display = 'block';
+}
+
+// Copy summary to clipboard
+async function copySummaryToClipboard() {
+    if (!currentSummaryText) return;
+    
+    try {
+        await navigator.clipboard.writeText(currentSummaryText);
+        
+        // Show success feedback
+        const copyBtn = document.querySelector('.btn-copy');
+        const copyIcon = document.getElementById('copyIcon');
+        const copyText = document.getElementById('copyText');
+        
+        copyBtn.classList.add('copied');
+        copyIcon.textContent = '✓';
+        copyText.textContent = 'Copied!';
+        
+        // Reset after 2 seconds
+        setTimeout(resetCopyButton, 2000);
+        
+    } catch (err) {
+        console.error('Failed to copy:', err);
+        showError('Failed to copy to clipboard');
+    }
+}
+
+// Reset copy button to initial state
+function resetCopyButton() {
+    const copyBtn = document.querySelector('.btn-copy');
+    const copyIcon = document.getElementById('copyIcon');
+    const copyText = document.getElementById('copyText');
+    
+    if (copyBtn) copyBtn.classList.remove('copied');
+    if (copyIcon) copyIcon.textContent = '📋';
+    if (copyText) copyText.textContent = 'Copy to Clipboard';
 }

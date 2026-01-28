@@ -181,12 +181,53 @@ Value: [your service role key]
 - Ensure the sheet has the required tabs (Arts & Crafts, etc.)
 - Check that sheet is publicly accessible
 
+## Step 7: Enable AI Features (Optional)
+
+The app includes AI-powered features like the "Interests Summary" that uses OpenAI to generate personalized summaries of a child's interests.
+
+### 7.1 Get OpenAI API Key
+
+1. Go to https://platform.openai.com/
+2. Sign in or create an account
+3. Go to API Keys: https://platform.openai.com/api-keys
+4. Click "Create new secret key"
+5. Name it "Parental Preferences" and copy the key
+
+### 7.2 Configure in Netlify
+
+1. Go to your Netlify site dashboard
+2. Site settings → Environment variables → Add variable
+3. Add this variable:
+
+```
+Key: OPENAI_API_KEY
+Value: sk-...your-api-key...
+```
+
+4. Click "Save"
+5. Trigger a redeploy: Deploys → Trigger deploy → Deploy site
+
+### 7.3 Test AI Features
+
+1. Go to Kid Management page
+2. Click the "Interests Summary" button on any kid card
+3. The AI will analyze the child's preferences and generate a personalized summary
+4. Use the "Copy to Clipboard" button to share the summary
+
+### 7.4 AI Usage & Costs
+
+- The feature uses OpenAI's GPT-4o model
+- Each summary costs approximately $0.01-0.02
+- Consider setting usage limits in OpenAI dashboard if needed
+- The feature gracefully handles missing API key configuration
+
 ## Next Steps
 
 - Invite family members to sign up
 - Customize your theme colors
 - Add more activities to your Google Sheet
 - Monitor users in the admin panel
+- Try the AI Interests Summary feature for personalized insights
 
 ## Support
 
