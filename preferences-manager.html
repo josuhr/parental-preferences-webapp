@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preferences Manager - Parent Support Platform</title>
+    <title>Household Activity Preferences - Parent Support Platform</title>
     <link rel="stylesheet" href="auth-styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .preferences-manager {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -20,96 +20,18 @@
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 2px solid #e0e0e0;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .manager-header-left {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            color: #666;
-        }
-
-        .breadcrumb a {
-            color: #1976d2;
-            text-decoration: none;
-        }
-
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        .breadcrumb-separator {
-            color: #999;
         }
 
         .manager-header h1 {
             margin: 0;
-            color: #1976d2;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: #1976d2;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #1565c0;
-        }
-
-        .btn-secondary {
-            background: #f5f5f5;
             color: #333;
-            border: 1px solid #ddd;
-        }
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-
-        .btn-success {
-            background: #4caf50;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #45a049;
-        }
-
-        .categories-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
         }
 
         .category-card {
             background: white;
-            border: 1px solid #e0e0e0;
             border-radius: 8px;
             padding: 20px;
+            margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
@@ -124,7 +46,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
             color: #333;
         }
@@ -133,17 +55,115 @@
             font-size: 24px;
         }
 
-        .category-actions {
+        .activities-table {
+            width: 100%;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 100px;
+            gap: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .table-body {
             display: flex;
+            flex-direction: column;
             gap: 8px;
+            margin-top: 8px;
+        }
+
+        .activity-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 100px;
+            gap: 10px;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border-left: 4px solid #1976d2;
+            align-items: center;
+        }
+
+        .col-activity .activity-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .col-activity .activity-description {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .col-pref {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .col-actions {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .preference-btn {
+            padding: 6px 10px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .preference-btn:hover {
+            border-color: #aaa;
+            transform: scale(1.05);
+        }
+
+        .preference-btn.active[data-level="drop_anything"] {
+            background: #c8e6c9;
+            border-color: #4caf50;
+        }
+
+        .preference-btn.active[data-level="sometimes"] {
+            background: #fff9c4;
+            border-color: #ffeb3b;
+        }
+
+        .preference-btn.active[data-level="on_your_own"] {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .btn-primary {
+            padding: 10px 20px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
         }
 
         .btn-icon {
-            background: transparent;
+            padding: 6px 10px;
             border: none;
-            font-size: 18px;
+            background: transparent;
             cursor: pointer;
-            padding: 5px 10px;
+            font-size: 18px;
             border-radius: 4px;
             transition: background 0.2s;
         }
@@ -152,161 +172,18 @@
             background: #f5f5f5;
         }
 
-        .activities-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .activity-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: #f9f9f9;
-            border-radius: 4px;
-            border-left: 4px solid #1976d2;
-        }
-
-        .activity-info {
-            flex: 1;
-        }
-
-        .activity-name {
-            font-weight: 500;
-            color: #333;
-        }
-
-        .activity-description {
-            font-size: 12px;
-            color: #666;
-            margin-top: 4px;
-        }
-
-        .preference-selector {
-            display: flex;
-            gap: 5px;
-        }
-
-        .preference-btn {
-            padding: 6px 12px;
-            border: 2px solid #ddd;
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-
-        .preference-btn:hover {
-            border-color: #1976d2;
-        }
-
-        .preference-btn.active {
-            font-weight: 600;
-            border-width: 2px;
-        }
-
-        .preference-btn[data-level="both"].active {
-            background: #e1bee7;
-            border-color: #9c27b0;
-            color: #4a148c;
-        }
-
-        .preference-btn[data-level="mom"].active {
-            background: #f8bbd0;
-            border-color: #e91e63;
-            color: #880e4f;
-        }
-
-        .preference-btn[data-level="dad"].active {
-            background: #bbdefb;
-            border-color: #2196f3;
-            color: #0d47a1;
-        }
-
-        .preference-btn[data-level="neither"].active {
-            background: #f5f5f5;
-            border-color: #757575;
-            color: #424242;
-        }
-
-        /* New parent kid activity preference styles */
-        .preference-btn[data-level="drop_anything"].active {
-            background: #c8e6c9;
-            border-color: #4caf50;
-            color: #1b5e20;
-        }
-
-        .preference-btn[data-level="sometimes"].active {
-            background: #fff9c4;
-            border-color: #ffeb3b;
-            color: #f57f17;
-        }
-
-        .preference-btn[data-level="on_your_own"].active {
-            background: #fff3e0;
-            border-color: #ff9800;
-            color: #e65100;
-        }
-
-        .preference-level-btn {
-            padding: 6px 12px;
-            border: 2px solid #ddd;
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-
-        .preference-level-btn:hover {
-            border-color: #1976d2;
-        }
-
-        .preference-level-btn.active {
-            font-weight: 600;
-            border-width: 2px;
-        }
-
-        .preference-level-btn[data-level="drop_anything"].active {
-            background: #c8e6c9;
-            border-color: #4caf50;
-            color: #1b5e20;
-        }
-
-        .preference-level-btn[data-level="sometimes"].active {
-            background: #fff9c4;
-            border-color: #ffeb3b;
-            color: #f57f17;
-        }
-
-        .preference-level-btn[data-level="on_your_own"].active {
-            background: #fff3e0;
-            border-color: #ff9800;
-            color: #e65100;
-        }
-
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #999;
-        }
-
-        .empty-state-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
+            color: #666;
         }
 
         .empty-state h2 {
-            color: #666;
+            color: #999;
             margin-bottom: 10px;
         }
 
-        .empty-state p {
-            margin-bottom: 20px;
-        }
-
+        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -320,17 +197,13 @@
             justify-content: center;
         }
 
-        .modal.show {
-            display: flex;
-        }
-
         .modal-content {
             background: white;
             border-radius: 8px;
             padding: 30px;
             max-width: 500px;
             width: 90%;
-            max-height: 90vh;
+            max-height: 80vh;
             overflow-y: auto;
         }
 
@@ -343,10 +216,9 @@
 
         .modal-header h2 {
             margin: 0;
-            color: #333;
         }
 
-        .modal-close {
+        .close-btn {
             background: none;
             border: none;
             font-size: 24px;
@@ -354,7 +226,7 @@
             color: #999;
         }
 
-        .modal-close:hover {
+        .close-btn:hover {
             color: #333;
         }
 
@@ -365,280 +237,94 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 500;
+            font-weight: 600;
             color: #333;
         }
 
-        .form-group input,
-        .form-group textarea {
+        .form-group select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
-            font-family: inherit;
         }
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .icon-picker {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .icon-option {
-            padding: 10px;
-            font-size: 24px;
-            border: 2px solid #ddd;
+        #loading, #error, #success {
+            display: none;
+            padding: 15px;
+            margin-bottom: 20px;
             border-radius: 4px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
         }
 
-        .icon-option:hover {
-            border-color: #1976d2;
-            background: #f5f5f5;
-        }
-
-        .icon-option.selected {
-            border-color: #1976d2;
+        #loading {
             background: #e3f2fd;
+            color: #1976d2;
         }
 
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-
-        .error-message {
+        #error {
             background: #ffebee;
             color: #c62828;
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            border-left: 4px solid #c62828;
         }
 
-        .success-message {
+        #success {
             background: #e8f5e9;
             color: #2e7d32;
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            border-left: 4px solid #2e7d32;
-        }
-
-        .add-activity-btn {
-            width: 100%;
-            padding: 12px;
-            border: 2px dashed #ddd;
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-            color: #666;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-
-        .add-activity-btn:hover {
-            border-color: #1976d2;
-            color: #1976d2;
-            background: #f5f5f5;
-        }
-
-        @media print {
-            .manager-header,
-            .category-actions,
-            .header-actions,
-            .add-activity-btn,
-            .fab {
-                display: none !important;
-            }
-        }
-
-        /* Floating Action Button for mobile */
-        .fab {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: #1976d2;
-            color: white;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .fab:hover {
-            background: #1565c0;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
         }
 
         @media (max-width: 768px) {
-            .fab {
-                display: flex;
+            .table-header, .activity-row {
+                grid-template-columns: 1fr;
             }
-            
-            .header-actions {
-                flex-wrap: wrap;
+
+            .col-pref, .col-actions {
+                justify-content: flex-start;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Platform Navigation -->
-    <div id="platformNavContainer"></div>
+    <div id="platform-nav-container"></div>
 
     <div class="preferences-manager">
         <div class="manager-header">
-            <div class="manager-header-left">
-                <div class="breadcrumb">
-                    <a href="/index.html">🎨 Parental Preferences</a>
-                    <span class="breadcrumb-separator">›</span>
-                    <span>Preferences Manager</span>
-                </div>
-                <h1>Manage Your Preferences</h1>
-            </div>
-            <div class="header-actions">
-                <button class="btn btn-secondary" onclick="window.location.href='/index.html'">👁️ View Activities</button>
-                <button class="btn btn-secondary" id="importBtn">📥 Import from Sheets</button>
-                <button class="btn btn-success" id="addCategoryBtn">➕ Add Category</button>
-            </div>
+            <h1>🏠 Household Activity Preferences</h1>
+            <button id="addActivityBtn" class="btn-primary">➕ Add Activity</button>
         </div>
 
-        <div id="messageContainer"></div>
-        <div id="loadingContainer" class="loading" style="display: none;">
-            <div>Loading your preferences...</div>
+        <div id="loading">Loading...</div>
+        <div id="error"></div>
+        <div id="success"></div>
+
+        <div id="emptyState" class="empty-state">
+            <h2>📋 No Activities Yet</h2>
+            <p>Add activities from the universal library to start setting preferences for your household.</p>
+            <p>You can set different preferences for each caregiver!</p>
         </div>
 
-        <div id="emptyState" class="empty-state" style="display: none;">
-            <div class="empty-state-icon">📋</div>
-            <h2>No Preferences Yet</h2>
-            <p>Get started by creating your first category of activities!</p>
-            <button class="btn btn-primary" onclick="document.getElementById('addCategoryBtn').click()">Create First Category</button>
-            <div style="margin-top: 20px;">
-                <a href="/index.html" style="color: #1976d2; text-decoration: none;">← Back to Activities</a>
-            </div>
-        </div>
-
-        <div id="categoriesContainer" class="categories-container"></div>
+        <div id="activitiesContainer"></div>
     </div>
 
-    <!-- Floating Action Button (mobile) -->
-    <button class="fab" onclick="window.location.href='/index.html'" title="View Activities">
-        👁️
-    </button>
-
-    <!-- Add/Edit Category Modal -->
-    <div id="categoryModal" class="modal">
+    <!-- Add Activity Modal -->
+    <div id="addActivityModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="categoryModalTitle">Add Category</h2>
-                <button class="modal-close" onclick="closeCategoryModal()">×</button>
+                <h2>Add Activity to Household</h2>
+                <button class="close-btn" onclick="closeAddActivityModal()">×</button>
             </div>
-            <form id="categoryForm">
-                <input type="hidden" id="categoryId" />
+            <form id="addActivityForm">
                 <div class="form-group">
-                    <label for="categoryName">Category Name *</label>
-                    <input type="text" id="categoryName" required placeholder="e.g., Indoor Activities" />
+                    <label for="activitySelect">Select Activity</label>
+                    <select id="activitySelect" required>
+                        <option value="">-- Select an activity --</option>
+                    </select>
                 </div>
-                <div class="form-group">
-                    <label for="categoryIcon">Icon *</label>
-                    <input type="text" id="categoryIcon" required readonly placeholder="Choose an icon below" />
-                    <div class="icon-picker" id="iconPicker"></div>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Category</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Add/Edit Activity Modal -->
-    <div id="activityModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="activityModalTitle">Add Activity</h2>
-                <button class="modal-close" onclick="closeActivityModal()">×</button>
-            </div>
-            <form id="activityForm">
-                <input type="hidden" id="activityId" />
-                <input type="hidden" id="activityCategoryId" />
-                <div class="form-group">
-                    <label for="activityName">Activity Name *</label>
-                    <input type="text" id="activityName" required placeholder="e.g., Reading Books" />
-                </div>
-                <div class="form-group">
-                    <label for="activityDescription">Description (optional)</label>
-                    <textarea id="activityDescription" placeholder="Add any notes or details..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Who likes this activity?</label>
-                    <div class="preference-selector">
-                        <button type="button" class="preference-btn" data-level="both">💜 Both</button>
-                        <button type="button" class="preference-btn" data-level="mom">💗 Mom</button>
-                        <button type="button" class="preference-btn" data-level="dad">💙 Dad</button>
-                        <button type="button" class="preference-btn" data-level="neither">⚪ Neither</button>
-                    </div>
-                    <input type="hidden" id="activityPreference" value="both" />
-                </div>
-                <div class="form-group">
-                    <label>How much do they like it?</label>
-                    <div class="preference-selector">
-                        <button type="button" class="preference-level-btn active" data-level="drop_anything">💚 Drop Anything</button>
-                        <button type="button" class="preference-level-btn" data-level="sometimes">💛 Sometimes</button>
-                        <button type="button" class="preference-level-btn" data-level="on_your_own">⭐ On Your Own</button>
-                    </div>
-                    <input type="hidden" id="activityPreferenceLevel" value="drop_anything" />
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeActivityModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Activity</button>
-                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Add to Household</button>
             </form>
         </div>
     </div>
 
     <script src="supabase-config.js"></script>
-    <script>
-        // Load platform navigation
-        fetch('platform-nav.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('platformNavContainer').innerHTML = html;
-                const script = document.createElement('script');
-                script.src = 'platform-nav.js';
-                document.body.appendChild(script);
-                script.onload = () => {
-                    if (window.platformNav) {
-                        window.platformNav.setCurrentApp('parental-prefs', 'Preferences Manager', '🎨');
-                    }
-                };
-            })
-            .catch(error => console.error('Error loading platform nav:', error));
-    </script>
+    <script src="platform-nav.js"></script>
     <script src="preferences-manager.js"></script>
 </body>
 </html>

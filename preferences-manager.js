@@ -1,43 +1,25 @@
 // Preferences Manager JavaScript
-// Handles parent preferences for universal kid activities
+// Handles household activities with multi-caregiver preferences
 
 let currentUser = null;
 let categories = [];
-let activities = [];
+let householdActivities = [];
+let allUniversalActivities = []; // For adding new activities
 let preferences = [];
-let editingCategoryId = null;
-let editingActivityId = null;
-let userSettings = null; // Store user settings for custom labels
-
-// NEW: Using universal kid activities
-const USE_KID_ACTIVITIES = true;
-
-// Icons for categories
-const CATEGORY_ICONS = ['🏠', '🌳', '🎨', '🎮', '📚', '🎵', '⚽', '🍳', '🧩', '🎭', '🚗', '🏊', '🎪', '🌟', '🎁', '🎯'];
+let userSettings = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Check authentication
         currentUser = await window.supabaseUtils.getCurrentUser();
         if (!currentUser) {
             window.location.href = '/auth.html';
             return;
         }
 
-        // Load user settings for custom labels
         userSettings = await window.supabaseUtils.getUserSettings(currentUser.id);
         
-        // Update button labels based on user settings
-        updatePreferenceButtonLabels();
-        
-        // Set up event listeners
         setupEventListeners();
-        
-        // Load icon picker
-        renderIconPicker();
-        
-        // Load data
         await loadAllData();
         
     } catch (error) {
@@ -48,68 +30,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Set up event listeners
 function setupEventListeners() {
-    // Add category button
-    document.getElementById('addCategoryBtn').addEventListener('click', () => {
-        openCategoryModal();
+    document.getElementById('addActivityBtn').addEventListener('click', () => {
+        openAddActivityModal();
     });
     
-    // Category form submit
-    document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+    document.getElementById('addActivityForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        await saveCategory();
-    });
-    
-    // Activity form submit
-    document.getElementById('activityForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await saveActivity();
-    });
-    
-    // Preference selector buttons
-    document.querySelectorAll('#activityForm .preference-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('#activityForm .preference-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById('activityPreference').value = btn.dataset.level;
-        });
-    });
-    
-    // Preference level selector buttons
-    document.querySelectorAll('#activityForm .preference-level-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('#activityForm .preference-level-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById('activityPreferenceLevel').value = btn.dataset.level;
-        });
-    });
-    
-    // Import button (placeholder)
-    document.getElementById('importBtn').addEventListener('click', () => {
-        alert('Import from Google Sheets will be implemented in a future update.\n\nFor now, you can manually create categories and activities here.');
-    });
-}
-
-// Update preference button labels with custom caregiver names
-function updatePreferenceButtonLabels() {
-    const bothLabel = userSettings?.both_label || 'Both';
-    const bothEmoji = userSettings?.both_emoji || '💜';
-    const caregiver1Label = userSettings?.caregiver1_label || 'Mom';
-    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
-    const caregiver2Label = userSettings?.caregiver2_label || 'Dad';
-    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
-    
-    // Update the buttons in the form
-    const buttons = document.querySelectorAll('#activityForm .preference-btn');
-    buttons.forEach(btn => {
-        const level = btn.dataset.level;
-        if (level === 'both') {
-            btn.textContent = `${bothEmoji} ${bothLabel}`;
-        } else if (level === 'mom') {
-            btn.textContent = `${caregiver1Emoji} ${caregiver1Label}`;
-        } else if (level === 'dad') {
-            btn.textContent = `${caregiver2Emoji} ${caregiver2Label}`;
-        }
-        // 'neither' stays as is
+        await addActivityToHousehold();
     });
 }
 
@@ -130,32 +57,55 @@ async function loadAllData() {
         if (categoriesError) throw categoriesError;
         categories = categoriesData || [];
         
-        // Load kid activities (only from universal categories)
+        // Load ALL universal activities (for the add modal)
         const categoryIds = categories.map(c => c.id);
-        let activitiesQuery = supabaseClient
-            .from('kid_activities')
-            .select('*')
-            .order('sort_order', { ascending: true });
-        
         if (categoryIds.length > 0) {
-            activitiesQuery = activitiesQuery.in('category_id', categoryIds);
+            const { data: allActivitiesData, error: allActivitiesError } = await supabaseClient
+                .from('kid_activities')
+                .select('*')
+                .in('category_id', categoryIds)
+                .order('name', { ascending: true });
+            
+            if (allActivitiesError) throw allActivitiesError;
+            allUniversalActivities = allActivitiesData || [];
         }
         
-        const { data: activitiesData, error: activitiesError } = await activitiesQuery;
+        // Load household activities
+        const { data: householdData, error: householdError } = await supabaseClient
+            .from('household_activities')
+            .select(`
+                id,
+                activity_id,
+                added_at,
+                notes,
+                kid_activities (
+                    id,
+                    name,
+                    description,
+                    category_id
+                )
+            `)
+            .eq('user_id', currentUser.id)
+            .order('added_at', { ascending: false });
         
-        if (activitiesError) throw activitiesError;
-        activities = activitiesData || [];
+        if (householdError) throw householdError;
+        householdActivities = householdData || [];
         
-        // Load parent preferences for kid activities
-        const { data: preferencesData, error: preferencesError } = await supabaseClient
-            .from('parent_kid_activity_preferences')
-            .select('*')
-            .eq('user_id', currentUser.id);
+        // Load preferences for household activities
+        const householdActivityIds = householdActivities.map(ha => ha.id);
+        if (householdActivityIds.length > 0) {
+            const { data: prefsData, error: prefsError } = await supabaseClient
+                .from('household_activity_preferences')
+                .select('*')
+                .in('household_activity_id', householdActivityIds);
+            
+            if (prefsError) throw prefsError;
+            preferences = prefsData || [];
+        } else {
+            preferences = [];
+        }
         
-        if (preferencesError) throw preferencesError;
-        preferences = preferencesData || [];
-        
-        renderCategories();
+        renderHouseholdActivities();
         
     } catch (error) {
         console.error('Error loading data:', error);
@@ -165,25 +115,42 @@ async function loadAllData() {
     }
 }
 
-// Render categories and activities
-function renderCategories() {
-    const container = document.getElementById('categoriesContainer');
+// Render household activities
+function renderHouseholdActivities() {
+    const container = document.getElementById('activitiesContainer');
     const emptyState = document.getElementById('emptyState');
     
-    if (categories.length === 0) {
+    if (householdActivities.length === 0) {
         container.style.display = 'none';
         emptyState.style.display = 'block';
         return;
     }
     
-    container.style.display = 'flex';
+    container.style.display = 'block';
     emptyState.style.display = 'none';
     container.innerHTML = '';
     
+    // Group by category
+    const activityByCategory = {};
+    householdActivities.forEach(ha => {
+        const activity = ha.kid_activities;
+        const categoryId = activity.category_id;
+        if (!activityByCategory[categoryId]) {
+            activityByCategory[categoryId] = [];
+        }
+        activityByCategory[categoryId].push({
+            household_id: ha.id,
+            activity: activity
+        });
+    });
+    
+    // Render each category
     categories.forEach(category => {
-        const categoryActivities = activities.filter(a => a.category_id === category.id);
-        const card = createCategoryCard(category, categoryActivities);
-        container.appendChild(card);
+        const categoryActivities = activityByCategory[category.id] || [];
+        if (categoryActivities.length > 0) {
+            const categoryCard = createCategoryCard(category, categoryActivities);
+            container.appendChild(categoryCard);
+        }
     });
 }
 
@@ -191,6 +158,10 @@ function renderCategories() {
 function createCategoryCard(category, categoryActivities) {
     const card = document.createElement('div');
     card.className = 'category-card';
+    
+    const caregiver1Label = userSettings?.caregiver1_label || 'Mom';
+    const caregiver2Label = userSettings?.caregiver2_label || 'Dad';
+    const bothLabel = userSettings?.both_label || 'Both';
     
     card.innerHTML = `
         <div class="category-header">
@@ -200,85 +171,109 @@ function createCategoryCard(category, categoryActivities) {
                 <span style="font-size: 11px; color: #888; margin-left: 10px;">(${categoryActivities.length} activities)</span>
             </div>
         </div>
-        <div class="activities-list" id="activities-${category.id}"></div>
+        <div class="activities-table">
+            <div class="table-header">
+                <div class="col-activity">Activity</div>
+                <div class="col-pref">${caregiver1Label}</div>
+                <div class="col-pref">${caregiver2Label}</div>
+                <div class="col-pref">${bothLabel}</div>
+                <div class="col-actions">Actions</div>
+            </div>
+            <div class="table-body" id="activities-${category.id}"></div>
+        </div>
     `;
     
-    // Render activities
-    const activitiesList = card.querySelector(`#activities-${category.id}`);
-    categoryActivities.forEach(activity => {
-        const activityEl = createActivityElement(activity);
-        activitiesList.appendChild(activityEl);
+    const tableBody = card.querySelector(`#activities-${category.id}`);
+    categoryActivities.forEach(item => {
+        const activityRow = createActivityRow(item.household_id, item.activity);
+        tableBody.appendChild(activityRow);
     });
     
     return card;
 }
 
-// Create activity element
-function createActivityElement(activity) {
-    const preference = preferences.find(p => p.activity_id === activity.id);
-    const preferenceLevel = preference ? preference.preference_level : 'sometimes';
+// Create activity row
+function createActivityRow(householdId, activity) {
+    const row = document.createElement('div');
+    row.className = 'activity-row';
     
-    const div = document.createElement('div');
-    div.className = 'activity-item';
+    const preference = preferences.find(p => p.household_activity_id === householdId);
     
-    div.innerHTML = `
-        <div class="activity-info">
+    row.innerHTML = `
+        <div class="col-activity">
             <div class="activity-name">${activity.name}</div>
             ${activity.description ? `<div class="activity-description">${activity.description}</div>` : ''}
         </div>
-        <div class="preference-selector">
-            <button class="preference-btn ${preferenceLevel === 'drop_anything' ? 'active' : ''}" 
-                    data-level="drop_anything" 
-                    onclick="updatePreference('${activity.id}', 'drop_anything')" 
-                    title="Drop anything to do this">💚</button>
-            <button class="preference-btn ${preferenceLevel === 'sometimes' ? 'active' : ''}" 
-                    data-level="sometimes" 
-                    onclick="updatePreference('${activity.id}', 'sometimes')" 
-                    title="Enjoy doing this sometimes">💛</button>
-            <button class="preference-btn ${preferenceLevel === 'on_your_own' ? 'active' : ''}" 
-                    data-level="on_your_own" 
-                    onclick="updatePreference('${activity.id}', 'on_your_own')" 
-                    title="Kid should do independently">⭐</button>
+        <div class="col-pref">
+            ${createPreferenceButtons(householdId, 'caregiver1', preference?.caregiver1_preference)}
+        </div>
+        <div class="col-pref">
+            ${createPreferenceButtons(householdId, 'caregiver2', preference?.caregiver2_preference)}
+        </div>
+        <div class="col-pref">
+            ${createPreferenceButtons(householdId, 'both', preference?.both_preference)}
+        </div>
+        <div class="col-actions">
+            <button class="btn-icon" onclick="removeActivity('${householdId}')" title="Remove from household">🗑️</button>
         </div>
     `;
     
-    return div;
+    return row;
+}
+
+// Create preference buttons
+function createPreferenceButtons(householdId, caregiverType, currentPreference) {
+    const levels = [
+        { value: 'drop_anything', emoji: '💚', title: 'Drop anything' },
+        { value: 'sometimes', emoji: '💛', title: 'Sometimes' },
+        { value: 'on_your_own', emoji: '⭐', title: 'On your own' }
+    ];
+    
+    return levels.map(level => {
+        const active = currentPreference === level.value ? 'active' : '';
+        return `<button class="preference-btn ${active}" 
+                        data-level="${level.value}" 
+                        onclick="updatePreference('${householdId}', '${caregiverType}', '${level.value}')"
+                        title="${level.title}">${level.emoji}</button>`;
+    }).join('');
 }
 
 // Update preference
-async function updatePreference(activityId, level) {
+async function updatePreference(householdId, caregiverType, level) {
     try {
         const supabaseClient = window.supabaseUtils.getClient();
-        const existingPref = preferences.find(p => p.activity_id === activityId);
+        const existingPref = preferences.find(p => p.household_activity_id === householdId);
+        
+        const columnName = `${caregiverType}_preference`;
         
         if (existingPref) {
-            // Update existing preference
+            // Update existing
             const { error } = await supabaseClient
-                .from('parent_kid_activity_preferences')
-                .update({ preference_level: level, updated_at: new Date().toISOString() })
+                .from('household_activity_preferences')
+                .update({ 
+                    [columnName]: level,
+                    updated_at: new Date().toISOString() 
+                })
                 .eq('id', existingPref.id);
             
             if (error) throw error;
-            
-            existingPref.preference_level = level;
+            existingPref[columnName] = level;
         } else {
-            // Create new preference
+            // Create new
             const { data, error } = await supabaseClient
-                .from('parent_kid_activity_preferences')
+                .from('household_activity_preferences')
                 .insert({
-                    activity_id: activityId,
-                    user_id: currentUser.id,
-                    preference_level: level
+                    household_activity_id: householdId,
+                    [columnName]: level
                 })
                 .select()
                 .single();
             
             if (error) throw error;
-            
             preferences.push(data);
         }
         
-        renderCategories();
+        renderHouseholdActivities();
         
     } catch (error) {
         console.error('Error updating preference:', error);
@@ -286,338 +281,123 @@ async function updatePreference(activityId, level) {
     }
 }
 
-// Open category modal
-function openCategoryModal(categoryId = null) {
-    editingCategoryId = categoryId;
-    const modal = document.getElementById('categoryModal');
-    const title = document.getElementById('categoryModalTitle');
-    const form = document.getElementById('categoryForm');
+// Open add activity modal
+function openAddActivityModal() {
+    const modal = document.getElementById('addActivityModal');
+    const select = document.getElementById('activitySelect');
     
-    form.reset();
-    document.getElementById('categoryId').value = categoryId || '';
+    // Get activity IDs already in household
+    const householdActivityIds = householdActivities.map(ha => ha.kid_activities.id);
     
-    if (categoryId) {
-        title.textContent = 'Edit Category';
-        const category = categories.find(c => c.id === categoryId);
-        if (category) {
-            document.getElementById('categoryName').value = category.name;
-            document.getElementById('categoryIcon').value = category.icon;
-            document.querySelectorAll('.icon-option').forEach(opt => {
-                opt.classList.toggle('selected', opt.textContent === category.icon);
-            });
-        }
-    } else {
-        title.textContent = 'Add Category';
-    }
+    // Filter to show only activities not yet added
+    const availableActivities = allUniversalActivities.filter(
+        a => !householdActivityIds.includes(a.id)
+    );
     
-    modal.classList.add('show');
-}
-
-// Close category modal
-function closeCategoryModal() {
-    document.getElementById('categoryModal').classList.remove('show');
-    editingCategoryId = null;
-}
-
-// Save category
-async function saveCategory() {
-    try {
-        const supabaseClient = window.supabaseUtils.getClient();
-        const name = document.getElementById('categoryName').value.trim();
-        const icon = document.getElementById('categoryIcon').value;
-        
-        if (!name || !icon) {
-            showError('Please fill in all required fields');
-            return;
-        }
-        
-        if (editingCategoryId) {
-            // Update existing category
-            const { error } = await supabaseClient
-                .from('activity_categories')
-                .update({ name, icon, updated_at: new Date().toISOString() })
-                .eq('id', editingCategoryId);
-            
-            if (error) throw error;
-            
-            const category = categories.find(c => c.id === editingCategoryId);
-            if (category) {
-                category.name = name;
-                category.icon = icon;
-            }
-        } else {
-            // Create new category
-            const { data, error } = await supabaseClient
-                .from('activity_categories')
-                .insert({
-                    user_id: currentUser.id,
-                    name,
-                    icon,
-                    sort_order: categories.length
-                })
-                .select()
-                .single();
-            
-            if (error) throw error;
-            
-            categories.push(data);
-        }
-        
-        closeCategoryModal();
-        renderCategories();
-        showSuccess(editingCategoryId ? 'Category updated!' : 'Category created!');
-        
-    } catch (error) {
-        console.error('Error saving category:', error);
-        showError('Failed to save category: ' + error.message);
-    }
-}
-
-// Edit category
-function editCategory(categoryId) {
-    openCategoryModal(categoryId);
-}
-
-// Delete category
-async function deleteCategory(categoryId) {
-    if (!confirm('Are you sure? This will delete the category and all its activities.')) {
+    if (availableActivities.length === 0) {
+        showError('All activities have been added to your household!');
         return;
     }
     
-    try {
-        const supabaseClient = window.supabaseUtils.getClient();
-        const { error } = await supabaseClient
-            .from('activity_categories')
-            .delete()
-            .eq('id', categoryId);
-        
-        if (error) throw error;
-        
-        categories = categories.filter(c => c.id !== categoryId);
-        activities = activities.filter(a => a.category_id !== categoryId);
-        
-        renderCategories();
-        showSuccess('Category deleted');
-        
-    } catch (error) {
-        console.error('Error deleting category:', error);
-        showError('Failed to delete category');
-    }
-}
-
-// Open activity modal
-function openActivityModal(categoryId, activityId = null) {
-    editingActivityId = activityId;
-    const modal = document.getElementById('activityModal');
-    const title = document.getElementById('activityModalTitle');
-    const form = document.getElementById('activityForm');
-    
-    form.reset();
-    document.getElementById('activityId').value = activityId || '';
-    document.getElementById('activityCategoryId').value = categoryId;
-    
-    // Reset preference buttons
-    document.querySelectorAll('#activityForm .preference-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector('#activityForm .preference-btn[data-level="both"]').classList.add('active');
-    document.getElementById('activityPreference').value = 'both';
-    
-    // Reset preference level buttons
-    document.querySelectorAll('#activityForm .preference-level-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector('#activityForm .preference-level-btn[data-level="drop_anything"]').classList.add('active');
-    document.getElementById('activityPreferenceLevel').value = 'drop_anything';
-    
-    if (activityId) {
-        title.textContent = 'Edit Activity';
-        const activity = activities.find(a => a.id === activityId);
-        const preference = preferences.find(p => p.activity_id === activityId);
-        
-        if (activity) {
-            document.getElementById('activityName').value = activity.name;
-            document.getElementById('activityDescription').value = activity.description || '';
-            
-            // Set preference level
-            const prefLevel = activity.preference_level || 'drop_anything';
-            document.querySelectorAll('#activityForm .preference-level-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`#activityForm .preference-level-btn[data-level="${prefLevel}"]`).classList.add('active');
-            document.getElementById('activityPreferenceLevel').value = prefLevel;
-            
-            // Set parent preference
-            if (preference) {
-                const level = preference.preference_level;
-                document.querySelectorAll('#activityForm .preference-btn').forEach(b => b.classList.remove('active'));
-                document.querySelector(`#activityForm .preference-btn[data-level="${level}"]`).classList.add('active');
-                document.getElementById('activityPreference').value = level;
-            }
-        }
-    } else {
-        title.textContent = 'Add Activity';
-    }
-    
-    modal.classList.add('show');
-}
-
-// Close activity modal
-function closeActivityModal() {
-    document.getElementById('activityModal').classList.remove('show');
-    editingActivityId = null;
-}
-
-// Save activity
-async function saveActivity() {
-    try {
-        const supabaseClient = window.supabaseUtils.getClient();
-        const name = document.getElementById('activityName').value.trim();
-        const description = document.getElementById('activityDescription').value.trim();
-        const categoryId = document.getElementById('activityCategoryId').value;
-        const preferenceLevel = document.getElementById('activityPreference').value;
-        const activityPrefLevel = document.getElementById('activityPreferenceLevel').value;
-        
-        if (!name) {
-            showError('Please enter an activity name');
-            return;
-        }
-        
-        if (editingActivityId) {
-            // Update existing activity
-            const { error: actError } = await supabaseClient
-                .from('activities')
-                .update({ 
-                    name, 
-                    description, 
-                    preference_level: activityPrefLevel,
-                    updated_at: new Date().toISOString() 
-                })
-                .eq('id', editingActivityId);
-            
-            if (actError) throw actError;
-            
-            const activity = activities.find(a => a.id === editingActivityId);
-            if (activity) {
-                activity.name = name;
-                activity.description = description;
-                activity.preference_level = activityPrefLevel;
-            }
-            
-            // Update preference
-            await updatePreference(editingActivityId, preferenceLevel);
-            
-        } else {
-            // Create new activity
-            const categoryActivities = activities.filter(a => a.category_id === categoryId);
-            const { data: actData, error: actError } = await supabaseClient
-                .from('activities')
-                .insert({
-                    category_id: categoryId,
-                    name,
-                    description,
-                    preference_level: activityPrefLevel,
-                    sort_order: categoryActivities.length
-                })
-                .select()
-                .single();
-            
-            if (actError) throw actError;
-            
-            activities.push(actData);
-            
-            // Create preference
-            const { data: prefData, error: prefError } = await supabaseClient
-                .from('parent_preferences')
-                .insert({
-                    activity_id: actData.id,
-                    user_id: currentUser.id,
-                    preference_level: preferenceLevel
-                })
-                .select()
-                .single();
-            
-            if (prefError) throw prefError;
-            
-            preferences.push(prefData);
-        }
-        
-        closeActivityModal();
-        renderCategories();
-        showSuccess(editingActivityId ? 'Activity updated!' : 'Activity created!');
-        
-    } catch (error) {
-        console.error('Error saving activity:', error);
-        showError('Failed to save activity: ' + error.message);
-    }
-}
-
-// Edit activity
-function editActivity(activityId) {
-    const activity = activities.find(a => a.id === activityId);
-    if (activity) {
-        openActivityModal(activity.category_id, activityId);
-    }
-}
-
-// Delete activity
-async function deleteActivity(activityId) {
-    if (!confirm('Are you sure you want to delete this activity?')) {
-        return;
-    }
-    
-    try {
-        const supabaseClient = window.supabaseUtils.getClient();
-        const { error } = await supabaseClient
-            .from('activities')
-            .delete()
-            .eq('id', activityId);
-        
-        if (error) throw error;
-        
-        activities = activities.filter(a => a.id !== activityId);
-        preferences = preferences.filter(p => p.activity_id !== activityId);
-        
-        renderCategories();
-        showSuccess('Activity deleted');
-        
-    } catch (error) {
-        console.error('Error deleting activity:', error);
-        showError('Failed to delete activity');
-    }
-}
-
-// Render icon picker
-function renderIconPicker() {
-    const picker = document.getElementById('iconPicker');
-    picker.innerHTML = '';
-    
-    CATEGORY_ICONS.forEach(icon => {
-        const option = document.createElement('div');
-        option.className = 'icon-option';
-        option.textContent = icon;
-        option.addEventListener('click', () => {
-            document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('selected'));
-            option.classList.add('selected');
-            document.getElementById('categoryIcon').value = icon;
-        });
-        picker.appendChild(option);
+    // Populate select
+    select.innerHTML = '<option value="">-- Select an activity --</option>';
+    availableActivities.forEach(activity => {
+        const category = categories.find(c => c.id === activity.category_id);
+        const option = document.createElement('option');
+        option.value = activity.id;
+        option.textContent = `${category?.icon || ''} ${activity.name}`;
+        select.appendChild(option);
     });
+    
+    modal.style.display = 'flex';
 }
 
-// Show loading state
+// Close add activity modal
+function closeAddActivityModal() {
+    document.getElementById('addActivityModal').style.display = 'none';
+    document.getElementById('addActivityForm').reset();
+}
+
+// Add activity to household
+async function addActivityToHousehold() {
+    try {
+        const activityId = document.getElementById('activitySelect').value;
+        if (!activityId) {
+            showError('Please select an activity');
+            return;
+        }
+        
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        const { data, error } = await supabaseClient
+            .from('household_activities')
+            .insert({
+                user_id: currentUser.id,
+                activity_id: activityId
+            })
+            .select()
+            .single();
+        
+        if (error) throw error;
+        
+        closeAddActivityModal();
+        await loadAllData();
+        showSuccess('Activity added to household!');
+        
+    } catch (error) {
+        console.error('Error adding activity:', error);
+        showError('Failed to add activity: ' + error.message);
+    }
+}
+
+// Remove activity from household
+async function removeActivity(householdId) {
+    if (!confirm('Remove this activity from your household?')) {
+        return;
+    }
+    
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        const { error } = await supabaseClient
+            .from('household_activities')
+            .delete()
+            .eq('id', householdId);
+        
+        if (error) throw error;
+        
+        await loadAllData();
+        showSuccess('Activity removed from household');
+        
+    } catch (error) {
+        console.error('Error removing activity:', error);
+        showError('Failed to remove activity');
+    }
+}
+
+// Utility functions
 function showLoading(show) {
-    document.getElementById('loadingContainer').style.display = show ? 'block' : 'none';
+    const loader = document.getElementById('loading');
+    if (loader) {
+        loader.style.display = show ? 'block' : 'none';
+    }
 }
 
-// Show error message
 function showError(message) {
-    const container = document.getElementById('messageContainer');
-    container.innerHTML = `<div class="error-message">${message}</div>`;
-    setTimeout(() => {
-        container.innerHTML = '';
-    }, 5000);
+    const errorDiv = document.getElementById('error');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => errorDiv.style.display = 'none', 5000);
+    }
+    console.error(message);
 }
 
-// Show success message
 function showSuccess(message) {
-    const container = document.getElementById('messageContainer');
-    container.innerHTML = `<div class="success-message">${message}</div>`;
-    setTimeout(() => {
-        container.innerHTML = '';
-    }, 3000);
+    const successDiv = document.getElementById('success');
+    if (successDiv) {
+        successDiv.textContent = message;
+        successDiv.style.display = 'block';
+        setTimeout(() => successDiv.style.display = 'none', 3000);
+    }
 }

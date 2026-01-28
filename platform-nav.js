@@ -124,7 +124,8 @@
             'kid-prefs': '/kid-prefs.html',
             'teacher-dashboard': '/teacher-dashboard.html',
             'recommendations': '/recommendations.html',
-            'recommendation-settings': '/recommendation-settings.html'
+            'recommendation-settings': '/recommendation-settings.html',
+            'kids-activity-view': '/kids-activity-view.html'
         };
         return urls[slug] || '/dashboard.html';
     }
