@@ -8,6 +8,7 @@ let householdActivities = [];
 let preferences = [];
 let currentView = 'grid';
 let currentFilter = 'all';
+let groupByMode = 'category'; // 'category' or 'rating'
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -33,6 +34,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 function setupEventListeners() {
     document.getElementById('caregiverFilter').addEventListener('change', (e) => {
         currentFilter = e.target.value;
+        renderActivities();
+    });
+    
+    document.getElementById('groupByMode').addEventListener('change', (e) => {
+        groupByMode = e.target.value;
         renderActivities();
     });
 }
@@ -132,6 +138,15 @@ function renderActivities() {
     emptyState.style.display = 'none';
     container.innerHTML = '';
     
+    if (groupByMode === 'category') {
+        renderByCategory(container);
+    } else {
+        renderByRating(container);
+    }
+}
+
+// Render activities grouped by category
+function renderByCategory(container) {
     // Group by category
     const activityByCategory = {};
     householdActivities.forEach(ha => {
@@ -158,6 +173,110 @@ function renderActivities() {
         if (categoryActivities.length > 0) {
             const categorySection = createCategorySection(category, categoryActivities);
             container.appendChild(categorySection);
+        }
+    });
+}
+
+// Render activities grouped by caregiver rating
+function renderByRating(container) {
+    const ratingLevels = [
+        { value: 'drop_anything', label: '🔥 Drop Anything', icon: '🔥' },
+        { value: 'sometimes', label: '👌 Sometimes', icon: '👌' },
+        { value: 'on_your_own', label: '🆗 On Your Own', icon: '🆗' }
+    ];
+    
+    ratingLevels.forEach(rating => {
+        // Group activities by this rating level
+        const activitiesByRating = {};
+        
+        householdActivities.forEach(ha => {
+            const activity = ha.kid_activities;
+            const preference = preferences.find(p => p.household_activity_id === ha.id);
+            
+            if (shouldShowActivity(preference)) {
+                // Check if any caregiver has this rating
+                let hasRating = false;
+                if (currentFilter === 'all') {
+                    hasRating = preference?.caregiver1_preference === rating.value ||
+                               preference?.caregiver2_preference === rating.value;
+                } else {
+                    const prefLevel = preference?.[`${currentFilter}_preference`];
+                    hasRating = prefLevel === rating.value;
+                }
+                
+                if (hasRating) {
+                    const categoryId = activity.category_id;
+                    if (!activitiesByRating[categoryId]) {
+                        activitiesByRating[categoryId] = [];
+                    }
+                    activitiesByRating[categoryId].push({
+                        household_id: ha.id,
+                        activity: activity,
+                        preference: preference
+                    });
+                }
+            }
+        });
+        
+        // Count total activities at this rating
+        const totalCount = Object.values(activitiesByRating).reduce((sum, arr) => sum + arr.length, 0);
+        
+        if (totalCount > 0) {
+            // Create rating section
+            const ratingSection = document.createElement('div');
+            ratingSection.className = 'category-section';
+            ratingSection.style.marginBottom = '30px';
+            
+            const ratingHeader = document.createElement('div');
+            ratingHeader.className = 'category-title';
+            ratingHeader.style.background = '#667eea';
+            ratingHeader.style.color = 'white';
+            ratingHeader.style.padding = '15px 20px';
+            ratingHeader.style.borderRadius = '8px';
+            ratingHeader.style.marginBottom = '15px';
+            ratingHeader.innerHTML = `
+                <span style="font-size: 1.5rem;">${rating.icon}</span>
+                <span style="font-weight: 600; margin-left: 10px;">${rating.label}</span>
+                <span style="font-size: 13px; opacity: 0.9; margin-left: 10px;">(${totalCount} activities)</span>
+            `;
+            
+            ratingSection.appendChild(ratingHeader);
+            
+            // Render categories within this rating
+            categories.forEach(category => {
+                const categoryActivities = activitiesByRating[category.id] || [];
+                if (categoryActivities.length > 0) {
+                    const categorySubsection = document.createElement('div');
+                    categorySubsection.style.marginBottom = '20px';
+                    categorySubsection.style.marginLeft = '20px';
+                    
+                    const categoryHeader = document.createElement('div');
+                    categoryHeader.style.cssText = 'font-weight: 600; color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;';
+                    categoryHeader.innerHTML = `
+                        <span>${category.icon}</span>
+                        <span>${category.name}</span>
+                        <span style="font-size: 13px; color: #888;">(${categoryActivities.length})</span>
+                    `;
+                    
+                    const contentDiv = document.createElement('div');
+                    contentDiv.id = `rating-${rating.value}-category-${category.id}`;
+                    
+                    if (currentView === 'grid') {
+                        contentDiv.className = 'activities-grid';
+                        categoryActivities.forEach(item => {
+                            contentDiv.appendChild(createActivityCard(item.activity, item.preference));
+                        });
+                    } else {
+                        contentDiv.appendChild(createActivityTable(categoryActivities));
+                    }
+                    
+                    categorySubsection.appendChild(categoryHeader);
+                    categorySubsection.appendChild(contentDiv);
+                    ratingSection.appendChild(categorySubsection);
+                }
+            });
+            
+            container.appendChild(ratingSection);
         }
     });
 }
@@ -355,3 +474,59 @@ function showError(message) {
     }
     console.error(message);
 }
+
+// Export to PDF (uses browser print dialog)
+function exportToPDF() {
+    // Save current view settings
+    const originalTitle = document.title;
+    
+    // Update title for PDF
+    const caregiver1Label = userSettings?.caregiver1_label || 'Caregiver 1';
+    const caregiver2Label = userSettings?.caregiver2_label || 'Caregiver 2';
+    const dateStr = new Date().toLocaleDateString();
+    document.title = `Family Activity Preferences - ${dateStr}`;
+    
+    // Add print-friendly header
+    const printHeader = document.createElement('div');
+    printHeader.id = 'printHeader';
+    printHeader.style.display = 'none';
+    printHeader.innerHTML = `
+        <div style="text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #333;">
+            <h1 style="margin: 0 0 10px 0; font-size: 24px;">👨‍👩‍👧‍👦 Our Family Activity Preferences</h1>
+            <p style="margin: 0; color: #666;">Generated on ${dateStr}</p>
+            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">
+                Caregivers: ${caregiver1Label} & ${caregiver2Label}
+            </p>
+        </div>
+    `;
+    
+    // Add to page
+    const container = document.querySelector('.kids-view-container');
+    container.insertBefore(printHeader, container.firstChild);
+    
+    // Add print styles
+    const printStyle = document.createElement('style');
+    printStyle.id = 'printStyles';
+    printStyle.textContent = `
+        @media print {
+            #printHeader {
+                display: block !important;
+            }
+        }
+    `;
+    document.head.appendChild(printStyle);
+    
+    // Open print dialog
+    window.print();
+    
+    // Clean up after print
+    setTimeout(() => {
+        document.title = originalTitle;
+        printHeader.remove();
+        printStyle.remove();
+    }, 100);
+}
+
+// Make functions globally available
+window.switchView = switchView;
+window.exportToPDF = exportToPDF;

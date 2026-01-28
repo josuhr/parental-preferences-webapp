@@ -148,10 +148,10 @@ function createKidCard(kid) {
         
         <div class="kid-actions">
             <button class="btn btn-primary btn-small" onclick="manageAccess('${kid.id}')">
-                👥 Manage Teachers
+                👥 Teachers
             </button>
             <button class="btn btn-secondary btn-small" onclick="editKid('${kid.id}')">
-                ✏️ Edit Kid
+                ✏️ Edit
             </button>
             <button class="btn btn-secondary btn-small" onclick="deleteKid('${kid.id}')">
                 🗑️ Delete

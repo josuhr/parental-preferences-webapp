@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Dashboard - HomeBase</title>
+    <title>Teacher Dashboard - What We Like - HomeBase</title>
     <link rel="stylesheet" href="homebase-layout.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -235,9 +235,15 @@
     <div id="sidebar-nav-container"></div>
 
     <div class="main-content">
+        <nav class="breadcrumb-nav">
+            <a href="/dashboard.html">Dashboard</a>
+            <span class="separator">›</span>
+            <span class="current">Teacher Dashboard</span>
+        </nav>
+        <div class="content-area">
         <div class="dashboard-container">
         <div class="welcome-section">
-            <h1>👋 Welcome, <span id="teacherName">Teacher</span></h1>
+            <h1>🏫 Welcome, <span id="teacherName">Teacher</span></h1>
             <p>Your dashboard for supporting students and families</p>
         </div>
 
@@ -272,7 +278,8 @@
                 <!-- Kids will be populated here -->
             </div>
         </div>
-    </div>
+        </div>
+        </div>
     </div>
 
     <script src="supabase-config.js"></script>

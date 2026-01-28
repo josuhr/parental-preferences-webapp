@@ -21,16 +21,9 @@
                 { name: 'Kid Management', icon: '👶', url: '/kid-prefs.html', slug: 'kid-prefs.html' },
                 { name: 'Who Likes What?', icon: '👨‍👩‍👧‍👦', url: '/kids-activity-view.html', slug: 'kids-activity-view.html' },
                 { name: 'Recommendations', icon: '✨', url: '/recommendations.html', slug: 'recommendations.html' },
+                { name: 'Teacher Dashboard', icon: '🏫', url: '/teacher-dashboard.html', slug: 'teacher-dashboard.html' },
                 { name: 'Settings', icon: '⚙️', url: '/recommendation-settings.html', slug: 'recommendation-settings.html' }
             ]
-        },
-        {
-            slug: 'teacher-dashboard',
-            name: 'Teacher Dashboard',
-            icon: '🏫',
-            url: '/teacher-dashboard.html',
-            expanded: false,
-            items: []
         },
         {
             slug: 'future-apps',

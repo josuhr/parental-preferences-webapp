@@ -17,6 +17,11 @@
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
         }
 
         .page-header h1 {
@@ -27,6 +32,59 @@
         .page-header p {
             margin: 0;
             color: #666;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        /* Print styles */
+        @media print {
+            .filter-bar, .view-toggle, #exportPdfBtn, 
+            #platform-nav-container, #sidebar-nav-container,
+            .breadcrumb-nav {
+                display: none !important;
+            }
+            
+            body {
+                margin: 0;
+                padding: 20px;
+                background: white;
+            }
+            
+            .main-content {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .page-header {
+                border-bottom: 2px solid #333;
+                margin-bottom: 20px;
+            }
+            
+            .category-section {
+                page-break-inside: avoid;
+                margin-bottom: 30px;
+            }
+            
+            .activity-card, .activity-table {
+                page-break-inside: avoid;
+            }
         }
 
         .filter-bar {
@@ -240,20 +298,35 @@
         <div class="content-area">
         <div class="kids-view-container">
         <div class="page-header">
-            <h1>👨‍👩‍👧‍👦 Who Likes What?</h1>
-            <p>See which activities your caregivers enjoy!</p>
+            <div style="flex: 1;">
+                <h1>👨‍👩‍👧‍👦 Who Likes What?</h1>
+                <p>See which activities your caregivers enjoy!</p>
+            </div>
+            <button class="btn btn-primary" id="exportPdfBtn" onclick="exportToPDF()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                📄 Export to PDF
+            </button>
         </div>
 
         <div class="filter-bar">
-            <label for="caregiverFilter">Show activities for:</label>
-            <select id="caregiverFilter">
-                <option value="all">Everyone</option>
-                <option value="caregiver1">Caregiver 1</option>
-                <option value="caregiver2">Caregiver 2</option>
-                <option value="both">Both Together</option>
-            </select>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label for="groupByMode">Group by:</label>
+                <select id="groupByMode" style="padding: 8px 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                    <option value="category">Category</option>
+                    <option value="rating">Caregiver Rating</option>
+                </select>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label for="caregiverFilter">Show activities for:</label>
+                <select id="caregiverFilter">
+                    <option value="all">Everyone</option>
+                    <option value="caregiver1">Caregiver 1</option>
+                    <option value="caregiver2">Caregiver 2</option>
+                    <option value="both">Both Together</option>
+                </select>
+            </div>
 
-            <div class="view-toggle">
+            <div class="view-toggle" style="margin-left: auto;">
                 <button class="view-btn active" data-view="grid" onclick="switchView('grid')">🔲 Grid</button>
                 <button class="view-btn" data-view="table" onclick="switchView('table')">📊 Table</button>
             </div>
