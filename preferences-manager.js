@@ -791,8 +791,6 @@ function showSuccess(message) {
 
 // ====== BULK ADD FUNCTIONALITY ======
 
-let selectedActivityIds = new Set();
-
 // Open bulk add modal
 function openBulkAddModal() {
     selectedActivityIds.clear();
