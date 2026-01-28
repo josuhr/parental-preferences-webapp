@@ -97,7 +97,7 @@ async function checkAuth() {
 // Load current settings
 async function loadSettings() {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseDb
             .from('recommendation_rules')
             .select('*')
             .eq('user_id', currentUserId);
@@ -231,7 +231,7 @@ async function saveSettings() {
         
         // Upsert all rules
         for (const update of updates) {
-            const { error } = await supabase
+            const { error } = await supabaseDb
                 .from('recommendation_rules')
                 .upsert(update, {
                     onConflict: 'user_id,rule_type'
