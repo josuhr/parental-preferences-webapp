@@ -179,7 +179,9 @@ function renderRecommendations() {
 
 // Render a single recommendation card
 function renderRecommendationCard(rec) {
-    const stars = getStarsForConfidence(rec.confidence);
+    // Convert score (0-5 scale) to percentage for display
+    const scorePercent = rec.score ? Math.round((rec.score / 5) * 100) : 0;
+    const stars = getStarsForConfidence(scorePercent);
     const reasons = extractReasons(rec.explanation);
     
     return `
@@ -188,11 +190,11 @@ function renderRecommendationCard(rec) {
                 <div class="recommendation-title">${rec.activity_name}</div>
                 <div class="confidence-badge">
                     <span class="stars">${stars}</span>
-                    <span>${rec.confidence}%</span>
+                    <span>${scorePercent}%</span>
                 </div>
             </div>
             
-            <div class="recommendation-score">Score: ${rec.recommendation_score}</div>
+            <div class="recommendation-score">Score: ${rec.score ? rec.score.toFixed(2) : 'N/A'}</div>
             
             ${rec.activity_description ? `
                 <div class="recommendation-description">${rec.activity_description}</div>
@@ -293,7 +295,7 @@ async function handleRecommendationAction(e) {
             p_kid_id: currentKidId,
             p_activity_id: activityId,
             p_action: action,
-            p_recommendation_score: recommendation.recommendation_score,
+            p_recommendation_score: recommendation.score,
             p_explanation: recommendation.explanation,
             p_context: currentContext
         });
