@@ -120,26 +120,23 @@
             cursor: pointer;
             font-size: 16px;
             transition: all 0.2s;
+            opacity: 0.6;
         }
 
         .preference-btn:hover {
             border-color: #aaa;
             transform: scale(1.05);
+            opacity: 0.8;
         }
 
-        .preference-btn.active[data-level="drop_anything"] {
-            background: #c8e6c9;
-            border-color: #4caf50;
-        }
-
-        .preference-btn.active[data-level="sometimes"] {
-            background: #fff9c4;
-            border-color: #ffeb3b;
-        }
-
-        .preference-btn.active[data-level="on_your_own"] {
-            background: #fff3e0;
-            border-color: #ff9800;
+        .preference-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            border-width: 3px;
+            font-weight: bold;
+            opacity: 1;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
         }
         
         /* Kid preference buttons */
@@ -151,31 +148,23 @@
             cursor: pointer;
             font-size: 14px;
             transition: all 0.2s;
+            opacity: 0.6;
         }
         
         .kid-preference-btn:hover {
             border-color: #aaa;
             transform: scale(1.05);
+            opacity: 0.8;
         }
         
-        .kid-preference-btn.active[data-level="loves"] {
-            background: #c8e6c9;
-            border-color: #4caf50;
-        }
-        
-        .kid-preference-btn.active[data-level="likes"] {
-            background: #b3e5fc;
-            border-color: #03a9f4;
-        }
-        
-        .kid-preference-btn.active[data-level="neutral"] {
-            background: #ffe0b2;
-            border-color: #ff9800;
-        }
-        
-        .kid-preference-btn.active[data-level="refuses"] {
-            background: #e1e8ed;
-            border-color: #90a4ae;
+        .kid-preference-btn.active {
+            background: #764ba2;
+            color: white;
+            border-color: #764ba2;
+            border-width: 3px;
+            font-weight: bold;
+            opacity: 1;
+            box-shadow: 0 2px 8px rgba(118, 75, 162, 0.4);
         }
         
         .kid-column {
@@ -382,21 +371,60 @@
 
     <!-- Add Activity Modal -->
     <div id="addActivityModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 700px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
             <div class="modal-header">
                 <h2>Add Activity to Household</h2>
                 <button class="close-btn" onclick="closeAddActivityModal()">×</button>
             </div>
-            <form id="addActivityForm">
-                <div class="form-group">
-                    <label for="activitySelect">Select Activity</label>
-                    <select id="activitySelect" required>
-                        <option value="">-- Select an activity --</option>
-                    </select>
+            
+            <div style="padding: 0 20px 20px 20px; overflow-y: auto; flex: 1;">
+                <!-- Search Bar -->
+                <div style="margin-bottom: 20px; position: sticky; top: 0; background: white; padding: 10px 0; z-index: 10;">
+                    <input type="text" id="activitySearchInput" placeholder="🔍 Search activities..." 
+                           style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
                 </div>
-                <button type="submit" class="btn-primary" style="width: 100%;">Add to Household</button>
-            </form>
-        </div>
+                
+                <!-- Create New Activity Button -->
+                <div style="margin-bottom: 20px;">
+                    <button type="button" id="showCreateActivityBtn" class="btn-secondary" style="width: 100%;">
+                        ➕ Create New Activity
+                    </button>
+                </div>
+                
+                <!-- Create New Activity Form (hidden by default) -->
+                <div id="createActivityForm" style="display: none; background: #f5f7fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 0; font-size: 1.1rem;">Create New Activity</h3>
+                    <div class="form-group">
+                        <label for="newActivityCategory">Category</label>
+                        <select id="newActivityCategory" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="">-- Select a category --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="newActivityName">Activity Name</label>
+                        <input type="text" id="newActivityName" required placeholder="e.g., Build a Fort" 
+                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="newActivityDescription">Description (optional)</label>
+                        <textarea id="newActivityDescription" placeholder="Brief description of the activity..." 
+                                  style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-height: 60px;"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" id="createActivityBtn" class="btn-primary">Create & Add</button>
+                        <button type="button" id="cancelCreateBtn" class="btn-secondary">Cancel</button>
+                    </div>
+                </div>
+                
+                <!-- Activities by Category -->
+                <div id="activitiesByCategory">
+                    <!-- Will be populated dynamically -->
+                </div>
+                
+                <div id="noActivitiesFound" style="display: none; text-align: center; padding: 40px; color: #999;">
+                    <p>No activities found matching your search.</p>
+                </div>
+            </div>
         </div>
     </div>
     </div>

@@ -38,9 +38,26 @@ function setupEventListeners() {
         openAddActivityModal();
     });
     
-    document.getElementById('addActivityForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await addActivityToHousehold();
+    // Search input
+    document.getElementById('activitySearchInput').addEventListener('input', (e) => {
+        filterActivitiesInModal(e.target.value);
+    });
+    
+    // Show/hide create form
+    document.getElementById('showCreateActivityBtn').addEventListener('click', () => {
+        document.getElementById('createActivityForm').style.display = 'block';
+        document.getElementById('showCreateActivityBtn').style.display = 'none';
+    });
+    
+    document.getElementById('cancelCreateBtn').addEventListener('click', () => {
+        document.getElementById('createActivityForm').style.display = 'none';
+        document.getElementById('showCreateActivityBtn').style.display = 'block';
+        clearCreateForm();
+    });
+    
+    // Create new activity
+    document.getElementById('createActivityBtn').addEventListener('click', async () => {
+        await createAndAddNewActivity();
     });
 }
 
@@ -349,9 +366,9 @@ function createActivityRow(householdId, activity) {
 // Create preference buttons
 function createPreferenceButtons(householdId, caregiverType, currentPreference) {
     const levels = [
-        { value: 'drop_anything', emoji: '💚', title: 'Drop anything' },
-        { value: 'sometimes', emoji: '💛', title: 'Sometimes' },
-        { value: 'on_your_own', emoji: '⭐', title: 'On your own' }
+        { value: 'drop_anything', emoji: '🔥', title: 'Drop anything - High priority' },
+        { value: 'sometimes', emoji: '👌', title: 'Sometimes - Flexible' },
+        { value: 'on_your_own', emoji: '🆗', title: 'On your own - Kid can do independently' }
     ];
     
     return levels.map(level => {
@@ -366,10 +383,10 @@ function createPreferenceButtons(householdId, caregiverType, currentPreference) 
 // Create kid preference buttons
 function createKidPreferenceButtons(kidId, activityId, currentPreference) {
     const levels = [
-        { value: 'loves', emoji: '💚', title: 'Loves' },
-        { value: 'likes', emoji: '💙', title: 'Likes' },
-        { value: 'neutral', emoji: '😐', title: 'Not Interested' },
-        { value: 'refuses', emoji: '⭐', title: 'Not Yet Tried' }
+        { value: 'loves', emoji: '⭐', title: 'Loves - Kid\'s favorite!' },
+        { value: 'likes', emoji: '👍', title: 'Likes - Kid enjoys this' },
+        { value: 'neutral', emoji: '😐', title: 'Not Interested - Kid doesn\'t enjoy' },
+        { value: 'refuses', emoji: '❓', title: 'Not Yet Tried - Unknown preference' }
     ];
     
     return levels.map(level => {
@@ -472,7 +489,6 @@ window.updateKidPreference = updateKidPreference;
 // Open add activity modal
 function openAddActivityModal() {
     const modal = document.getElementById('addActivityModal');
-    const select = document.getElementById('activitySelect');
     
     // Get activity IDs already in household
     const householdActivityIds = householdActivities.map(ha => ha.kid_activities.id);
@@ -482,22 +498,208 @@ function openAddActivityModal() {
         a => !householdActivityIds.includes(a.id)
     );
     
-    if (availableActivities.length === 0) {
-        showError('All activities have been added to your household!');
+    // Populate category dropdown for create form
+    const categorySelect = document.getElementById('newActivityCategory');
+    categorySelect.innerHTML = '<option value="">-- Select a category --</option>';
+    categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat.id;
+        option.textContent = `${cat.icon} ${cat.name}`;
+        categorySelect.appendChild(option);
+    });
+    
+    // Reset search and form
+    document.getElementById('activitySearchInput').value = '';
+    document.getElementById('createActivityForm').style.display = 'none';
+    document.getElementById('showCreateActivityBtn').style.display = 'block';
+    clearCreateForm();
+    
+    // Populate activities by category
+    renderActivitiesByCategory(availableActivities);
+    
+    modal.style.display = 'flex';
+}
+
+// Render activities grouped by category
+function renderActivitiesByCategory(activities) {
+    const container = document.getElementById('activitiesByCategory');
+    container.innerHTML = '';
+    
+    if (activities.length === 0) {
+        document.getElementById('noActivitiesFound').style.display = 'block';
         return;
     }
     
-    // Populate select
-    select.innerHTML = '<option value="">-- Select an activity --</option>';
-    availableActivities.forEach(activity => {
-        const category = categories.find(c => c.id === activity.category_id);
-        const option = document.createElement('option');
-        option.value = activity.id;
-        option.textContent = `${category?.icon || ''} ${activity.name}`;
-        select.appendChild(option);
+    document.getElementById('noActivitiesFound').style.display = 'none';
+    
+    // Group by category
+    const groupedActivities = {};
+    activities.forEach(activity => {
+        if (!groupedActivities[activity.category_id]) {
+            groupedActivities[activity.category_id] = [];
+        }
+        groupedActivities[activity.category_id].push(activity);
     });
     
-    modal.style.display = 'flex';
+    // Render each category
+    categories.forEach(category => {
+        const categoryActivities = groupedActivities[category.id];
+        if (!categoryActivities || categoryActivities.length === 0) return;
+        
+        const categorySection = document.createElement('div');
+        categorySection.style.marginBottom = '20px';
+        categorySection.className = 'activity-category-section';
+        
+        const categoryHeader = document.createElement('div');
+        categoryHeader.style.cssText = 'background: #667eea; color: white; padding: 10px 15px; border-radius: 8px 8px 0 0; font-weight: 600; display: flex; align-items: center; gap: 8px;';
+        categoryHeader.innerHTML = `<span>${category.icon}</span><span>${category.name}</span><span style="opacity: 0.8; font-size: 0.9em;">(${categoryActivities.length})</span>`;
+        
+        const activityList = document.createElement('div');
+        activityList.style.cssText = 'border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 8px 8px; background: white;';
+        
+        categoryActivities.forEach((activity, index) => {
+            const activityItem = document.createElement('div');
+            activityItem.className = 'activity-item';
+            activityItem.dataset.activityId = activity.id;
+            activityItem.dataset.activityName = activity.name.toLowerCase();
+            activityItem.dataset.categoryId = activity.category_id;
+            activityItem.style.cssText = `
+                padding: 12px 15px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                cursor: pointer;
+                transition: background 0.2s;
+                ${index < categoryActivities.length - 1 ? 'border-bottom: 1px solid #f0f0f0;' : ''}
+            `;
+            
+            activityItem.addEventListener('mouseenter', () => {
+                activityItem.style.background = '#f5f7fa';
+            });
+            
+            activityItem.addEventListener('mouseleave', () => {
+                activityItem.style.background = 'white';
+            });
+            
+            activityItem.innerHTML = `
+                <div>
+                    <div style="font-weight: 500; color: #333;">${activity.name}</div>
+                    ${activity.description ? `<div style="font-size: 0.85rem; color: #666; margin-top: 4px;">${activity.description}</div>` : ''}
+                </div>
+                <button type="button" class="btn-primary" style="padding: 6px 16px; font-size: 0.9rem;" 
+                        onclick="addSpecificActivityToHousehold('${activity.id}')">Add</button>
+            `;
+            
+            activityList.appendChild(activityItem);
+        });
+        
+        categorySection.appendChild(categoryHeader);
+        categorySection.appendChild(activityList);
+        container.appendChild(categorySection);
+    });
+}
+
+// Filter activities in modal by search term
+function filterActivitiesInModal(searchTerm) {
+    const normalizedSearch = searchTerm.toLowerCase().trim();
+    const householdActivityIds = householdActivities.map(ha => ha.kid_activities.id);
+    
+    if (normalizedSearch === '') {
+        // Show all available activities
+        const availableActivities = allUniversalActivities.filter(
+            a => !householdActivityIds.includes(a.id)
+        );
+        renderActivitiesByCategory(availableActivities);
+    } else {
+        // Filter by search term
+        const filteredActivities = allUniversalActivities.filter(a => {
+            if (householdActivityIds.includes(a.id)) return false;
+            return a.name.toLowerCase().includes(normalizedSearch) || 
+                   (a.description && a.description.toLowerCase().includes(normalizedSearch));
+        });
+        renderActivitiesByCategory(filteredActivities);
+    }
+}
+
+// Add specific activity to household (called from modal)
+async function addSpecificActivityToHousehold(activityId) {
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        const { data, error } = await supabaseClient
+            .from('household_activities')
+            .insert({
+                parent_id: currentUser.id,
+                activity_id: activityId
+            })
+            .select();
+        
+        if (error) throw error;
+        
+        showSuccess('Activity added to household!');
+        await loadAllData();
+        closeAddActivityModal();
+        
+    } catch (error) {
+        console.error('Error adding activity:', error);
+        showError('Failed to add activity');
+    }
+}
+
+// Create and add new activity
+async function createAndAddNewActivity() {
+    try {
+        const categoryId = document.getElementById('newActivityCategory').value;
+        const name = document.getElementById('newActivityName').value.trim();
+        const description = document.getElementById('newActivityDescription').value.trim();
+        
+        if (!categoryId || !name) {
+            showError('Please fill in required fields');
+            return;
+        }
+        
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        // Create the activity (universal - parent_id is NULL)
+        const { data: newActivity, error: activityError } = await supabaseClient
+            .from('kid_activities')
+            .insert({
+                category_id: categoryId,
+                name: name,
+                description: description || null,
+                parent_id: null // Universal activity
+            })
+            .select()
+            .single();
+        
+        if (activityError) throw activityError;
+        
+        // Add to household
+        const { data: householdActivity, error: householdError } = await supabaseClient
+            .from('household_activities')
+            .insert({
+                parent_id: currentUser.id,
+                activity_id: newActivity.id
+            })
+            .select();
+        
+        if (householdError) throw householdError;
+        
+        showSuccess('Activity created and added to household!');
+        await loadAllData();
+        closeAddActivityModal();
+        
+    } catch (error) {
+        console.error('Error creating activity:', error);
+        showError('Failed to create activity');
+    }
+}
+
+// Clear create form
+function clearCreateForm() {
+    document.getElementById('newActivityCategory').value = '';
+    document.getElementById('newActivityName').value = '';
+    document.getElementById('newActivityDescription').value = '';
 }
 
 // Close add activity modal
@@ -507,36 +709,7 @@ function closeAddActivityModal() {
 }
 
 // Add activity to household
-async function addActivityToHousehold() {
-    try {
-        const activityId = document.getElementById('activitySelect').value;
-        if (!activityId) {
-            showError('Please select an activity');
-            return;
-        }
-        
-        const supabaseClient = window.supabaseUtils.getClient();
-        
-        const { data, error } = await supabaseClient
-            .from('household_activities')
-            .insert({
-                user_id: currentUser.id,
-                activity_id: activityId
-            })
-            .select()
-            .single();
-        
-        if (error) throw error;
-        
-        closeAddActivityModal();
-        await loadAllData();
-        showSuccess('Activity added to household!');
-        
-    } catch (error) {
-        console.error('Error adding activity:', error);
-        showError('Failed to add activity: ' + error.message);
-    }
-}
+// Function removed - now using addSpecificActivityToHousehold() and createAndAddNewActivity()
 
 // Remove activity from household
 async function removeActivity(householdId) {

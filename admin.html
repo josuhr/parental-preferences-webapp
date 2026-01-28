@@ -205,6 +205,71 @@
                 font-size: 0.8rem;
             }
         }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-btn:hover {
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -267,10 +332,86 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Universal Activities Management -->
+        <div class="users-card" style="margin-top: 30px;">
+            <h2>Universal Activities Database</h2>
+            <p style="color: #666; margin-bottom: 20px;">Manage the universal activities library available to all users</p>
+            
+            <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                <button class="btn btn-primary" id="addCategoryBtn">➕ Add Category</button>
+                <button class="btn btn-primary" id="addUniversalActivityBtn">➕ Add Activity</button>
+                <div class="search-bar" style="flex: 1; margin: 0; min-width: 200px;">
+                    <input type="text" id="activitySearchInput" placeholder="Search activities...">
+                </div>
+            </div>
+            
+            <div id="categoriesContainer">
+                <!-- Categories and activities will be loaded here -->
+            </div>
+        </div>
     </div>
     
     <div id="loadingOverlay" class="loading no-print" style="display: none;">Loading...</div>
     <div id="error" class="error no-print" style="display: none;"></div>
+    </div>
+    
+    <!-- Add/Edit Category Modal -->
+    <div id="categoryModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="categoryModalTitle">Add Category</h2>
+                <button class="close-btn" onclick="closeCategoryModal()">×</button>
+            </div>
+            <div style="padding: 20px;">
+                <div class="form-group">
+                    <label for="categoryName">Category Name</label>
+                    <input type="text" id="categoryName" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div class="form-group">
+                    <label for="categoryIcon">Icon</label>
+                    <input type="text" id="categoryIcon" placeholder="e.g., 🎨" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div class="form-group">
+                    <label for="categorySortOrder">Sort Order</label>
+                    <input type="number" id="categorySortOrder" value="1" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" id="saveCategoryBtn">Save</button>
+                    <button class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Activity Modal -->
+    <div id="activityModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="activityModalTitle">Add Activity</h2>
+                <button class="close-btn" onclick="closeActivityModal()">×</button>
+            </div>
+            <div style="padding: 20px;">
+                <div class="form-group">
+                    <label for="activityCategory">Category</label>
+                    <select id="activityCategory" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">-- Select a category --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="activityName">Activity Name</label>
+                    <input type="text" id="activityName" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div class="form-group">
+                    <label for="activityDescription">Description (optional)</label>
+                    <textarea id="activityDescription" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-height: 80px;"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" id="saveActivityBtn">Save</button>
+                    <button class="btn btn-secondary" onclick="closeActivityModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script src="supabase-config.js"></script>
