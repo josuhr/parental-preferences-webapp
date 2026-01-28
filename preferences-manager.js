@@ -1,5 +1,5 @@
 // Preferences Manager JavaScript
-// Handles household activities with multi-caregiver preferences
+// Handles household activities with multi-caregiver preferences and kid preferences
 
 let currentUser = null;
 let categories = [];
@@ -7,6 +7,9 @@ let householdActivities = [];
 let allUniversalActivities = []; // For adding new activities
 let preferences = [];
 let userSettings = null;
+let kids = [];
+let kidPreferences = [];
+let visibleKidIds = new Set(); // Track which kids are visible in the table
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -19,6 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         userSettings = await window.supabaseUtils.getUserSettings(currentUser.id);
         
+        await loadKids(); // Load kids first
         setupEventListeners();
         await loadAllData();
         
@@ -39,6 +43,70 @@ function setupEventListeners() {
         await addActivityToHousehold();
     });
 }
+
+// Load kids for the current user
+async function loadKids() {
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+        const { data, error } = await supabaseClient
+            .from('kids')
+            .select('*')
+            .eq('parent_id', currentUser.id)
+            .order('name', { ascending: true });
+        
+        if (error) throw error;
+        
+        kids = data || [];
+        
+        // Initially show all kids
+        visibleKidIds = new Set(kids.map(k => k.id));
+        
+        // Render kid filters
+        renderKidFilters();
+        
+    } catch (error) {
+        console.error('Error loading kids:', error);
+        showError('Failed to load kids');
+    }
+}
+
+// Render kid filter checkboxes
+function renderKidFilters() {
+    const container = document.getElementById('kidFilters');
+    if (!container) return;
+    
+    if (kids.length === 0) {
+        container.innerHTML = '<span style="color: #666; font-style: italic;">No kids added yet</span>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    kids.forEach(kid => {
+        const label = document.createElement('label');
+        label.className = 'kid-filter-checkbox';
+        label.innerHTML = `
+            <input type="checkbox" 
+                   value="${kid.id}" 
+                   ${visibleKidIds.has(kid.id) ? 'checked' : ''} 
+                   onchange="toggleKidVisibility('${kid.id}')">
+            <span>${kid.emoji || '👤'} ${kid.name}</span>
+        `;
+        container.appendChild(label);
+    });
+}
+
+// Toggle kid visibility in table
+function toggleKidVisibility(kidId) {
+    if (visibleKidIds.has(kidId)) {
+        visibleKidIds.delete(kidId);
+    } else {
+        visibleKidIds.add(kidId);
+    }
+    renderHouseholdActivities();
+}
+
+// Make toggleKidVisibility available globally
+window.toggleKidVisibility = toggleKidVisibility;
 
 // Load all data
 async function loadAllData() {
@@ -94,7 +162,7 @@ async function loadAllData() {
         // Load preferences for household activities
         const householdActivityIds = householdActivities.map(ha => ha.id);
         if (householdActivityIds.length > 0) {
-            const { data: prefsData, error: prefsError } = await supabaseClient
+            const { data: prefsData, error: prefsError} = await supabaseClient
                 .from('household_activity_preferences')
                 .select('*')
                 .in('household_activity_id', householdActivityIds);
@@ -103,6 +171,22 @@ async function loadAllData() {
             preferences = prefsData || [];
         } else {
             preferences = [];
+        }
+        
+        // Load kid preferences for all activities
+        const activityIds = householdActivities.map(ha => ha.activity_id);
+        if (activityIds.length > 0 && kids.length > 0) {
+            const kidIds = kids.map(k => k.id);
+            const { data: kidPrefsData, error: kidPrefsError } = await supabaseClient
+                .from('kid_preferences')
+                .select('*')
+                .in('kid_id', kidIds)
+                .in('activity_id', activityIds);
+            
+            if (kidPrefsError) throw kidPrefsError;
+            kidPreferences = kidPrefsData || [];
+        } else {
+            kidPreferences = [];
         }
         
         renderHouseholdActivities();
@@ -163,7 +247,8 @@ function createCategoryCard(category, categoryActivities) {
     const caregiver2Label = userSettings?.caregiver2_label || 'Dad';
     const bothLabel = userSettings?.both_label || 'Both';
     
-    card.innerHTML = `
+    // Build header with kid columns
+    let headerHTML = `
         <div class="category-header">
             <div class="category-title">
                 <span class="category-icon">${category.icon}</span>
@@ -172,16 +257,34 @@ function createCategoryCard(category, categoryActivities) {
             </div>
         </div>
         <div class="activities-table">
-            <div class="table-header">
+            <div class="table-header" style="display: grid; grid-template-columns: 2fr repeat(3, 1fr)`;
+    
+    // Add kid columns
+    const visibleKids = kids.filter(k => visibleKidIds.has(k.id));
+    visibleKids.forEach(() => {
+        headerHTML += ' 1fr';
+    });
+    headerHTML += ' 100px; gap: 10px; align-items: center;">';
+    
+    headerHTML += `
                 <div class="col-activity">Activity</div>
                 <div class="col-pref">${caregiver1Label}</div>
                 <div class="col-pref">${caregiver2Label}</div>
-                <div class="col-pref">${bothLabel}</div>
+                <div class="col-pref">${bothLabel}</div>`;
+    
+    // Add kid column headers
+    visibleKids.forEach(kid => {
+        headerHTML += `<div class="col-pref kid-column">${kid.emoji || '👤'} ${kid.name}</div>`;
+    });
+    
+    headerHTML += `
                 <div class="col-actions">Actions</div>
             </div>
             <div class="table-body" id="activities-${category.id}"></div>
         </div>
     `;
+    
+    card.innerHTML = headerHTML;
     
     const tableBody = card.querySelector(`#activities-${category.id}`);
     categoryActivities.forEach(item => {
@@ -198,8 +301,21 @@ function createActivityRow(householdId, activity) {
     row.className = 'activity-row';
     
     const preference = preferences.find(p => p.household_activity_id === householdId);
+    const visibleKids = kids.filter(k => visibleKidIds.has(k.id));
     
-    row.innerHTML = `
+    // Build grid template matching header
+    let gridTemplate = '2fr repeat(3, 1fr)';
+    visibleKids.forEach(() => {
+        gridTemplate += ' 1fr';
+    });
+    gridTemplate += ' 100px';
+    
+    row.style.display = 'grid';
+    row.style.gridTemplateColumns = gridTemplate;
+    row.style.gap = '10px';
+    row.style.alignItems = 'center';
+    
+    let rowHTML = `
         <div class="col-activity">
             <div class="activity-name">${activity.name}</div>
             ${activity.description ? `<div class="activity-description">${activity.description}</div>` : ''}
@@ -212,11 +328,24 @@ function createActivityRow(householdId, activity) {
         </div>
         <div class="col-pref">
             ${createPreferenceButtons(householdId, 'both', preference?.both_preference)}
-        </div>
+        </div>`;
+    
+    // Add kid preference columns
+    visibleKids.forEach(kid => {
+        const kidPref = kidPreferences.find(kp => kp.kid_id === kid.id && kp.activity_id === activity.id);
+        rowHTML += `
+        <div class="col-pref kid-column">
+            ${createKidPreferenceButtons(kid.id, activity.id, kidPref?.preference_level)}
+        </div>`;
+    });
+    
+    rowHTML += `
         <div class="col-actions">
             <button class="btn-icon" onclick="removeActivity('${householdId}')" title="Remove from household">🗑️</button>
         </div>
     `;
+    
+    row.innerHTML = rowHTML;
     
     return row;
 }
@@ -234,6 +363,25 @@ function createPreferenceButtons(householdId, caregiverType, currentPreference) 
         return `<button class="preference-btn ${active}" 
                         data-level="${level.value}" 
                         onclick="updatePreference('${householdId}', '${caregiverType}', '${level.value}')"
+                        title="${level.title}">${level.emoji}</button>`;
+    }).join('');
+}
+
+// Create kid preference buttons
+function createKidPreferenceButtons(kidId, activityId, currentPreference) {
+    const levels = [
+        { value: 'loves', emoji: '💚', title: 'Loves' },
+        { value: 'likes', emoji: '💙', title: 'Likes' },
+        { value: 'neutral', emoji: '💛', title: 'Neutral' },
+        { value: 'dislikes', emoji: '🧡', title: 'Dislikes' },
+        { value: 'refuses', emoji: '❤️', title: 'Refuses' }
+    ];
+    
+    return levels.map(level => {
+        const active = currentPreference === level.value ? 'active' : '';
+        return `<button class="kid-preference-btn ${active}" 
+                        data-level="${level.value}" 
+                        onclick="updateKidPreference('${kidId}', '${activityId}', '${level.value}')"
                         title="${level.title}">${level.emoji}</button>`;
     }).join('');
 }
@@ -280,6 +428,51 @@ async function updatePreference(householdId, caregiverType, level) {
         showError('Failed to update preference');
     }
 }
+
+// Update kid preference
+async function updateKidPreference(kidId, activityId, level) {
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+        const existingPref = kidPreferences.find(kp => kp.kid_id === kidId && kp.activity_id === activityId);
+        
+        if (existingPref) {
+            // Update existing
+            const { error } = await supabaseClient
+                .from('kid_preferences')
+                .update({ 
+                    preference_level: level,
+                    updated_at: new Date().toISOString() 
+                })
+                .eq('id', existingPref.id);
+            
+            if (error) throw error;
+            existingPref.preference_level = level;
+        } else {
+            // Create new
+            const { data, error } = await supabaseClient
+                .from('kid_preferences')
+                .insert({
+                    kid_id: kidId,
+                    activity_id: activityId,
+                    preference_level: level
+                })
+                .select()
+                .single();
+            
+            if (error) throw error;
+            kidPreferences.push(data);
+        }
+        
+        renderHouseholdActivities();
+        
+    } catch (error) {
+        console.error('Error updating kid preference:', error);
+        showError('Failed to update kid preference');
+    }
+}
+
+// Make functions available globally
+window.updateKidPreference = updateKidPreference;
 
 // Open add activity modal
 function openAddActivityModal() {
