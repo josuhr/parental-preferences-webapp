@@ -1,4 +1,4 @@
-// Kid Preferences JavaScript
+// Kid Management JavaScript
 // Handles kid profile management and preferences
 
 let currentUser = null;
@@ -147,17 +147,14 @@ function createKidCard(kid) {
         </div>
         
         <div class="kid-actions">
-            <button class="btn btn-primary btn-small" onclick="managePreferences('${kid.id}')">
-                ✏️ Preferences
-            </button>
-            <button class="btn btn-secondary btn-small" onclick="manageAccess('${kid.id}')">
-                👥 Teachers
+            <button class="btn btn-primary btn-small" onclick="manageAccess('${kid.id}')">
+                👥 Manage Teachers
             </button>
             <button class="btn btn-secondary btn-small" onclick="editKid('${kid.id}')">
-                Edit
+                ✏️ Edit Kid
             </button>
             <button class="btn btn-secondary btn-small" onclick="deleteKid('${kid.id}')">
-                Delete
+                🗑️ Delete
             </button>
         </div>
     `;
@@ -306,12 +303,6 @@ async function deleteKid(kidId) {
         console.error('Error deleting kid:', error);
         showError('Failed to delete kid: ' + error.message);
     }
-}
-
-// Manage preferences for a kid
-function managePreferences(kidId) {
-    // Navigate to kid preferences manager
-    window.location.href = `/kid-preferences-manager.html?kid=${kidId}`;
 }
 
 // Manage teacher access for a kid
