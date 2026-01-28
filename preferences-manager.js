@@ -814,7 +814,16 @@ function openBulkAddModal() {
         return;
     }
     
+    // Explicitly set dimensions via JavaScript
     modal.style.display = 'flex';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.right = '0';
+    modal.style.bottom = '0';
+    
     console.log('Modal opened');
     console.log('Modal display style:', modal.style.display);
     
