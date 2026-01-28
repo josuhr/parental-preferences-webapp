@@ -38,9 +38,15 @@ function setupEventListeners() {
         openAddActivityModal();
     });
     
-    document.getElementById('bulkAddBtn').addEventListener('click', () => {
-        openBulkAddModal();
-    });
+    const bulkAddBtn = document.getElementById('bulkAddBtn');
+    if (bulkAddBtn) {
+        bulkAddBtn.addEventListener('click', () => {
+            console.log('Bulk Add button clicked');
+            openBulkAddModal();
+        });
+    } else {
+        console.error('Bulk Add button not found in DOM');
+    }
     
     // Search input
     document.getElementById('activitySearchInput').addEventListener('input', (e) => {
@@ -778,18 +784,38 @@ let selectedActivityIds = new Set();
 
 // Open bulk add modal
 function openBulkAddModal() {
+    console.log('openBulkAddModal called');
+    console.log('allUniversalActivities:', allUniversalActivities.length);
+    console.log('categories:', categories.length);
+    
     selectedActivityIds.clear();
     const modal = document.getElementById('bulkAddModal');
     
+    if (!modal) {
+        console.error('Bulk add modal not found in DOM');
+        showError('Bulk add modal not found');
+        return;
+    }
+    
     // Reset search
-    document.getElementById('bulkSearchInput').value = '';
-    document.getElementById('selectAllCheckbox').checked = false;
+    const searchInput = document.getElementById('bulkSearchInput');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    
+    if (searchInput) searchInput.value = '';
+    if (selectAllCheckbox) selectAllCheckbox.checked = false;
     
     // Render activities
-    renderBulkActivities();
-    updateSelectedCount();
+    try {
+        renderBulkActivities();
+        updateSelectedCount();
+    } catch (error) {
+        console.error('Error rendering bulk activities:', error);
+        showError('Error loading activities: ' + error.message);
+        return;
+    }
     
     modal.style.display = 'flex';
+    console.log('Modal opened');
 }
 
 // Close bulk add modal
@@ -800,13 +826,23 @@ function closeBulkAddModal() {
 
 // Render bulk activities with checkboxes
 function renderBulkActivities(searchTerm = '') {
+    console.log('renderBulkActivities called with searchTerm:', searchTerm);
+    
     const container = document.getElementById('bulkActivitiesContainer');
     const noActivitiesDiv = document.getElementById('bulkNoActivitiesFound');
+    
+    if (!container || !noActivitiesDiv) {
+        console.error('Required DOM elements not found');
+        return;
+    }
+    
     container.innerHTML = '';
     
     // Get activities not already in household
     const householdActivityIds = householdActivities.map(ha => ha.kid_activities.id);
     let availableActivities = allUniversalActivities.filter(a => !householdActivityIds.includes(a.id));
+    
+    console.log('Available activities:', availableActivities.length);
     
     // Apply search filter
     if (searchTerm) {
