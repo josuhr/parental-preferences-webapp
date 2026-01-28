@@ -105,12 +105,14 @@ async function loadAllData() {
 // Update caregiver labels in UI
 function updateCaregiverLabels() {
     const caregiver1Label = userSettings?.caregiver1_label || 'Caregiver 1';
+    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
     const caregiver2Label = userSettings?.caregiver2_label || 'Caregiver 2';
+    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
     const bothLabel = userSettings?.both_label || 'Both';
     
     const filter = document.getElementById('caregiverFilter');
-    filter.options[1].text = caregiver1Label;
-    filter.options[2].text = caregiver2Label;
+    filter.options[1].text = `${caregiver1Emoji} ${caregiver1Label}`;
+    filter.options[2].text = `${caregiver2Emoji} ${caregiver2Label}`;
     filter.options[3].text = bothLabel;
 }
 
@@ -325,7 +327,9 @@ function createActivityCard(activity, preference) {
     card.className = 'activity-card';
     
     const caregiver1Label = userSettings?.caregiver1_label || 'Caregiver 1';
+    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
     const caregiver2Label = userSettings?.caregiver2_label || 'Caregiver 2';
+    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
     const bothLabel = userSettings?.both_label || 'Both';
     
     const prefs = {
@@ -349,17 +353,20 @@ function createActivityCard(activity, preference) {
             // Show individual preferences when they differ or one is missing
             prefsHTML = `
                 <div class="activity-card-prefs">
-                    ${createPrefRow(caregiver1Label, prefs.caregiver1)}
-                    ${createPrefRow(caregiver2Label, prefs.caregiver2)}
+                    ${createPrefRow(`${caregiver1Emoji} ${caregiver1Label}`, prefs.caregiver1)}
+                    ${createPrefRow(`${caregiver2Emoji} ${caregiver2Label}`, prefs.caregiver2)}
                 </div>
             `;
         }
     } else {
+        const emoji = currentFilter === 'caregiver1' ? caregiver1Emoji :
+                     currentFilter === 'caregiver2' ? caregiver2Emoji : '';
         const label = currentFilter === 'caregiver1' ? caregiver1Label :
                      currentFilter === 'caregiver2' ? caregiver2Label : bothLabel;
+        const displayLabel = emoji ? `${emoji} ${label}` : label;
         prefsHTML = `
             <div class="activity-card-prefs">
-                ${createPrefRow(label, prefs[currentFilter])}
+                ${createPrefRow(displayLabel, prefs[currentFilter])}
             </div>
         `;
     }
@@ -391,7 +398,9 @@ function createActivityTable(categoryActivities) {
     table.className = 'activities-table';
     
     const caregiver1Label = userSettings?.caregiver1_label || 'Caregiver 1';
+    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
     const caregiver2Label = userSettings?.caregiver2_label || 'Caregiver 2';
+    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
     const bothLabel = userSettings?.both_label || 'Both';
     
     let thead = `
@@ -404,13 +413,16 @@ function createActivityTable(categoryActivities) {
         // Check if we need to show "Both" column or individual columns
         // We'll determine this per row, but for headers we show individual
         thead += `
-                <th style="text-align: center; width: 20%;">${caregiver1Label}</th>
-                <th style="text-align: center; width: 20%;">${caregiver2Label}</th>
+                <th style="text-align: center; width: 20%;">${caregiver1Emoji} ${caregiver1Label}</th>
+                <th style="text-align: center; width: 20%;">${caregiver2Emoji} ${caregiver2Label}</th>
         `;
     } else {
+        const emoji = currentFilter === 'caregiver1' ? caregiver1Emoji :
+                     currentFilter === 'caregiver2' ? caregiver2Emoji : '';
         const label = currentFilter === 'caregiver1' ? caregiver1Label :
                      currentFilter === 'caregiver2' ? caregiver2Label : bothLabel;
-        thead += `<th style="text-align: center;">${label}</th>`;
+        const displayLabel = emoji ? `${emoji} ${label}` : label;
+        thead += `<th style="text-align: center;">${displayLabel}</th>`;
     }
     
     thead += `
@@ -507,7 +519,9 @@ function exportToPDF() {
     
     // Update title for PDF
     const caregiver1Label = userSettings?.caregiver1_label || 'Caregiver 1';
+    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
     const caregiver2Label = userSettings?.caregiver2_label || 'Caregiver 2';
+    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
     const dateStr = new Date().toLocaleDateString();
     document.title = `Family Activity Preferences - ${dateStr}`;
     
@@ -520,7 +534,7 @@ function exportToPDF() {
             <h1 style="margin: 0 0 10px 0; font-size: 24px;">👨‍👩‍👧‍👦 Our Family Activity Preferences</h1>
             <p style="margin: 0; color: #666;">Generated on ${dateStr}</p>
             <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">
-                Caregivers: ${caregiver1Label} & ${caregiver2Label}
+                Caregivers: ${caregiver1Emoji} ${caregiver1Label} & ${caregiver2Emoji} ${caregiver2Label}
             </p>
         </div>
     `;
