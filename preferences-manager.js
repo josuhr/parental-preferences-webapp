@@ -853,6 +853,25 @@ function openBulkAddModal() {
         bottom: rect.bottom
     });
     
+    // Check modal-content child
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+        const contentRect = modalContent.getBoundingClientRect();
+        const contentStyles = window.getComputedStyle(modalContent);
+        console.log('Modal-content bounding rect:', {
+            top: contentRect.top,
+            left: contentRect.left,
+            width: contentRect.width,
+            height: contentRect.height
+        });
+        console.log('Modal-content display:', contentStyles.display);
+        console.log('Modal-content visibility:', contentStyles.visibility);
+    }
+    
+    // Check if modal has any children
+    console.log('Modal children count:', modal.children.length);
+    console.log('Modal innerHTML length:', modal.innerHTML.length);
+    
     console.log('Modal element:', modal);
 }
 
