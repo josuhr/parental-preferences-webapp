@@ -18,7 +18,13 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     v_parent_id UUID;
-    v_rule RECORD;
+    v_direct_pref_weight DECIMAL := 0.40;
+    v_parent_influence_weight DECIMAL := 0.20;
+    v_similar_kids_weight DECIMAL := 0.20;
+    v_teacher_weight DECIMAL := 0.10;
+    v_context_weight DECIMAL := 0.10;
+    v_novelty_weight DECIMAL := 0.05;
+    v_recency_weight DECIMAL := 0.15;
 BEGIN
     -- Get the parent ID for this kid
     SELECT parent_id INTO v_parent_id FROM public.kids WHERE id = p_kid_id;
@@ -27,23 +33,44 @@ BEGIN
         RAISE EXCEPTION 'Kid not found or has no parent';
     END IF;
     
-    -- Get the recommendation rules for this user (or use defaults)
-    SELECT * INTO v_rule FROM public.recommendation_rules WHERE user_id = v_parent_id;
+    -- Get the recommendation rule weights for this user (or use defaults)
+    -- The recommendation_rules table has one row per rule type
+    SELECT COALESCE(weight, 0.40) INTO v_direct_pref_weight
+    FROM public.recommendation_rules 
+    WHERE user_id = v_parent_id AND rule_type = 'preference_match' AND is_enabled = true;
     
-    IF v_rule IS NULL THEN
-        -- Use default weights
-        v_rule := ROW(
-            NULL, v_parent_id,
-            0.40, -- direct_preference_weight
-            0.20, -- parent_influence_weight
-            0.20, -- kid_similar_weight
-            0.10, -- teacher_observation_weight
-            0.10, -- context_match_weight
-            0.05, -- novelty_boost_weight
-            0.15, -- recency_penalty_weight
-            NOW(), NOW()
-        )::public.recommendation_rules;
-    END IF;
+    SELECT COALESCE(weight, 0.20) INTO v_parent_influence_weight
+    FROM public.recommendation_rules 
+    WHERE user_id = v_parent_id AND rule_type = 'parent_influence' AND is_enabled = true;
+    
+    SELECT COALESCE(weight, 0.20) INTO v_similar_kids_weight
+    FROM public.recommendation_rules 
+    WHERE user_id = v_parent_id AND rule_type = 'similar_kids' AND is_enabled = true;
+    
+    SELECT COALESCE(weight, 0.10) INTO v_teacher_weight
+    FROM public.recommendation_rules 
+    WHERE user_id = v_parent_id AND rule_type = 'teacher_endorsement' AND is_enabled = true;
+    
+    SELECT COALESCE(weight, 0.10) INTO v_context_weight
+    FROM public.recommendation_rules 
+    WHERE user_id = v_parent_id AND rule_type = 'context_match' AND is_enabled = true;
+    
+    SELECT COALESCE(weight, 0.05) INTO v_novelty_weight
+    FROM public.recommendation_rules 
+    WHERE user_id = v_parent_id AND rule_type = 'novelty_boost' AND is_enabled = true;
+    
+    SELECT COALESCE(weight, 0.15) INTO v_recency_weight
+    FROM public.recommendation_rules 
+    WHERE user_id = v_parent_id AND rule_type = 'recency_penalty' AND is_enabled = true;
+    
+    -- If no weights found, use defaults (already set above)
+    v_direct_pref_weight := COALESCE(v_direct_pref_weight, 0.40);
+    v_parent_influence_weight := COALESCE(v_parent_influence_weight, 0.20);
+    v_similar_kids_weight := COALESCE(v_similar_kids_weight, 0.20);
+    v_teacher_weight := COALESCE(v_teacher_weight, 0.10);
+    v_context_weight := COALESCE(v_context_weight, 0.10);
+    v_novelty_weight := COALESCE(v_novelty_weight, 0.05);
+    v_recency_weight := COALESCE(v_recency_weight, 0.15);
     
     RETURN QUERY
     WITH 
@@ -173,13 +200,13 @@ BEGIN
             ka.description as activity_description,
             kac.name as category_name,
             (
-                COALESCE(dp.score, 3.0) * v_rule.direct_preference_weight +
-                COALESCE(pi.score, 3.0) * v_rule.parent_influence_weight +
-                COALESCE(sks.score, 3.0) * v_rule.kid_similar_weight +
-                COALESCE(ts.score, 3.5) * v_rule.teacher_observation_weight +
-                COALESCE(cs.score, 3.0) * v_rule.context_match_weight +
-                COALESCE(ns.score, 3.0) * v_rule.novelty_boost_weight -
-                COALESCE(rp.penalty, 0.0) * v_rule.recency_penalty_weight
+                COALESCE(dp.score, 3.0) * v_direct_pref_weight +
+                COALESCE(pi.score, 3.0) * v_parent_influence_weight +
+                COALESCE(sks.score, 3.0) * v_similar_kids_weight +
+                COALESCE(ts.score, 3.5) * v_teacher_weight +
+                COALESCE(cs.score, 3.0) * v_context_weight +
+                COALESCE(ns.score, 3.0) * v_novelty_weight -
+                COALESCE(rp.penalty, 0.0) * v_recency_weight
             ) as final_score,
             jsonb_build_object(
                 'kid_preference_score', COALESCE(dp.score, 3.0),
