@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .dashboard-container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
         }
         
@@ -21,7 +21,7 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
         
         .user-avatar {
@@ -50,18 +50,22 @@
             font-size: 0.95rem;
         }
         
+        .welcome-message {
+            color: #667eea;
+            font-size: 1.1rem;
+            margin-top: 12px;
+        }
+        
         .dashboard-section {
             margin-bottom: 48px;
         }
         
         .section-header {
             margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #e0e0e0;
         }
         
         .section-header h2 {
-            margin: 0 0 4px 0;
+            margin: 0 0 8px 0;
             font-size: 1.25rem;
             font-weight: 600;
             color: #333;
@@ -73,144 +77,34 @@
             font-size: 0.9rem;
         }
         
-        .form-group {
-            margin-bottom: 24px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: #444;
-        }
-        
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #d0d0d0;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            transition: border-color 0.2s;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .form-group small {
-            display: block;
-            margin-top: 6px;
-            color: #666;
-            font-size: 0.85rem;
-        }
-        
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        
-        .status-badge.success {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-        
-        .status-badge.warning {
-            background: #fff3e0;
-            color: #e65100;
-        }
-        
-        .status-badge.error {
-            background: #ffebee;
-            color: #c62828;
-        }
-        
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #5568d3;
-        }
-        
-        .btn-primary:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .btn-secondary {
-            background: #f5f5f5;
-            color: #333;
-            border: 1px solid #d0d0d0;
-        }
-        
-        .btn-secondary:hover {
-            background: #e8e8e8;
-        }
-        
-        .btn-danger {
-            background: #fff5f5;
-            color: #d32f2f;
-            border: 1px solid #ffcdd2;
-        }
-        
-        .btn-danger:hover {
-            background: #ffebee;
-        }
-        
         .quick-actions {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
         }
         
         .quick-action-btn {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 16px;
+            padding: 20px;
             background: white;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
             text-decoration: none;
             color: #333;
             transition: all 0.2s;
+            cursor: pointer;
         }
         
         .quick-action-btn:hover {
             border-color: #667eea;
             box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
         
         .quick-action-icon {
-            font-size: 1.5rem;
+            font-size: 1.75rem;
         }
         
         .quick-action-text {
@@ -220,34 +114,154 @@
         .quick-action-text strong {
             display: block;
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 1rem;
             color: #333;
         }
         
         .quick-action-text span {
             display: block;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: #666;
             margin-top: 2px;
         }
         
-        .emoji-grid {
+        .getting-started {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 32px;
+            color: white;
+        }
+        
+        .getting-started h3 {
+            margin: 0 0 20px 0;
+            font-size: 1.3rem;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        
+        .checklist li:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .checklist-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .checklist-text {
+            flex: 1;
+            padding-top: 2px;
+        }
+        
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .stat-link {
+            margin-top: 12px;
+            font-size: 0.85rem;
+        }
+        
+        .stat-link a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .stat-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .capabilities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .capability-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        
+        .capability-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+        
+        .capability-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+            color: #333;
+        }
+        
+        .capability-card p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
         
         @media (max-width: 768px) {
-            .emoji-grid {
+            .quick-actions {
                 grid-template-columns: 1fr;
             }
             
-            .btn-group {
-                flex-direction: column;
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
             
-            .btn {
-                width: 100%;
+            .capabilities-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -259,7 +273,7 @@
 
     <div class="main-content">
         <div class="dashboard-container">
-            <!-- User Header -->
+            <!-- User Welcome -->
             <div class="dashboard-header">
                 <div class="user-info">
                     <div class="user-avatar" id="userAvatar"></div>
@@ -268,12 +282,14 @@
                         <p id="userEmail"></p>
                     </div>
                 </div>
+                <div class="welcome-message">Welcome to What We Like!</div>
             </div>
             
             <!-- Quick Actions -->
             <div class="dashboard-section">
                 <div class="section-header">
                     <h2>Quick Actions</h2>
+                    <p>Jump right into what you need</p>
                 </div>
                 <div class="quick-actions">
                     <a href="/preferences-manager.html" class="quick-action-btn">
@@ -321,96 +337,95 @@
                 </div>
             </div>
             
-            <!-- Google Sheet Configuration -->
+            <!-- Getting Started -->
             <div class="dashboard-section">
-                <div class="section-header">
-                    <h2>📊 Google Sheet Integration</h2>
-                    <p>Connect your Google Sheets to sync activities</p>
-                </div>
-                
-                <div class="form-group">
-                    <label for="sheetId">Google Sheet ID</label>
-                    <input type="text" id="sheetId" placeholder="Enter your Google Sheet ID">
-                    <small>Find this in your Google Sheets URL: /d/<strong>SHEET_ID</strong>/edit</small>
-                </div>
-                
-                <div class="form-group">
-                    <label>Current Status</label>
-                    <div id="sheetStatus">
-                        <span class="status-badge warning">Not configured</span>
-                    </div>
-                </div>
-                
-                <div class="btn-group">
-                    <button class="btn btn-secondary" id="testSheetBtn">Test Connection</button>
-                    <button class="btn btn-primary" id="saveSheetBtn">Save Sheet ID</button>
+                <div class="getting-started">
+                    <h3>🚀 Getting Started</h3>
+                    <ul class="checklist">
+                        <li>
+                            <div class="checklist-number">1</div>
+                            <div class="checklist-text">
+                                <strong>Add your kids</strong> and set their activity preferences
+                            </div>
+                        </li>
+                        <li>
+                            <div class="checklist-number">2</div>
+                            <div class="checklist-text">
+                                <strong>Set up household activities</strong> from the universal library
+                            </div>
+                        </li>
+                        <li>
+                            <div class="checklist-number">3</div>
+                            <div class="checklist-text">
+                                <strong>Configure caregiver preferences</strong> for each activity
+                            </div>
+                        </li>
+                        <li>
+                            <div class="checklist-number">4</div>
+                            <div class="checklist-text">
+                                <strong>Get personalized recommendations</strong> and discover new activities!
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
             
-            <!-- Caregiver Labels -->
+            <!-- Statistics -->
             <div class="dashboard-section">
                 <div class="section-header">
-                    <h2>👥 Caregiver Labels</h2>
-                    <p>Customize how caregivers are labeled in your household</p>
+                    <h2>Your Overview</h2>
+                    <p>Quick stats about your household setup</p>
                 </div>
-                
-                <div class="form-group">
-                    <label for="caregiver1Label">First Caregiver Label</label>
-                    <input type="text" id="caregiver1Label" placeholder="e.g., Mom, Parent 1, Sarah, Grandma" maxlength="20">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👶</div>
+                        <div class="stat-value" id="kidCount">-</div>
+                        <div class="stat-label">Kids</div>
+                        <div class="stat-link">
+                            <a href="/kid-prefs.html">Manage kids →</a>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎨</div>
+                        <div class="stat-value" id="activityCount">-</div>
+                        <div class="stat-label">Household Activities</div>
+                        <div class="stat-link">
+                            <a href="/preferences-manager.html">Manage activities →</a>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">❤️</div>
+                        <div class="stat-value" id="preferenceCount">-</div>
+                        <div class="stat-label">Preferences Set</div>
+                        <div class="stat-link">
+                            <a href="/preferences-manager.html">Set preferences →</a>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="caregiver1Emoji">First Caregiver Emoji</label>
-                    <select id="caregiver1Emoji">
-                        <option value="💗">💗 Pink Heart</option>
-                        <option value="❤️">❤️ Red Heart</option>
-                        <option value="💚">💚 Green Heart</option>
-                        <option value="🧡">🧡 Orange Heart</option>
-                        <option value="🌸">🌸 Flower</option>
-                        <option value="⭐">⭐ Star</option>
-                        <option value="🌟">🌟 Sparkle</option>
-                        <option value="👤">👤 Person</option>
-                    </select>
+            </div>
+            
+            <!-- App Capabilities -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2>What You Can Do</h2>
+                    <p>Explore the capabilities of What We Like</p>
                 </div>
-                
-                <div class="form-group">
-                    <label for="caregiver2Label">Second Caregiver Label</label>
-                    <input type="text" id="caregiver2Label" placeholder="e.g., Dad, Parent 2, Tom, Grandpa" maxlength="20">
-                </div>
-                
-                <div class="form-group">
-                    <label for="caregiver2Emoji">Second Caregiver Emoji</label>
-                    <select id="caregiver2Emoji">
-                        <option value="💙">💙 Blue Heart</option>
-                        <option value="❤️">❤️ Red Heart</option>
-                        <option value="💚">💚 Green Heart</option>
-                        <option value="💛">💛 Yellow Heart</option>
-                        <option value="🌊">🌊 Wave</option>
-                        <option value="⚡">⚡ Lightning</option>
-                        <option value="🌙">🌙 Moon</option>
-                        <option value="👤">👤 Person</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="bothLabel">"Both Caregivers" Label</label>
-                    <input type="text" id="bothLabel" placeholder="e.g., Both, Together, Family, Us" maxlength="20">
-                </div>
-                
-                <div class="form-group">
-                    <label for="bothEmoji">"Both Caregivers" Emoji</label>
-                    <select id="bothEmoji">
-                        <option value="💜">💜 Purple Heart</option>
-                        <option value="❤️">❤️ Red Heart</option>
-                        <option value="💕">💕 Two Hearts</option>
-                        <option value="🌈">🌈 Rainbow</option>
-                        <option value="✨">✨ Sparkles</option>
-                        <option value="👥">👥 People</option>
-                    </select>
-                </div>
-                
-                <div class="btn-group">
-                    <button class="btn btn-primary" id="saveCaregiverLabelsBtn">Save Caregiver Labels</button>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <div class="capability-icon">📊</div>
+                        <h3>Track Preferences</h3>
+                        <p>Record what each kid loves, likes, or refuses. Set caregiver preferences to guide family activities.</p>
+                    </div>
+                    <div class="capability-card">
+                        <div class="capability-icon">🤖</div>
+                        <h3>Get Recommendations</h3>
+                        <p>AI-powered suggestions based on preferences, past activities, and family dynamics.</p>
+                    </div>
+                    <div class="capability-card">
+                        <div class="capability-icon">👨‍👩‍👧‍👦</div>
+                        <h3>View Together</h3>
+                        <p>See what activities your whole family enjoys and discover new shared interests.</p>
+                    </div>
                 </div>
             </div>
         </div>

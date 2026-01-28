@@ -116,59 +116,117 @@
             line-height: 1.5;
         }
 
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #444;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 6px;
+            color: #666;
+            font-size: 0.85rem;
         }
 
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status-badge.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-badge.warning {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        
+        .status-badge.error {
+            background: #ffebee;
+            color: #c62828;
         }
 
-        .toggle-slider {
-            position: absolute;
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
             cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
+            transition: all 0.2s;
         }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
         }
-
-        input:checked + .toggle-slider {
-            background-color: #667eea;
+        
+        .btn-primary:hover {
+            background: #5568d3;
         }
-
-        input:checked + .toggle-slider:before {
-            transform: translateX(26px);
+        
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #d0d0d0;
+        }
+        
+        .btn-secondary:hover {
+            background: #e8e8e8;
         }
 
         .preset-buttons {
             display: flex;
             gap: 10px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         .preset-button {
             flex: 1;
+            min-width: 150px;
             padding: 15px;
             border: 2px solid #e0e0e0;
             background: white;
@@ -251,18 +309,6 @@
             display: none;
         }
 
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
         .info-box {
             background: #f0f4ff;
             border-left: 4px solid #667eea;
@@ -282,6 +328,24 @@
             font-size: 14px;
             line-height: 1.5;
         }
+
+        @media (max-width: 768px) {
+            .preset-buttons {
+                flex-direction: column;
+            }
+            
+            .preset-button {
+                min-width: 100%;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -290,18 +354,107 @@
 
     <div class="main-content">
         <div class="settings-container">
-        <a href="recommendations.html" class="back-link">← Back to Recommendations</a>
-        
-        <h1>Recommendation Settings</h1>
+        <h1>Settings</h1>
 
         <div id="successMessage" class="success-message">
             Settings saved successfully!
         </div>
 
+        <!-- Google Sheet Configuration -->
         <div class="settings-section">
-            <h2>Quick Presets</h2>
-            <p>Choose a preset that matches your family's style, or customize below.</p>
+            <h2>📊 Google Sheet Integration</h2>
+            <p>Connect your Google Sheets to sync activities</p>
             
+            <div class="form-group">
+                <label for="sheetId">Google Sheet ID</label>
+                <input type="text" id="sheetId" placeholder="Enter your Google Sheet ID">
+                <small>Find this in your Google Sheets URL: /d/<strong>SHEET_ID</strong>/edit</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Current Status</label>
+                <div id="sheetStatus">
+                    <span class="status-badge warning">Not configured</span>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="testSheetBtn">Test Connection</button>
+                <button class="btn btn-primary" id="saveSheetBtn">Save Sheet ID</button>
+            </div>
+        </div>
+
+        <!-- Caregiver Labels -->
+        <div class="settings-section">
+            <h2>👥 Caregiver Labels</h2>
+            <p>Customize how caregivers are labeled in your household</p>
+            
+            <div class="form-group">
+                <label for="caregiver1Label">First Caregiver Label</label>
+                <input type="text" id="caregiver1Label" placeholder="e.g., Mom, Parent 1, Sarah, Grandma" maxlength="20">
+            </div>
+            
+            <div class="form-group">
+                <label for="caregiver1Emoji">First Caregiver Emoji</label>
+                <select id="caregiver1Emoji">
+                    <option value="💗">💗 Pink Heart</option>
+                    <option value="❤️">❤️ Red Heart</option>
+                    <option value="💚">💚 Green Heart</option>
+                    <option value="🧡">🧡 Orange Heart</option>
+                    <option value="🌸">🌸 Flower</option>
+                    <option value="⭐">⭐ Star</option>
+                    <option value="🌟">🌟 Sparkle</option>
+                    <option value="👤">👤 Person</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="caregiver2Label">Second Caregiver Label</label>
+                <input type="text" id="caregiver2Label" placeholder="e.g., Dad, Parent 2, Tom, Grandpa" maxlength="20">
+            </div>
+            
+            <div class="form-group">
+                <label for="caregiver2Emoji">Second Caregiver Emoji</label>
+                <select id="caregiver2Emoji">
+                    <option value="💙">💙 Blue Heart</option>
+                    <option value="❤️">❤️ Red Heart</option>
+                    <option value="💚">💚 Green Heart</option>
+                    <option value="💛">💛 Yellow Heart</option>
+                    <option value="🌊">🌊 Wave</option>
+                    <option value="⚡">⚡ Lightning</option>
+                    <option value="🌙">🌙 Moon</option>
+                    <option value="👤">👤 Person</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="bothLabel">"Both Caregivers" Label</label>
+                <input type="text" id="bothLabel" placeholder="e.g., Both, Together, Family, Us" maxlength="20">
+            </div>
+            
+            <div class="form-group">
+                <label for="bothEmoji">"Both Caregivers" Emoji</label>
+                <select id="bothEmoji">
+                    <option value="💜">💜 Purple Heart</option>
+                    <option value="❤️">❤️ Red Heart</option>
+                    <option value="💕">💕 Two Hearts</option>
+                    <option value="🌈">🌈 Rainbow</option>
+                    <option value="✨">✨ Sparkles</option>
+                    <option value="👥">👥 People</option>
+                </select>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" id="saveCaregiverLabelsBtn">Save Caregiver Labels</button>
+            </div>
+        </div>
+
+        <!-- Recommendation Settings -->
+        <div class="settings-section">
+            <h2>⚙️ Recommendation Settings</h2>
+            <p>Adjust how recommendations are generated for your family</p>
+
+            <h3>Quick Presets</h3>
             <div class="preset-buttons">
                 <button class="preset-button" data-preset="balanced">
                     <h4>⚖️ Balanced</h4>
@@ -320,12 +473,9 @@
                     <p>Promote trying new activities and variety</p>
                 </button>
             </div>
-        </div>
 
-        <div class="settings-section">
-            <h2>Recommendation Weights</h2>
-            <p>Adjust how much each factor influences recommendations for your family.</p>
-
+            <h3>Recommendation Weights</h3>
+            
             <div class="info-box">
                 <h4>How It Works</h4>
                 <p>Each slider controls the importance of a specific factor. Higher values mean that factor has more influence on recommendations. The system combines all factors to create personalized suggestions.</p>
@@ -451,10 +601,10 @@
                     Reduce score for activities done recently to promote variety.
                 </div>
             </div>
-        </div>
 
-        <button id="saveButton" class="save-button">Save Settings</button>
-        <button id="resetButton" class="reset-button">Reset to Defaults</button>
+            <button id="saveRecommendationBtn" class="save-button">Save Recommendation Settings</button>
+            <button id="resetButton" class="reset-button">Reset to Defaults</button>
+        </div>
     </div>
     </div>
 
