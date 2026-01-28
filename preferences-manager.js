@@ -730,7 +730,21 @@ function clearCreateForm() {
 // Close add activity modal
 function closeAddActivityModal() {
     document.getElementById('addActivityModal').style.display = 'none';
-    document.getElementById('addActivityForm').reset();
+    
+    // Clear the create activity form
+    clearCreateForm();
+    
+    // Hide the create form div
+    const createForm = document.getElementById('createActivityForm');
+    if (createForm) {
+        createForm.style.display = 'none';
+    }
+    
+    // Clear search input
+    const searchInput = document.getElementById('activitySearchInput');
+    if (searchInput) {
+        searchInput.value = '';
+    }
 }
 
 // Add activity to household
