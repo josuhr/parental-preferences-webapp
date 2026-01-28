@@ -268,6 +268,21 @@ function renderHouseholdActivities() {
 function createCategoryCard(category, categoryActivities) {
     const card = document.createElement('details');
     card.className = 'category-card';
+    card.dataset.categoryId = category.id;
+    
+    // Keep category open if it was previously expanded in this session
+    if (expandedCategoryIds.has(category.id)) {
+        card.setAttribute('open', '');
+    }
+    
+    // Track when category is opened/closed
+    card.addEventListener('toggle', () => {
+        if (card.open) {
+            expandedCategoryIds.add(category.id);
+        } else {
+            expandedCategoryIds.delete(category.id);
+        }
+    });
     
     const caregiver1Label = userSettings?.caregiver1_label || 'Mom';
     const caregiver2Label = userSettings?.caregiver2_label || 'Dad';
