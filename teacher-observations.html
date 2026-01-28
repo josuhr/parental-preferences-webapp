@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Observations - Teacher Dashboard</title>
+    <title>Observations - HomeBase</title>
+    <link rel="stylesheet" href="homebase-layout.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -235,6 +236,9 @@
 <body>
     <!-- Platform Navigation -->
     <div id="platformNavContainer"></div>
+    <div id="sidebar-nav-container"></div>
+
+    <div class="main-content">
 
     <div class="observations-container">
         <div class="breadcrumb">
@@ -344,5 +348,6 @@
             .catch(error => console.error('Error loading platform nav:', error));
     </script>
     <script src="teacher-observations.js"></script>
+    </div>
 </body>
 </html>

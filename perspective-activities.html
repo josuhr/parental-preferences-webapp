@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perspective Activities Library</title>
+    <link rel="stylesheet" href="homebase-layout.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -232,6 +233,9 @@
 <body>
     <!-- Platform Navigation -->
     <div id="platformNavContainer"></div>
+    <div id="sidebar-nav-container"></div>
+
+    <div class="main-content">
 
     <div class="library-container">
         <div class="header-section">
@@ -339,5 +343,6 @@
             .catch(error => console.error('Error loading platform nav:', error));
     </script>
     <script src="perspective-activities.js"></script>
+    </div>
 </body>
 </html>
