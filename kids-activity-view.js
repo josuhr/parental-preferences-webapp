@@ -516,6 +516,13 @@ function showError(message) {
 function exportToPDF() {
     // Save current view settings
     const originalTitle = document.title;
+    const originalView = currentView;
+    const originalFilter = currentFilter;
+    
+    // Force table view and show all for printing (most compact)
+    currentView = 'table';
+    currentFilter = 'all';
+    renderActivities();
     
     // Update title for PDF
     const caregiver1Label = userSettings?.caregiver1_label || 'Caregiver 1';
@@ -525,16 +532,15 @@ function exportToPDF() {
     const dateStr = new Date().toLocaleDateString();
     document.title = `Family Activity Preferences - ${dateStr}`;
     
-    // Add print-friendly header
+    // Add compact print-friendly header
     const printHeader = document.createElement('div');
     printHeader.id = 'printHeader';
     printHeader.style.display = 'none';
     printHeader.innerHTML = `
-        <div style="text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #333;">
-            <h1 style="margin: 0 0 10px 0; font-size: 24px;">👨‍👩‍👧‍👦 Our Family Activity Preferences</h1>
-            <p style="margin: 0; color: #666;">Generated on ${dateStr}</p>
-            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">
-                Caregivers: ${caregiver1Emoji} ${caregiver1Label} & ${caregiver2Emoji} ${caregiver2Label}
+        <div style="text-align: center; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid #333;">
+            <h1 style="margin: 0; font-size: 16pt; font-weight: 600;">👨‍👩‍👧‍👦 Family Activity Preferences</h1>
+            <p style="margin: 3px 0 0 0; font-size: 9pt; color: #666;">
+                ${caregiver1Emoji} ${caregiver1Label} & ${caregiver2Emoji} ${caregiver2Label} | ${dateStr}
             </p>
         </div>
     `;
@@ -558,11 +564,16 @@ function exportToPDF() {
     // Open print dialog
     window.print();
     
-    // Clean up after print
+    // Clean up after print and restore view
     setTimeout(() => {
         document.title = originalTitle;
         printHeader.remove();
         printStyle.remove();
+        
+        // Restore original view and filter
+        currentView = originalView;
+        currentFilter = originalFilter;
+        renderActivities();
     }, 100);
 }
 

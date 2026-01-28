@@ -55,16 +55,25 @@
         
         /* Print styles */
         @media print {
+            /* Force landscape orientation for better space usage */
+            @page {
+                size: landscape;
+                margin: 0.4in 0.5in;
+            }
+            
+            /* Hide UI elements */
             .filter-bar, .view-toggle, #exportPdfBtn, 
             #platform-nav-container, #sidebar-nav-container,
             .breadcrumb-nav {
                 display: none !important;
             }
             
+            /* Compact layout */
             body {
                 margin: 0;
-                padding: 20px;
+                padding: 0;
                 background: white;
+                font-size: 9pt;
             }
             
             .main-content {
@@ -72,18 +81,66 @@
                 padding: 0;
             }
             
-            .page-header {
-                border-bottom: 2px solid #333;
-                margin-bottom: 20px;
+            .kids-view-container {
+                padding: 0;
             }
             
+            /* Compact header */
+            .page-header {
+                border-bottom: 1px solid #333;
+                margin-bottom: 10px;
+                padding-bottom: 5px;
+            }
+            
+            .page-header h1 {
+                font-size: 16pt;
+                margin: 0;
+            }
+            
+            /* Compact categories */
             .category-section {
                 page-break-inside: avoid;
-                margin-bottom: 30px;
+                margin-bottom: 12px;
             }
             
-            .activity-card, .activity-table {
+            .category-section h3 {
+                font-size: 11pt;
+                margin: 5px 0 3px 0;
+                font-weight: 600;
+            }
+            
+            /* Compact tables */
+            .activities-table {
+                font-size: 8.5pt;
+                border-collapse: collapse;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .activities-table th {
+                padding: 3px 5px;
+                font-size: 9pt;
+                background: #f0f0f0 !important;
+                border: 1px solid #ccc;
+            }
+            
+            .activities-table td {
+                padding: 2px 5px;
+                border: 1px solid #ddd;
+            }
+            
+            .activities-table tr {
                 page-break-inside: avoid;
+            }
+            
+            /* Hide activity descriptions in print for compactness */
+            .activity-description {
+                display: none;
+            }
+            
+            /* Don't show cards in print - tables only */
+            .activity-card {
+                display: none !important;
             }
         }
 
