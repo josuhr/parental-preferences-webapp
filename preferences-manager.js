@@ -655,7 +655,7 @@ async function addSpecificActivityToHousehold(activityId) {
         const { data, error } = await supabaseClient
             .from('household_activities')
             .insert({
-                parent_id: currentUser.id,
+                user_id: currentUser.id,
                 activity_id: activityId
             })
             .select();
@@ -704,7 +704,7 @@ async function createAndAddNewActivity() {
         const { data: householdActivity, error: householdError } = await supabaseClient
             .from('household_activities')
             .insert({
-                parent_id: currentUser.id,
+                user_id: currentUser.id,
                 activity_id: newActivity.id
             })
             .select();
