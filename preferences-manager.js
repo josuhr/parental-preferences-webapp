@@ -38,9 +38,18 @@ function setupEventListeners() {
         openAddActivityModal();
     });
     
+    document.getElementById('bulkAddBtn').addEventListener('click', () => {
+        openBulkAddModal();
+    });
+    
     // Search input
     document.getElementById('activitySearchInput').addEventListener('input', (e) => {
         filterActivitiesInModal(e.target.value);
+    });
+    
+    // Bulk search input
+    document.getElementById('bulkSearchInput').addEventListener('input', (e) => {
+        filterBulkActivities(e.target.value);
     });
     
     // Show/hide create form
@@ -762,3 +771,237 @@ function showSuccess(message) {
         setTimeout(() => successDiv.style.display = 'none', 3000);
     }
 }
+
+// ====== BULK ADD FUNCTIONALITY ======
+
+let selectedActivityIds = new Set();
+
+// Open bulk add modal
+function openBulkAddModal() {
+    selectedActivityIds.clear();
+    const modal = document.getElementById('bulkAddModal');
+    
+    // Reset search
+    document.getElementById('bulkSearchInput').value = '';
+    document.getElementById('selectAllCheckbox').checked = false;
+    
+    // Render activities
+    renderBulkActivities();
+    updateSelectedCount();
+    
+    modal.style.display = 'flex';
+}
+
+// Close bulk add modal
+function closeBulkAddModal() {
+    document.getElementById('bulkAddModal').style.display = 'none';
+    selectedActivityIds.clear();
+}
+
+// Render bulk activities with checkboxes
+function renderBulkActivities(searchTerm = '') {
+    const container = document.getElementById('bulkActivitiesContainer');
+    const noActivitiesDiv = document.getElementById('bulkNoActivitiesFound');
+    container.innerHTML = '';
+    
+    // Get activities not already in household
+    const householdActivityIds = householdActivities.map(ha => ha.kid_activities.id);
+    let availableActivities = allUniversalActivities.filter(a => !householdActivityIds.includes(a.id));
+    
+    // Apply search filter
+    if (searchTerm) {
+        const normalized = searchTerm.toLowerCase().trim();
+        availableActivities = availableActivities.filter(a =>
+            a.name.toLowerCase().includes(normalized) ||
+            (a.description && a.description.toLowerCase().includes(normalized))
+        );
+    }
+    
+    if (availableActivities.length === 0) {
+        noActivitiesDiv.style.display = 'block';
+        return;
+    }
+    
+    noActivitiesDiv.style.display = 'none';
+    
+    // Group by category
+    const groupedActivities = {};
+    availableActivities.forEach(activity => {
+        if (!groupedActivities[activity.category_id]) {
+            groupedActivities[activity.category_id] = [];
+        }
+        groupedActivities[activity.category_id].push(activity);
+    });
+    
+    // Render each category
+    categories.forEach(category => {
+        const categoryActivities = groupedActivities[category.id];
+        if (!categoryActivities || categoryActivities.length === 0) return;
+        
+        const categorySection = document.createElement('div');
+        categorySection.style.marginBottom = '20px';
+        
+        const categoryHeader = document.createElement('div');
+        categoryHeader.style.cssText = 'background: #667eea; color: white; padding: 10px 15px; border-radius: 8px 8px 0 0; font-weight: 600; display: flex; align-items: center; gap: 8px;';
+        categoryHeader.innerHTML = `
+            <span>${category.icon}</span>
+            <span>${category.name}</span>
+            <span style="opacity: 0.8; font-size: 0.9em;">(${categoryActivities.length})</span>
+        `;
+        
+        const activityList = document.createElement('div');
+        activityList.style.cssText = 'border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 8px 8px; background: white;';
+        
+        categoryActivities.forEach((activity, index) => {
+            const activityItem = document.createElement('div');
+            activityItem.className = 'bulk-activity-item';
+            activityItem.dataset.activityId = activity.id;
+            activityItem.style.cssText = `
+                padding: 12px 15px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                cursor: pointer;
+                transition: background 0.2s;
+                ${index < categoryActivities.length - 1 ? 'border-bottom: 1px solid #f0f0f0;' : ''}
+            `;
+            
+            const isSelected = selectedActivityIds.has(activity.id);
+            
+            activityItem.addEventListener('click', () => {
+                toggleActivitySelection(activity.id);
+            });
+            
+            activityItem.addEventListener('mouseenter', () => {
+                activityItem.style.background = '#f5f7fa';
+            });
+            
+            activityItem.addEventListener('mouseleave', () => {
+                activityItem.style.background = 'white';
+            });
+            
+            activityItem.innerHTML = `
+                <input type="checkbox" 
+                       class="bulk-checkbox" 
+                       data-activity-id="${activity.id}" 
+                       ${isSelected ? 'checked' : ''}
+                       style="width: 18px; height: 18px; cursor: pointer;">
+                <div style="flex: 1;">
+                    <div style="font-weight: 500; color: #333;">${activity.name}</div>
+                    ${activity.description ? `<div style="font-size: 0.85rem; color: #666; margin-top: 4px;">${activity.description}</div>` : ''}
+                </div>
+            `;
+            
+            activityList.appendChild(activityItem);
+        });
+        
+        categorySection.appendChild(categoryHeader);
+        categorySection.appendChild(activityList);
+        container.appendChild(categorySection);
+    });
+}
+
+// Toggle activity selection
+function toggleActivitySelection(activityId) {
+    if (selectedActivityIds.has(activityId)) {
+        selectedActivityIds.delete(activityId);
+    } else {
+        selectedActivityIds.add(activityId);
+    }
+    
+    // Update checkbox
+    const checkbox = document.querySelector(`input[data-activity-id="${activityId}"]`);
+    if (checkbox) {
+        checkbox.checked = selectedActivityIds.has(activityId);
+    }
+    
+    updateSelectedCount();
+}
+
+// Toggle select all visible activities
+function toggleSelectAll() {
+    const checkbox = document.getElementById('selectAllCheckbox');
+    const allCheckboxes = document.querySelectorAll('.bulk-checkbox');
+    
+    if (checkbox.checked) {
+        // Select all visible
+        allCheckboxes.forEach(cb => {
+            const activityId = cb.dataset.activityId;
+            selectedActivityIds.add(activityId);
+            cb.checked = true;
+        });
+    } else {
+        // Deselect all visible
+        allCheckboxes.forEach(cb => {
+            const activityId = cb.dataset.activityId;
+            selectedActivityIds.delete(activityId);
+            cb.checked = false;
+        });
+    }
+    
+    updateSelectedCount();
+}
+
+// Update selected count display
+function updateSelectedCount() {
+    const count = selectedActivityIds.size;
+    document.getElementById('selectedCount').textContent = `${count} selected`;
+    document.getElementById('addButtonCount').textContent = count;
+    
+    // Update button state
+    const addBtn = document.getElementById('bulkAddSelectedBtn');
+    if (count === 0) {
+        addBtn.disabled = true;
+        addBtn.style.opacity = '0.5';
+        addBtn.style.cursor = 'not-allowed';
+    } else {
+        addBtn.disabled = false;
+        addBtn.style.opacity = '1';
+        addBtn.style.cursor = 'pointer';
+    }
+}
+
+// Filter bulk activities by search
+function filterBulkActivities(searchTerm) {
+    renderBulkActivities(searchTerm);
+    document.getElementById('selectAllCheckbox').checked = false;
+}
+
+// Add selected activities to household
+async function addSelectedActivities() {
+    if (selectedActivityIds.size === 0) {
+        showError('Please select at least one activity');
+        return;
+    }
+    
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        // Prepare bulk insert data
+        const insertData = Array.from(selectedActivityIds).map(activityId => ({
+            parent_id: currentUser.id,
+            activity_id: activityId
+        }));
+        
+        // Bulk insert
+        const { data, error } = await supabaseClient
+            .from('household_activities')
+            .insert(insertData)
+            .select();
+        
+        if (error) throw error;
+        
+        showSuccess(`Successfully added ${selectedActivityIds.size} activities!`);
+        await loadAllData();
+        closeBulkAddModal();
+        
+    } catch (error) {
+        console.error('Error adding activities:', error);
+        showError('Failed to add activities: ' + error.message);
+    }
+}
+
+// Make functions globally available
+window.closeBulkAddModal = closeBulkAddModal;
+window.toggleSelectAll = toggleSelectAll;
+window.addSelectedActivities = addSelectedActivities;

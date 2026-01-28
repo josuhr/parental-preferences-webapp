@@ -60,6 +60,67 @@
             margin-bottom: 48px;
         }
         
+        .collapsible-section {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .section-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            cursor: pointer;
+            background: white;
+            border: none;
+            width: 100%;
+            text-align: left;
+            transition: background 0.2s;
+        }
+        
+        .section-toggle:hover {
+            background: #f5f7fa;
+        }
+        
+        .section-toggle-left {
+            flex: 1;
+        }
+        
+        .section-toggle-left h2 {
+            margin: 0 0 4px 0;
+            color: #333;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .section-toggle-left p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .section-toggle-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+            color: #667eea;
+        }
+        
+        .section-toggle-icon.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .section-content {
+            padding: 0 24px 24px 24px;
+            display: none;
+        }
+        
+        .section-content.expanded {
+            display: block;
+        }
+        
         .section-header {
             margin-bottom: 20px;
         }
@@ -132,9 +193,14 @@
             color: white;
         }
         
+        .getting-started * {
+            color: white !important;
+        }
+        
         .getting-started h3 {
             margin: 0 0 20px 0;
             font-size: 1.3rem;
+            color: white;
         }
         
         .checklist {
@@ -271,6 +337,18 @@
             }
         }
     </style>
+    <script>
+        // Toggle section visibility
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const toggle = document.getElementById(sectionId.replace('Section', 'Toggle'));
+            
+            if (section && toggle) {
+                section.classList.toggle('expanded');
+                toggle.classList.toggle('expanded');
+            }
+        }
+    </script>
 </head>
 <body>
     <!-- Platform Navigation -->
@@ -295,12 +373,57 @@
                 <div class="welcome-message">Welcome to What We Like!</div>
             </div>
             
-            <!-- Statistics -->
+            <!-- Getting Started -->
             <div class="dashboard-section">
-                <div class="section-header">
-                    <h2>Your Overview</h2>
-                    <p>Quick stats about your household setup</p>
+                <div class="getting-started">
+                    <h3>🚀 Getting Started</h3>
+                    <ul class="checklist">
+                        <li>
+                            <a href="/kid-prefs.html" style="display: flex; align-items: flex-start; gap: 12px; color: white; text-decoration: none;">
+                                <div class="checklist-number">1</div>
+                                <div class="checklist-text">
+                                    <strong>Add your kids</strong> and set their activity preferences
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/preferences-manager.html" style="display: flex; align-items: flex-start; gap: 12px; color: white; text-decoration: none;">
+                                <div class="checklist-number">2</div>
+                                <div class="checklist-text">
+                                    <strong>Set up household activities</strong> from the universal library
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/preferences-manager.html" style="display: flex; align-items: flex-start; gap: 12px; color: white; text-decoration: none;">
+                                <div class="checklist-number">3</div>
+                                <div class="checklist-text">
+                                    <strong>Configure caregiver preferences</strong> for each activity
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/recommendations.html" style="display: flex; align-items: flex-start; gap: 12px; color: white; text-decoration: none;">
+                                <div class="checklist-number">4</div>
+                                <div class="checklist-text">
+                                    <strong>Get personalized recommendations</strong> and discover new activities!
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
+            </div>
+            
+            <!-- Statistics (Collapsible) -->
+            <div class="collapsible-section">
+                <button class="section-toggle" onclick="toggleSection('statsSection')">
+                    <div class="section-toggle-left">
+                        <h2>Your Overview</h2>
+                        <p>Quick stats about your household setup</p>
+                    </div>
+                    <div class="section-toggle-icon" id="statsToggle">▼</div>
+                </button>
+                <div class="section-content expanded" id="statsSection">
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">👶</div>
@@ -327,14 +450,19 @@
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
             
-            <!-- Quick Actions -->
-            <div class="dashboard-section">
-                <div class="section-header">
-                    <h2>Quick Actions</h2>
-                    <p>Jump right into what you need</p>
-                </div>
+            <!-- Quick Actions (Collapsible) -->
+            <div class="collapsible-section">
+                <button class="section-toggle" onclick="toggleSection('actionsSection')">
+                    <div class="section-toggle-left">
+                        <h2>Quick Actions</h2>
+                        <p>Jump right into what you need</p>
+                    </div>
+                    <div class="section-toggle-icon" id="actionsToggle">▼</div>
+                </button>
+                <div class="section-content expanded" id="actionsSection">
                 <div class="quick-actions">
                     <a href="/preferences-manager.html" class="quick-action-btn">
                         <div class="quick-action-icon">🏠</div>
@@ -379,46 +507,6 @@
                         </div>
                     </button>
                 </div>
-            </div>
-            
-            <!-- Getting Started -->
-            <div class="dashboard-section">
-                <div class="getting-started">
-                    <h3>🚀 Getting Started</h3>
-                    <ul class="checklist">
-                        <li>
-                            <a href="/kid-prefs.html" style="display: flex; align-items: flex-start; gap: 12px; color: white; text-decoration: none;">
-                                <div class="checklist-number">1</div>
-                                <div class="checklist-text">
-                                    <strong>Add your kids</strong> and set their activity preferences
-                                </div>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/preferences-manager.html" style="display: flex; align-items: flex-start; gap: 12px; color: white; text-decoration: none;">
-                                <div class="checklist-number">2</div>
-                                <div class="checklist-text">
-                                    <strong>Set up household activities</strong> from the universal library
-                                </div>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/preferences-manager.html" style="display: flex; align-items: flex-start; gap: 12px; color: white; text-decoration: none;">
-                                <div class="checklist-number">3</div>
-                                <div class="checklist-text">
-                                    <strong>Configure caregiver preferences</strong> for each activity
-                                </div>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/recommendations.html" style="display: flex; align-items: flex-start; gap: 12px; color: white; text-decoration: none;">
-                                <div class="checklist-number">4</div>
-                                <div class="checklist-text">
-                                    <strong>Get personalized recommendations</strong> and discover new activities!
-                                </div>
-                            </a>
-                        </li>
-                    </ul>
                 </div>
             </div>
             

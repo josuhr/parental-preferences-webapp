@@ -180,9 +180,9 @@ function renderByCategory(container) {
 // Render activities grouped by caregiver rating
 function renderByRating(container) {
     const ratingLevels = [
-        { value: 'drop_anything', label: '🔥 Drop Anything', icon: '🔥' },
-        { value: 'sometimes', label: '👌 Sometimes', icon: '👌' },
-        { value: 'on_your_own', label: '🆗 On Your Own', icon: '🆗' }
+        { value: 'drop_anything', label: 'Drop Anything', icon: '🔥' },
+        { value: 'sometimes', label: 'Sometimes', icon: '👌' },
+        { value: 'on_your_own', label: 'On Your Own', icon: '🆗' }
     ];
     
     ratingLevels.forEach(rating => {
@@ -330,19 +330,30 @@ function createActivityCard(activity, preference) {
     
     const prefs = {
         caregiver1: preference?.caregiver1_preference,
-        caregiver2: preference?.caregiver2_preference,
-        both: preference?.both_preference
+        caregiver2: preference?.caregiver2_preference
     };
     
     let prefsHTML = '';
     if (currentFilter === 'all') {
-        prefsHTML = `
-            <div class="activity-card-prefs">
-                ${createPrefRow(caregiver1Label, prefs.caregiver1)}
-                ${createPrefRow(caregiver2Label, prefs.caregiver2)}
-                ${createPrefRow(bothLabel, prefs.both)}
-            </div>
-        `;
+        // Check if both caregivers agree
+        const bothAgree = prefs.caregiver1 && prefs.caregiver2 && prefs.caregiver1 === prefs.caregiver2;
+        
+        if (bothAgree) {
+            // Only show "Both" when they agree
+            prefsHTML = `
+                <div class="activity-card-prefs">
+                    ${createPrefRow(bothLabel, prefs.caregiver1)}
+                </div>
+            `;
+        } else {
+            // Show individual preferences when they differ or one is missing
+            prefsHTML = `
+                <div class="activity-card-prefs">
+                    ${createPrefRow(caregiver1Label, prefs.caregiver1)}
+                    ${createPrefRow(caregiver2Label, prefs.caregiver2)}
+                </div>
+            `;
+        }
     } else {
         const label = currentFilter === 'caregiver1' ? caregiver1Label :
                      currentFilter === 'caregiver2' ? caregiver2Label : bothLabel;
@@ -386,19 +397,20 @@ function createActivityTable(categoryActivities) {
     let thead = `
         <thead>
             <tr>
-                <th>Activity</th>
+                <th style="text-align: left; width: 60%;">Activity</th>
     `;
     
     if (currentFilter === 'all') {
+        // Check if we need to show "Both" column or individual columns
+        // We'll determine this per row, but for headers we show individual
         thead += `
-                <th>${caregiver1Label}</th>
-                <th>${caregiver2Label}</th>
-                <th>${bothLabel}</th>
+                <th style="text-align: center; width: 20%;">${caregiver1Label}</th>
+                <th style="text-align: center; width: 20%;">${caregiver2Label}</th>
         `;
     } else {
         const label = currentFilter === 'caregiver1' ? caregiver1Label :
                      currentFilter === 'caregiver2' ? caregiver2Label : bothLabel;
-        thead += `<th>${label}</th>`;
+        thead += `<th style="text-align: center;">${label}</th>`;
     }
     
     thead += `
@@ -413,21 +425,34 @@ function createActivityTable(categoryActivities) {
         
         tbody += `
             <tr>
-                <td>
+                <td style="width: 60%;">
                     <div class="activity-name-cell">${activity.name}</div>
                     ${activity.description ? `<div class="activity-description-cell">${activity.description}</div>` : ''}
                 </td>
         `;
         
         if (currentFilter === 'all') {
-            tbody += `
-                <td class="pref-cell">${getPreferenceEmoji(preference?.caregiver1_preference)}</td>
-                <td class="pref-cell">${getPreferenceEmoji(preference?.caregiver2_preference)}</td>
-                <td class="pref-cell">${getPreferenceEmoji(preference?.both_preference)}</td>
-            `;
+            const pref1 = preference?.caregiver1_preference;
+            const pref2 = preference?.caregiver2_preference;
+            const bothAgree = pref1 && pref2 && pref1 === pref2;
+            
+            if (bothAgree) {
+                // Show "Both" in colspan when they agree
+                tbody += `
+                    <td colspan="2" class="pref-cell" style="text-align: center; background: #f0f8ff;">
+                        <strong>${bothLabel}:</strong> ${getPreferenceEmoji(pref1)} ${getPreferenceText(pref1)}
+                    </td>
+                `;
+            } else {
+                // Show individual preferences when they differ
+                tbody += `
+                    <td class="pref-cell" style="text-align: center; width: 20%;">${getPreferenceEmoji(pref1)}</td>
+                    <td class="pref-cell" style="text-align: center; width: 20%;">${getPreferenceEmoji(pref2)}</td>
+                `;
+            }
         } else {
             const pref = preference?.[`${currentFilter}_preference`];
-            tbody += `<td class="pref-cell">${getPreferenceEmoji(pref)}</td>`;
+            tbody += `<td class="pref-cell" style="text-align: center;">${getPreferenceEmoji(pref)}</td>`;
         }
         
         tbody += '</tr>';
@@ -438,12 +463,12 @@ function createActivityTable(categoryActivities) {
     return table;
 }
 
-// Get preference emoji
+// Get preference emoji (matching Activity Preferences page)
 function getPreferenceEmoji(preference) {
     switch (preference) {
-        case 'drop_anything': return '💚';
-        case 'sometimes': return '💛';
-        case 'on_your_own': return '⭐';
+        case 'drop_anything': return '🔥';
+        case 'sometimes': return '👌';
+        case 'on_your_own': return '🆗';
         default: return '—';
     }
 }
