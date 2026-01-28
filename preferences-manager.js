@@ -1004,7 +1004,7 @@ async function addSelectedActivities() {
         
         // Prepare bulk insert data
         const insertData = Array.from(selectedActivityIds).map(activityId => ({
-            parent_id: currentUser.id,
+            user_id: currentUser.id,
             activity_id: activityId
         }));
         
