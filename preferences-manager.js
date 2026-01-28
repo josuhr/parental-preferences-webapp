@@ -981,19 +981,26 @@ function toggleSelectAll() {
 // Update selected count display
 function updateSelectedCount() {
     const count = selectedActivityIds.size;
-    document.getElementById('selectedCount').textContent = `${count} selected`;
-    document.getElementById('addButtonCount').textContent = count;
+    console.log('updateSelectedCount called, count:', count);
+    
+    const selectedCountEl = document.getElementById('selectedCount');
+    const addButtonCountEl = document.getElementById('addButtonCount');
+    const addBtn = document.getElementById('bulkAddSelectedBtn');
+    
+    if (selectedCountEl) selectedCountEl.textContent = `${count} selected`;
+    if (addButtonCountEl) addButtonCountEl.textContent = count;
     
     // Update button state
-    const addBtn = document.getElementById('bulkAddSelectedBtn');
-    if (count === 0) {
-        addBtn.disabled = true;
-        addBtn.style.opacity = '0.5';
-        addBtn.style.cursor = 'not-allowed';
-    } else {
-        addBtn.disabled = false;
-        addBtn.style.opacity = '1';
-        addBtn.style.cursor = 'pointer';
+    if (addBtn) {
+        if (count === 0) {
+            addBtn.disabled = true;
+            addBtn.style.opacity = '0.5';
+            addBtn.style.cursor = 'not-allowed';
+        } else {
+            addBtn.disabled = false;
+            addBtn.style.opacity = '1';
+            addBtn.style.cursor = 'pointer';
+        }
     }
 }
 
