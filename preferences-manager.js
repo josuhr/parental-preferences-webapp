@@ -872,6 +872,30 @@ function openBulkAddModal() {
     console.log('Modal children count:', modal.children.length);
     console.log('Modal innerHTML length:', modal.innerHTML.length);
     
+    // Check modal's parent and its computed styles
+    console.log('Modal parent element:', modal.parentElement);
+    console.log('Modal parent tag:', modal.parentElement?.tagName);
+    if (modal.parentElement) {
+        const parentStyles = window.getComputedStyle(modal.parentElement);
+        const parentRect = modal.parentElement.getBoundingClientRect();
+        console.log('Parent display:', parentStyles.display);
+        console.log('Parent dimensions:', {
+            width: parentRect.width,
+            height: parentRect.height
+        });
+    }
+    
+    // Try to manually trigger a reflow
+    modal.style.display = 'none';
+    modal.offsetHeight; // Force reflow
+    modal.style.display = 'flex';
+    
+    const rectAfterReflow = modal.getBoundingClientRect();
+    console.log('Modal rect after reflow:', {
+        width: rectAfterReflow.width,
+        height: rectAfterReflow.height
+    });
+    
     console.log('Modal element:', modal);
 }
 
