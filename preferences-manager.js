@@ -266,7 +266,7 @@ function renderHouseholdActivities() {
 
 // Create category card
 function createCategoryCard(category, categoryActivities) {
-    const card = document.createElement('div');
+    const card = document.createElement('details');
     card.className = 'category-card';
     
     const caregiver1Label = userSettings?.caregiver1_label || 'Mom';
@@ -275,13 +275,13 @@ function createCategoryCard(category, categoryActivities) {
     
     // Build header with kid columns
     let headerHTML = `
-        <div class="category-header">
+        <summary class="category-header">
             <div class="category-title">
                 <span class="category-icon">${category.icon}</span>
                 <span>${category.name}</span>
                 <span style="font-size: 11px; color: #888; margin-left: 10px;">(${categoryActivities.length} activities)</span>
             </div>
-        </div>
+        </summary>
         <div class="activities-table">
             <div class="table-header" style="display: grid; grid-template-columns: 2fr repeat(2, 1fr)`;
     
