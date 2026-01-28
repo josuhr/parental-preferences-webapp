@@ -10,6 +10,8 @@ let userSettings = null;
 let kids = [];
 let kidPreferences = [];
 let visibleKidIds = new Set(); // Track which kids are visible in the table
+let expandedCategoryIds = new Set(); // Track expanded categories in current session
+let selectedActivityIds = new Set(); // For bulk add modal
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
