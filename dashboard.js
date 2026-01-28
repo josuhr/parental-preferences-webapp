@@ -10,14 +10,10 @@ const userName = document.getElementById('userName');
 const userEmail = document.getElementById('userEmail');
 const sheetIdInput = document.getElementById('sheetId');
 const sheetStatus = document.getElementById('sheetStatus');
-const themeColorInput = document.getElementById('themeColor');
-const colorPreview = document.getElementById('colorPreview');
-const fontFamilySelect = document.getElementById('fontFamily');
 const adminBtn = document.getElementById('adminBtn');
 const signOutBtn = document.getElementById('signOutBtn');
 const testSheetBtn = document.getElementById('testSheetBtn');
 const saveSheetBtn = document.getElementById('saveSheetBtn');
-const saveSettingsBtn = document.getElementById('saveSettingsBtn');
 
 // Caregiver label elements
 const caregiver1LabelInput = document.getElementById('caregiver1Label');
@@ -85,7 +81,6 @@ async function loadUserData() {
             // Disable all action buttons except sign out
             if (testSheetBtn) testSheetBtn.disabled = true;
             if (saveSheetBtn) saveSheetBtn.disabled = true;
-            if (saveSettingsBtn) saveSettingsBtn.disabled = true;
             
             return;
         }
@@ -141,10 +136,6 @@ function updateSheetInfo() {
 // Update customization info
 function updateCustomizationInfo() {
     if (userSettings) {
-        themeColorInput.value = userSettings.theme_color || '#667eea';
-        colorPreview.style.background = userSettings.theme_color || '#667eea';
-        fontFamilySelect.value = userSettings.font_family || 'Comic Sans MS';
-        
         // Load caregiver labels
         caregiver1LabelInput.value = userSettings.caregiver1_label || 'Mom';
         caregiver1EmojiSelect.value = userSettings.caregiver1_emoji || '💗';
@@ -155,20 +146,13 @@ function updateCustomizationInfo() {
     }
 }
 
-// Setup event listeners
 function setupEventListeners() {
-    // Color picker
-    themeColorInput.addEventListener('input', (e) => {
-        colorPreview.style.background = e.target.value;
-    });
-    
     // Buttons
-    signOutBtn.addEventListener('click', () => window.supabaseUtils.signOut());
-    adminBtn.addEventListener('click', () => window.location.href = '/admin.html');
-    testSheetBtn.addEventListener('click', testSheetConnection);
-    saveSheetBtn.addEventListener('click', saveSheetId);
-    saveSettingsBtn.addEventListener('click', saveUserSettings);
-    saveCaregiverLabelsBtn.addEventListener('click', saveCaregiverLabels);
+    if (signOutBtn) signOutBtn.addEventListener('click', () => window.supabaseUtils.signOut());
+    if (adminBtn) adminBtn.addEventListener('click', () => window.location.href = '/admin.html');
+    if (testSheetBtn) testSheetBtn.addEventListener('click', testSheetConnection);
+    if (saveSheetBtn) saveSheetBtn.addEventListener('click', saveSheetId);
+    if (saveCaregiverLabelsBtn) saveCaregiverLabelsBtn.addEventListener('click', saveCaregiverLabels);
 }
 
 // Test sheet connection
@@ -249,37 +233,6 @@ async function saveSheetId() {
     } finally {
         saveSheetBtn.disabled = false;
         saveSheetBtn.textContent = 'Save Sheet ID';
-    }
-}
-
-// Save user settings
-async function saveUserSettings() {
-    const themeColor = themeColorInput.value;
-    const fontFamily = fontFamilySelect.value;
-    
-    saveSettingsBtn.disabled = true;
-    saveSettingsBtn.textContent = 'Saving...';
-    
-    try {
-        const supabaseClient = window.supabaseUtils.getClient();
-        const { error } = await supabaseClient
-            .from('user_settings')
-            .update({
-                theme_color: themeColor,
-                font_family: fontFamily
-            })
-            .eq('user_id', currentUser.id);
-        
-        if (error) throw error;
-        
-        alert('✓ Preferences saved successfully!');
-        
-    } catch (error) {
-        console.error('Error saving settings:', error);
-        showError('Failed to save preferences');
-    } finally {
-        saveSettingsBtn.disabled = false;
-        saveSettingsBtn.textContent = 'Save Preferences';
     }
 }
 

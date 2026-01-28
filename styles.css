@@ -1,4 +1,6 @@
 /* Reset and Base Styles */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
     --theme-color: #667eea;
     --theme-color-dark: #5568d3;
@@ -12,8 +14,8 @@
 }
 
 body {
-    font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
-    background: var(--theme-gradient);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: white;
     color: #333;
     padding: 20px;
     line-height: 1.6;

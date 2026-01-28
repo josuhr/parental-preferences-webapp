@@ -1,9 +1,13 @@
 /* HomeBase Layout Styles */
 /* Compact, modern design for the HomeBase platform */
 
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
     --homebase-primary: #667eea;
     --homebase-secondary: #764ba2;
+    --homebase-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --sidebar-width: 260px;
     --sidebar-width-collapsed: 60px;
     --topnav-height: 60px;
@@ -18,11 +22,14 @@
 
 /* Body adjustments for fixed navigation and sidebar */
 body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     padding-top: var(--topnav-height);
     margin-left: var(--sidebar-width);
     transition: margin-left 0.3s ease;
     font-size: 0.95rem;
     line-height: 1.5;
+    background: white;
+    color: #333;
 }
 
 body.sidebar-collapsed {
