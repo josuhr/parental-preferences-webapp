@@ -38,15 +38,9 @@ function setupEventListeners() {
         openAddActivityModal();
     });
     
-    const bulkAddBtn = document.getElementById('bulkAddBtn');
-    if (bulkAddBtn) {
-        bulkAddBtn.addEventListener('click', () => {
-            console.log('Bulk Add button clicked');
-            openBulkAddModal();
-        });
-    } else {
-        console.error('Bulk Add button not found in DOM');
-    }
+    document.getElementById('bulkAddBtn').addEventListener('click', () => {
+        openBulkAddModal();
+    });
     
     // Search input
     document.getElementById('activitySearchInput').addEventListener('input', (e) => {
@@ -784,15 +778,10 @@ let selectedActivityIds = new Set();
 
 // Open bulk add modal
 function openBulkAddModal() {
-    console.log('openBulkAddModal called');
-    console.log('allUniversalActivities:', allUniversalActivities.length);
-    console.log('categories:', categories.length);
-    
     selectedActivityIds.clear();
     const modal = document.getElementById('bulkAddModal');
     
     if (!modal) {
-        console.error('Bulk add modal not found in DOM');
         showError('Bulk add modal not found');
         return;
     }
@@ -814,89 +803,7 @@ function openBulkAddModal() {
         return;
     }
     
-    // Explicitly set dimensions via JavaScript
     modal.style.display = 'flex';
-    modal.style.width = '100vw';
-    modal.style.height = '100vh';
-    modal.style.position = 'fixed';
-    modal.style.top = '0';
-    modal.style.left = '0';
-    modal.style.right = '0';
-    modal.style.bottom = '0';
-    
-    console.log('Modal opened');
-    console.log('Modal display style:', modal.style.display);
-    
-    const computedStyle = window.getComputedStyle(modal);
-    console.log('Modal computed styles:', {
-        display: computedStyle.display,
-        position: computedStyle.position,
-        zIndex: computedStyle.zIndex,
-        top: computedStyle.top,
-        left: computedStyle.left,
-        right: computedStyle.right,
-        bottom: computedStyle.bottom,
-        width: computedStyle.width,
-        height: computedStyle.height,
-        opacity: computedStyle.opacity,
-        visibility: computedStyle.visibility,
-        background: computedStyle.background
-    });
-    
-    const rect = modal.getBoundingClientRect();
-    console.log('Modal bounding rect:', {
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-        right: rect.right,
-        bottom: rect.bottom
-    });
-    
-    // Check modal-content child
-    const modalContent = modal.querySelector('.modal-content');
-    if (modalContent) {
-        const contentRect = modalContent.getBoundingClientRect();
-        const contentStyles = window.getComputedStyle(modalContent);
-        console.log('Modal-content bounding rect:', {
-            top: contentRect.top,
-            left: contentRect.left,
-            width: contentRect.width,
-            height: contentRect.height
-        });
-        console.log('Modal-content display:', contentStyles.display);
-        console.log('Modal-content visibility:', contentStyles.visibility);
-    }
-    
-    // Check if modal has any children
-    console.log('Modal children count:', modal.children.length);
-    console.log('Modal innerHTML length:', modal.innerHTML.length);
-    
-    // Check modal's parent and its computed styles
-    console.log('Modal parent element:', modal.parentElement);
-    console.log('Modal parent tag:', modal.parentElement?.tagName);
-    if (modal.parentElement) {
-        const parentStyles = window.getComputedStyle(modal.parentElement);
-        const parentRect = modal.parentElement.getBoundingClientRect();
-        console.log('Parent display:', parentStyles.display);
-        console.log('Parent dimensions:', {
-            width: parentRect.width,
-            height: parentRect.height
-        });
-    }
-    
-    // Try to manually trigger a reflow
-    modal.style.display = 'none';
-    modal.offsetHeight; // Force reflow
-    modal.style.display = 'flex';
-    
-    const rectAfterReflow = modal.getBoundingClientRect();
-    console.log('Modal rect after reflow:', {
-        width: rectAfterReflow.width,
-        height: rectAfterReflow.height
-    });
-    
-    console.log('Modal element:', modal);
 }
 
 // Close bulk add modal
@@ -907,13 +814,10 @@ function closeBulkAddModal() {
 
 // Render bulk activities with checkboxes
 function renderBulkActivities(searchTerm = '') {
-    console.log('renderBulkActivities called with searchTerm:', searchTerm);
-    
     const container = document.getElementById('bulkActivitiesContainer');
     const noActivitiesDiv = document.getElementById('bulkNoActivitiesFound');
     
     if (!container || !noActivitiesDiv) {
-        console.error('Required DOM elements not found');
         return;
     }
     
@@ -922,8 +826,6 @@ function renderBulkActivities(searchTerm = '') {
     // Get activities not already in household
     const householdActivityIds = householdActivities.map(ha => ha.kid_activities.id);
     let availableActivities = allUniversalActivities.filter(a => !householdActivityIds.includes(a.id));
-    
-    console.log('Available activities:', availableActivities.length);
     
     // Apply search filter
     if (searchTerm) {
@@ -1062,7 +964,6 @@ function toggleSelectAll() {
 // Update selected count display
 function updateSelectedCount() {
     const count = selectedActivityIds.size;
-    console.log('updateSelectedCount called, count:', count);
     
     const selectedCountEl = document.getElementById('selectedCount');
     const addButtonCountEl = document.getElementById('addButtonCount');
