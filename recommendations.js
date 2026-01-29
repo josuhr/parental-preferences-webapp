@@ -124,11 +124,12 @@ async function loadRecommendations() {
     container.innerHTML = '<div class="loading">Loading recommendations...</div>';
     
     try {
-        // Call the get_recommendations_for_kid function
-        // Note: p_context parameter is defined in the function but not currently used
+        // Call the get_recommendations_for_kid function with context filter
+        // Context is passed as JSONB to match activity_contexts mappings
+        const contextParam = Object.keys(currentContext).length > 0 ? currentContext : null;
         const { data, error } = await supabaseDb.rpc('get_recommendations_for_kid', {
             p_kid_id: currentKidId,
-            p_context: null,  // Context filtering not yet implemented in function
+            p_context: contextParam,
             p_limit: 20
         });
         
