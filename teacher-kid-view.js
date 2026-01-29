@@ -252,5 +252,10 @@ function viewObservations() {
 // Show error
 function showError(message) {
     const errorEl = document.getElementById('errorContainer');
-    errorEl.innerHTML = `<div class="error">${message}</div>`;
+    errorEl.innerHTML = `<div class="error-message">${message}</div>`;
+    
+    // Auto-dismiss after 8 seconds
+    setTimeout(() => {
+        errorEl.innerHTML = '';
+    }, 8000);
 }

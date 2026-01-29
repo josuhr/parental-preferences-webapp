@@ -277,7 +277,8 @@ async function saveObservation() {
 // Show message
 function showMessage(message, type = 'success') {
     const container = document.getElementById('messageContainer');
-    container.innerHTML = `<div class="${type}">${message}</div>`;
+    const className = type === 'error' ? 'error-message' : 'success-message';
+    container.innerHTML = `<div class="${className}">${message}</div>`;
     
     setTimeout(() => {
         container.innerHTML = '';

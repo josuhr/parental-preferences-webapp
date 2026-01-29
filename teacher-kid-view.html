@@ -9,62 +9,118 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .teacher-view-container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        .breadcrumb {
-            color: #666;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
-        .breadcrumb a {
-            color: #667eea;
-            text-decoration: none;
-        }
-
-        .kid-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
+        .page-header-left {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
         }
 
-        .kid-header .avatar {
-            font-size: 4rem;
+        .kid-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
         }
 
-        .kid-header h1 {
-            margin: 0 0 5px 0;
+        .page-header-left h1 {
+            margin: 0;
+            color: #1976d2;
+        }
+
+        .page-subtitle {
+            margin: 5px 0 0 0;
+            color: #666;
+            font-size: 0.9rem;
         }
 
         .read-only-badge {
             display: inline-block;
-            background: rgba(255,255,255,0.3);
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            margin-top: 8px;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
         }
 
-        .quick-actions {
+        .header-actions {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
             flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #1976d2;
         }
 
         .category-section {
             background: white;
+            border: 2px solid #e0e0e0;
             padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 12px;
             margin-bottom: 20px;
         }
 
@@ -74,12 +130,13 @@
             gap: 10px;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 3px solid #667eea;
+            border-bottom: 2px solid #e0e0e0;
         }
 
         .category-header h2 {
             margin: 0;
             color: #333;
+            font-size: 1.2rem;
         }
 
         .preference-group {
@@ -87,50 +144,50 @@
         }
 
         .preference-group-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            padding: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 10px 15px;
             border-radius: 8px;
             margin-bottom: 15px;
-            text-align: center;
         }
 
         .preference-group-title.loves {
-            background: linear-gradient(135deg, #ff6b9d 0%, #c06c84 100%);
-            color: white;
+            background: #fce4ec;
+            color: #c2185b;
         }
 
         .preference-group-title.likes {
-            background: linear-gradient(135deg, #ffa751 0%, #ffe259 100%);
-            color: #333;
+            background: #e8f5e9;
+            color: #2e7d32;
         }
 
         .preference-group-title.neutral {
-            background: linear-gradient(135deg, #e0e0e0 0%, #c0c0c0 100%);
-            color: #333;
+            background: #f5f5f5;
+            color: #666;
         }
 
         .preference-group-title.dislikes {
-            background: linear-gradient(135deg, #89cff0 0%, #7ab8d4 100%);
-            color: white;
+            background: #fff3e0;
+            color: #e65100;
         }
 
         .preference-group-title.refuses {
-            background: linear-gradient(135deg, #666 0%, #999 100%);
-            color: white;
+            background: #fafafa;
+            color: #757575;
         }
 
         .activities-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 12px;
         }
 
         .activity-chip {
             padding: 12px 15px;
-            background: #f5f5f5;
+            background: white;
+            border: 1px solid #e0e0e0;
             border-radius: 8px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #1976d2;
             font-size: 0.95rem;
         }
 
@@ -162,26 +219,23 @@
             color: #666;
         }
 
-        .error {
-            background: #fee;
-            color: #c00;
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
+            border-left: 4px solid #c62828;
         }
 
-        .info-box {
-            background: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .info-box strong {
-            display: block;
-            margin-bottom: 5px;
-            color: #1976d2;
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .activities-list {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -193,15 +247,26 @@
     <div class="main-content">
 
     <div class="teacher-view-container">
-        <div class="breadcrumb">
-            <a href="/teacher-dashboard.html">Teacher Dashboard</a> &gt; Kid Activity Preferences
-        </div>
-
-        <div class="kid-header">
-            <div class="avatar" id="kidAvatar">👶</div>
-            <div>
-                <h1 id="kidName">Loading...</h1>
-                <div class="read-only-badge">👀 Read-Only View</div>
+        <div class="page-header">
+            <div class="page-header-left">
+                <div class="kid-avatar" id="kidAvatar">👶</div>
+                <div>
+                    <h1 id="kidName">Loading...</h1>
+                    <p class="page-subtitle">
+                        <span class="read-only-badge">👀 Read-Only View</span>
+                    </p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="window.location.href='/teacher-dashboard.html'">
+                    ← Back
+                </button>
+                <button class="btn btn-secondary" onclick="viewObservations()">
+                    📋 My Observations
+                </button>
+                <button class="btn btn-primary" onclick="addObservation()">
+                    📝 Add Observation
+                </button>
             </div>
         </div>
 
@@ -209,19 +274,7 @@
 
         <div class="info-box">
             <strong>💡 Teacher View</strong>
-            You're viewing this kid's preferences in read-only mode. Use this information for planning activities and understanding their interests. Click "Add Observation" to record notes about their engagement.
-        </div>
-
-        <div class="quick-actions">
-            <button class="btn btn-primary" onclick="addObservation()">
-                📝 Add Observation
-            </button>
-            <button class="btn btn-secondary" onclick="viewObservations()">
-                📋 View My Observations
-            </button>
-            <button class="btn btn-secondary" onclick="window.history.back()">
-                ← Back to Dashboard
-            </button>
+            You're viewing this kid's preferences in read-only mode. Use this information for planning activities and understanding their interests.
         </div>
 
         <div id="loadingContainer" class="loading" style="display: none;">

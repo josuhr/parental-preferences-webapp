@@ -9,32 +9,70 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .observations-container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        .breadcrumb {
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header-left h1 {
+            margin: 0;
+            color: #1976d2;
+        }
+
+        .page-subtitle {
+            margin: 5px 0 0 0;
             color: #666;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
-        .breadcrumb a {
-            color: #667eea;
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
             text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .header-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .btn-primary {
+            background: #1976d2;
             color: white;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
         }
 
-        .header-section h1 {
-            margin: 0 0 10px 0;
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
         }
 
         .filter-bar {
@@ -42,13 +80,15 @@
             gap: 10px;
             margin-bottom: 20px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .filter-bar select {
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.95rem;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
         }
 
         .observations-list {
@@ -60,9 +100,15 @@
         .observation-card {
             background: white;
             padding: 20px;
+            border: 2px solid #e0e0e0;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #1976d2;
+            transition: all 0.2s;
+        }
+
+        .observation-card:hover {
+            border-color: #1976d2;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.1);
         }
 
         .observation-header {
@@ -86,11 +132,11 @@
             font-weight: bold;
         }
 
-        .badge.preference { background: #ffd4e5; color: #c2185b; }
-        .badge.behavior { background: #d4e5ff; color: #1565c0; }
-        .badge.growth { background: #d4ffd4; color: #2e7d32; }
-        .badge.challenge { background: #ffecd4; color: #ef6c00; }
-        .badge.success { background: #e1f5d1; color: #558b2f; }
+        .badge.preference { background: #fce4ec; color: #c2185b; }
+        .badge.behavior { background: #e3f2fd; color: #1565c0; }
+        .badge.growth { background: #e8f5e9; color: #2e7d32; }
+        .badge.challenge { background: #fff3e0; color: #ef6c00; }
+        .badge.success { background: #f1f8e9; color: #558b2f; }
 
         .observation-title {
             font-size: 1.1rem;
@@ -135,7 +181,7 @@
 
         .modal-content {
             background: white;
-            border-radius: 15px;
+            border-radius: 12px;
             padding: 30px;
             max-width: 600px;
             width: 90%;
@@ -152,6 +198,7 @@
 
         .modal-header h2 {
             margin: 0;
+            color: #333;
         }
 
         .close-btn {
@@ -162,6 +209,10 @@
             color: #999;
         }
 
+        .close-btn:hover {
+            color: #333;
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -169,7 +220,7 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            font-weight: bold;
+            font-weight: 500;
             color: #333;
         }
 
@@ -177,10 +228,10 @@
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
             font-family: inherit;
         }
 
@@ -197,6 +248,13 @@
 
         .checkbox-group input[type="checkbox"] {
             width: auto;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
         }
 
         .empty-state {
@@ -216,20 +274,36 @@
             color: #666;
         }
 
-        .error {
-            background: #fee;
-            color: #c00;
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
+            border-left: 4px solid #c62828;
         }
 
-        .success {
-            background: #dfd;
-            color: #060;
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
+            border-left: 4px solid #2e7d32;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-bar select {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -241,13 +315,19 @@
     <div class="main-content">
 
     <div class="observations-container">
-        <div class="breadcrumb">
-            <a href="/teacher-dashboard.html">Teacher Dashboard</a> &gt; Observations
-        </div>
-
-        <div class="header-section">
-            <h1>📝 Observations</h1>
-            <p>Record and track observations about kids' engagement and preferences</p>
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>📝 Observations</h1>
+                <p class="page-subtitle">Record and track observations about kids' engagement and preferences</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="window.location.href='/teacher-dashboard.html'">
+                    ← Back
+                </button>
+                <button class="btn btn-primary" onclick="openObservationModal()">
+                    ➕ Add Observation
+                </button>
+            </div>
         </div>
 
         <div id="messageContainer"></div>
@@ -264,9 +344,6 @@
                 <option value="challenge">Challenge</option>
                 <option value="success">Success</option>
             </select>
-            <button class="btn btn-primary" onclick="openObservationModal()">
-                ➕ Add Observation
-            </button>
         </div>
 
         <div id="loadingContainer" class="loading" style="display: none;">
@@ -321,7 +398,7 @@
                     </div>
                     <small style="color: #666;">Uncheck if this is a private note for your records only</small>
                 </div>
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeObservationModal()">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Observation</button>
                 </div>
