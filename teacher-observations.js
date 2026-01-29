@@ -20,6 +20,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     
+    // Check if user is a teacher or admin
+    const isTeacher = await window.supabaseUtils.isTeacher(currentUser.id);
+    const isAdmin = await window.supabaseUtils.isAdmin(currentUser.id);
+    
+    if (!isTeacher && !isAdmin) {
+        showMessage('Access denied. Teacher account required.', 'error');
+        setTimeout(() => {
+            window.location.href = '/dashboard.html';
+        }, 2000);
+        return;
+    }
+    
     // Set today's date as default
     document.getElementById('obsDate').value = new Date().toISOString().split('T')[0];
     

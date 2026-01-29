@@ -9,6 +9,10 @@
     
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     
+    // User permission flags
+    let userIsTeacher = false;
+    let userIsAdmin = false;
+    
     // Navigation structure (hardcoded for now, can be made dynamic later)
     const navStructure = [
         {
@@ -21,7 +25,7 @@
                 { name: 'Kid Management', icon: '👶', url: '/kid-prefs.html', slug: 'kid-prefs.html' },
                 { name: 'Who Likes What?', icon: '👨‍👩‍👧‍👦', url: '/kids-activity-view.html', slug: 'kids-activity-view.html' },
                 { name: 'Recommendations', icon: '✨', url: '/recommendations.html', slug: 'recommendations.html' },
-                { name: 'Teacher Dashboard', icon: '🏫', url: '/teacher-dashboard.html', slug: 'teacher-dashboard.html' },
+                { name: 'Teacher Dashboard', icon: '🏫', url: '/teacher-dashboard.html', slug: 'teacher-dashboard.html', requiresTeacher: true },
                 { name: 'Settings', icon: '⚙️', url: '/recommendation-settings.html', slug: 'recommendation-settings.html' }
             ]
         },
@@ -40,8 +44,26 @@
         }
     ];
     
+    // Check user permissions
+    async function checkUserPermissions() {
+        try {
+            if (window.supabaseUtils) {
+                const user = await window.supabaseUtils.getCurrentUser();
+                if (user) {
+                    userIsTeacher = await window.supabaseUtils.isTeacher(user.id);
+                    userIsAdmin = await window.supabaseUtils.isAdmin(user.id);
+                }
+            }
+        } catch (error) {
+            console.error('Error checking user permissions for sidebar:', error);
+        }
+    }
+    
     // Initialize sidebar navigation
-    function initSidebarNav() {
+    async function initSidebarNav() {
+        // Check user permissions first
+        await checkUserPermissions();
+        
         // Load saved state
         loadSidebarState();
         
@@ -126,7 +148,10 @@
             
             section.items.forEach(item => {
                 const itemEl = createItemElement(item);
-                itemsContainer.appendChild(itemEl);
+                // Only append if item should be shown (not filtered out)
+                if (itemEl) {
+                    itemsContainer.appendChild(itemEl);
+                }
             });
             
             sectionDiv.appendChild(itemsContainer);
@@ -135,8 +160,22 @@
         return sectionDiv;
     }
     
+    // Check if item should be visible based on permissions
+    function shouldShowItem(item) {
+        // If item requires teacher access, check permissions
+        if (item.requiresTeacher) {
+            return userIsTeacher || userIsAdmin;
+        }
+        return true;
+    }
+    
     // Create item element
     function createItemElement(item) {
+        // Check if item should be shown
+        if (!shouldShowItem(item)) {
+            return null;
+        }
+        
         const itemLink = document.createElement('a');
         itemLink.className = 'sidebar-item';
         itemLink.dataset.tooltip = item.name;

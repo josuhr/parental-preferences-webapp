@@ -19,6 +19,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     
+    // Check if user is a teacher or admin
+    const isTeacher = await window.supabaseUtils.isTeacher(currentUser.id);
+    const isAdmin = await window.supabaseUtils.isAdmin(currentUser.id);
+    
+    if (!isTeacher && !isAdmin) {
+        showError('Access denied. Teacher account required.');
+        setTimeout(() => {
+            window.location.href = '/dashboard.html';
+        }, 2000);
+        return;
+    }
+    
     // Load teacher data
     await loadTeacherData();
 });
