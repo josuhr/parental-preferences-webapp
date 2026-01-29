@@ -139,14 +139,43 @@ async function loadPreferences() {
         
         if (prefError) throw prefError;
         
-        // Render each category
+        // Check if kid has any rated preferences
+        if (!preferences || preferences.length === 0) {
+            categoriesEl.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">📋</div>
+                    <h3>No Preferences Rated Yet</h3>
+                    <p>${kidData.name} doesn't have any activity preferences set yet.</p>
+                </div>
+            `;
+            loadingEl.style.display = 'none';
+            return;
+        }
+        
+        // Render each category - only show categories with rated activities
+        let hasRatedActivities = false;
         categories.forEach(category => {
             const categoryActivities = activities.filter(a => a.category_id === category.id);
-            if (categoryActivities.length > 0) {
-                const section = renderCategory(category, categoryActivities, preferences);
+            // Only include activities that have been rated
+            const ratedActivities = categoryActivities.filter(a => 
+                preferences.some(p => p.activity_id === a.id)
+            );
+            if (ratedActivities.length > 0) {
+                hasRatedActivities = true;
+                const section = renderCategory(category, ratedActivities, preferences);
                 categoriesEl.appendChild(section);
             }
         });
+        
+        if (!hasRatedActivities) {
+            categoriesEl.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">📋</div>
+                    <h3>No Preferences Rated Yet</h3>
+                    <p>${kidData.name} doesn't have any activity preferences set yet.</p>
+                </div>
+            `;
+        }
         
         loadingEl.style.display = 'none';
         
@@ -169,7 +198,7 @@ function renderCategory(category, activities, preferences) {
     `;
     section.appendChild(header);
     
-    // Group activities by preference level
+    // Group activities by preference level - only include activities that have been rated
     const grouped = {
         loves: [],
         likes: [],
@@ -180,17 +209,19 @@ function renderCategory(category, activities, preferences) {
     
     activities.forEach(activity => {
         const pref = preferences.find(p => p.activity_id === activity.id);
-        const level = pref ? pref.preference_level : 'neutral';
-        grouped[level].push(activity);
+        // Only include activities that have been explicitly rated
+        if (pref && pref.preference_level) {
+            grouped[pref.preference_level].push(activity);
+        }
     });
     
-    // Render each preference group
+    // Render each preference group - use same emojis as Activity Preferences page
     const levels = [
-        { key: 'loves', emoji: '💖', title: 'Loves' },
+        { key: 'loves', emoji: '❤️', title: 'Loves' },
         { key: 'likes', emoji: '😊', title: 'Likes' },
         { key: 'neutral', emoji: '😐', title: 'Neutral' },
-        { key: 'dislikes', emoji: '😕', title: 'Dislikes' },
-        { key: 'refuses', emoji: '🚫', title: 'Refuses' }
+        { key: 'dislikes', emoji: '😟', title: 'Dislikes' },
+        { key: 'refuses', emoji: '❌', title: 'Refuses' }
     ];
     
     levels.forEach(level => {

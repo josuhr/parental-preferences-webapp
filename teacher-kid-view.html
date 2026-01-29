@@ -303,6 +303,16 @@
                 };
             })
             .catch(error => console.error('Error loading platform nav:', error));
+        
+        // Load sidebar navigation
+        fetch('sidebar-nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('sidebar-nav-container').innerHTML = html;
+                const script = document.createElement('script');
+                script.src = 'sidebar-nav.js';
+                document.body.appendChild(script);
+            });
     </script>
     <script src="teacher-kid-view.js"></script>
     </div>
