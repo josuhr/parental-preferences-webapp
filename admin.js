@@ -347,9 +347,6 @@ function closeEditUserModal() {
 }
 
 async function saveUserEdits() {
-    alert('saveUserEdits called - this confirms the button is working');
-    console.log('=== SAVE USER EDITS CALLED ===');
-    
     try {
         const userId = document.getElementById('editUserId').value;
         const displayName = document.getElementById('editUserName').value.trim();
@@ -357,8 +354,6 @@ async function saveUserEdits() {
         const isParent = document.getElementById('editUserTypeParent').checked;
         const isTeacher = document.getElementById('editUserTypeTeacher').checked;
         const isActive = document.getElementById('editUserActive').value === 'true';
-        
-        console.log('Saving user edits:', { userId, displayName, role, isParent, isTeacher, isActive });
         
         if (!displayName) {
             showError('Please enter a display name');
@@ -375,8 +370,6 @@ async function saveUserEdits() {
         if (isParent) userTypes.push('parent');
         if (isTeacher) userTypes.push('teacher');
         
-        console.log('User types to save:', userTypes);
-        
         const supabaseClient = window.supabaseUtils.getClient();
         
         const { data, error } = await supabaseClient
@@ -389,8 +382,6 @@ async function saveUserEdits() {
             })
             .eq('id', userId)
             .select();
-        
-        console.log('Update result:', { data, error });
         
         if (error) throw error;
         
