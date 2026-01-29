@@ -98,20 +98,12 @@ async function loadPreferences() {
     try {
         const supabaseClient = window.supabaseUtils.getClient();
         
-        // Get parent ID for this kid
-        const { data: kid, error: kidError } = await supabaseClient
-            .from('kids')
-            .select('parent_id')
-            .eq('id', kidId)
-            .single();
-        
-        if (kidError) throw kidError;
-        
-        // Load categories
+        // Load universal categories (parent_id IS NULL)
+        // Universal activities are shared across all users
         const { data: categories, error: catError } = await supabaseClient
             .from('kid_activity_categories')
             .select('*')
-            .eq('parent_id', kid.parent_id)
+            .is('parent_id', null)
             .order('sort_order', { ascending: true });
         
         if (catError) throw catError;
@@ -120,8 +112,8 @@ async function loadPreferences() {
             categoriesEl.innerHTML = `
                 <div class="empty-state">
                     <div class="icon">📋</div>
-                    <h3>No Preferences Yet</h3>
-                    <p>The parent hasn't added any activities for ${kidData.name} yet.</p>
+                    <h3>No Activity Categories</h3>
+                    <p>No activity categories are available. Please contact an administrator.</p>
                 </div>
             `;
             loadingEl.style.display = 'none';
