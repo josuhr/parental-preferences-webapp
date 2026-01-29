@@ -6,9 +6,14 @@
 -- ============================================================================
 
 -- Step 1: Rename the column to user_types and change type to TEXT[]
+
 -- First, drop the existing check constraint
 ALTER TABLE public.users
 DROP CONSTRAINT IF EXISTS users_user_type_check;
+
+-- Drop the existing default value (must be done before type change)
+ALTER TABLE public.users
+ALTER COLUMN user_type DROP DEFAULT;
 
 -- Rename the column
 ALTER TABLE public.users 
@@ -23,7 +28,7 @@ USING CASE
     ELSE ARRAY[user_types]::TEXT[]
 END;
 
--- Set default value for new users
+-- Set new default value for the array type
 ALTER TABLE public.users
 ALTER COLUMN user_types SET DEFAULT ARRAY['parent']::TEXT[];
 
