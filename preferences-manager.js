@@ -1104,6 +1104,7 @@ async function fetchAiSuggestions() {
     try {
         // Gather preference data
         const requestData = gatherPreferenceDataForAI();
+        console.log('Sending AI request with data:', requestData);
 
         // Call the Netlify function
         const response = await fetch('/.netlify/functions/suggest-activities', {
@@ -1114,7 +1115,25 @@ async function fetchAiSuggestions() {
             body: JSON.stringify(requestData)
         });
 
-        const data = await response.json();
+        console.log('Response status:', response.status);
+
+        // Check if response is ok
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Response error:', errorText);
+            throw new Error(`Server error (${response.status}): ${errorText.substring(0, 100)}`);
+        }
+
+        // Try to parse JSON
+        let data;
+        try {
+            const responseText = await response.text();
+            console.log('Response text:', responseText.substring(0, 200));
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            throw new Error('Invalid response from server. Please try again.');
+        }
 
         if (!data.success) {
             throw new Error(data.message || data.error || 'Failed to generate suggestions');

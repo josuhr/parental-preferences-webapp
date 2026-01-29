@@ -31,17 +31,41 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const requestData = JSON.parse(event.body);
+        console.log('Received request body:', event.body ? event.body.substring(0, 500) : 'empty');
 
-        // Validate required fields
-        if (!requestData || !requestData.categories || requestData.categories.length === 0) {
+        let requestData;
+        try {
+            requestData = JSON.parse(event.body);
+        } catch (parseError) {
+            console.error('Failed to parse request body:', parseError);
             return {
                 statusCode: 400,
                 headers: {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
                 },
-                body: JSON.stringify({ error: 'Missing required data (categories)' })
+                body: JSON.stringify({
+                    success: false,
+                    error: 'Invalid request format',
+                    message: 'Could not parse request body as JSON'
+                })
+            };
+        }
+
+        // Validate required fields
+        if (!requestData || !requestData.categories || requestData.categories.length === 0) {
+            console.error('Missing categories in request');
+            return {
+                statusCode: 400,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({
+                    success: false,
+                    error: 'Missing required data (categories)',
+                    message: 'Please ensure categories are provided'
+                })
             };
         }
 
@@ -88,19 +112,28 @@ OUTPUT FORMAT - Return ONLY a valid JSON array with no additional text:
 ]`;
 
         const userPrompt = buildUserPrompt(requestData);
+        console.log('Calling OpenAI with user prompt length:', userPrompt.length);
 
         // Call OpenAI API
-        const completion = await openai.chat.completions.create({
-            model: 'gpt-4o',
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-            ],
-            max_tokens: 1500,
-            temperature: 0.8
-        });
+        let completion;
+        try {
+            completion = await openai.chat.completions.create({
+                model: 'gpt-4o',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                max_tokens: 1500,
+                temperature: 0.8
+            });
+            console.log('OpenAI response received');
+        } catch (openaiError) {
+            console.error('OpenAI API error:', openaiError.message, openaiError.status);
+            throw openaiError;
+        }
 
         const responseText = completion.choices[0]?.message?.content;
+        console.log('Response text preview:', responseText ? responseText.substring(0, 200) : 'empty');
 
         if (!responseText) {
             throw new Error('No response generated from AI');
