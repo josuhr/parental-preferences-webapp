@@ -145,6 +145,7 @@ function renderKids() {
 function createKidCard(kid) {
     const card = document.createElement('div');
     card.className = 'kid-card';
+    card.onclick = () => viewKidPreferences(kid.id);
     
     const age = calculateAge(kid.birth_date);
     
@@ -154,10 +155,9 @@ function createKidCard(kid) {
             <div class="kid-info">
                 <h3>${kid.name}</h3>
                 <div class="kid-age">${age ? age + ' years old' : 'Age not set'}</div>
-                <span class="access-badge ${kid.access_level}">${kid.access_level} access</span>
+                <span class="access-badge ${kid.access_level}">${formatAccessLevel(kid.access_level)}</span>
             </div>
         </div>
-        ${kid.notes ? `<p style="color: #666; font-size: 0.9rem; margin-top: 10px;">${kid.notes}</p>` : ''}
         <div class="kid-stats">
             <div class="kid-stat">
                 <div class="number">${kid.total_preferences || 0}</div>
@@ -169,16 +169,26 @@ function createKidCard(kid) {
             </div>
         </div>
         <div class="quick-actions">
-            <button class="quick-action-btn" onclick="viewKidPreferences('${kid.id}')">
+            <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); viewKidPreferences('${kid.id}')">
                 👀 View Preferences
             </button>
-            <button class="quick-action-btn secondary" onclick="addObservation('${kid.id}')">
+            <button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); addObservation('${kid.id}')">
                 📝 Add Observation
             </button>
         </div>
     `;
     
     return card;
+}
+
+// Format access level for display
+function formatAccessLevel(level) {
+    const labels = {
+        'view': 'View Only',
+        'comment': 'View & Comment',
+        'full': 'Full Access'
+    };
+    return labels[level] || level;
 }
 
 // Calculate age from birth date
@@ -203,24 +213,24 @@ async function loadStatistics() {
         const kidsCount = accessibleKids.length;
         document.getElementById('kidsCount').textContent = kidsCount;
         
-        // Count observations
-        const { data: observations, error: obsError } = await supabaseClient
+        // Count observations - use 'count' instead of 'data' for count queries
+        const { count: observationsCount, error: obsError } = await supabaseClient
             .from('teacher_observations')
             .select('id', { count: 'exact', head: true })
             .eq('teacher_id', currentUser.id);
         
         if (!obsError) {
-            document.getElementById('observationsCount').textContent = observations || 0;
+            document.getElementById('observationsCount').textContent = observationsCount || 0;
         }
         
-        // Count perspective activities
-        const { data: activities, error: actError } = await supabaseClient
+        // Count perspective activities - use 'count' instead of 'data' for count queries
+        const { count: activitiesCount, error: actError } = await supabaseClient
             .from('perspective_activities')
             .select('id', { count: 'exact', head: true })
             .eq('created_by', currentUser.id);
         
         if (!actError) {
-            document.getElementById('activitiesCount').textContent = activities || 0;
+            document.getElementById('activitiesCount').textContent = activitiesCount || 0;
         }
         
     } catch (error) {
@@ -241,5 +251,8 @@ function addObservation(kidId) {
 // Show error
 function showError(message) {
     const errorEl = document.getElementById('errorContainer');
-    errorEl.innerHTML = `<div class="error">${message}</div>`;
+    errorEl.innerHTML = `<div class="error-message">${message}</div>`;
+    setTimeout(() => {
+        errorEl.innerHTML = '';
+    }, 5000);
 }

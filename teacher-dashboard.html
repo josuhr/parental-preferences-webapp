@@ -9,57 +9,97 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .dashboard-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        .welcome-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
-        .welcome-section h1 {
-            margin: 0 0 10px 0;
-            font-size: 2rem;
+        .page-header-left h1 {
+            margin: 0;
+            color: #1976d2;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .stat-card .number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #667eea;
-            margin: 10px 0;
-        }
-
-        .stat-card .label {
+        .page-subtitle {
+            margin: 5px 0 0 0;
             color: #666;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
-        .kids-section {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            padding: 15px 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .stat-item .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        .stat-item .label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
         }
 
         .section-header {
@@ -72,27 +112,28 @@
         .section-header h2 {
             margin: 0;
             color: #333;
+            font-size: 1.3rem;
         }
 
         .kids-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
         }
 
         .kid-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: white;
+            border: 2px solid #e0e0e0;
             padding: 20px;
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid transparent;
+            transition: all 0.2s;
         }
 
         .kid-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+            border-color: #1976d2;
         }
 
         .kid-header {
@@ -103,12 +144,20 @@
         }
 
         .kid-avatar {
-            font-size: 3rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
         }
 
         .kid-info h3 {
             margin: 0 0 5px 0;
             color: #333;
+            font-size: 1.2rem;
         }
 
         .kid-info .kid-age {
@@ -119,9 +168,9 @@
         .kid-stats {
             display: flex;
             gap: 15px;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(0,0,0,0.1);
+            padding: 15px 0;
+            border-top: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
         }
 
         .kid-stat {
@@ -132,46 +181,27 @@
         .kid-stat .number {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #667eea;
+            color: #1976d2;
         }
 
         .kid-stat .label {
             font-size: 0.75rem;
-            color: #666;
-            margin-top: 2px;
+            color: #999;
+            text-transform: uppercase;
         }
 
         .quick-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-top: 15px;
             flex-wrap: wrap;
         }
 
-        .quick-action-btn {
+        .btn-small {
             flex: 1;
             min-width: 100px;
             padding: 8px 12px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.3s;
-        }
-
-        .quick-action-btn:hover {
-            background: #5568d3;
-            transform: scale(1.05);
-        }
-
-        .quick-action-btn.secondary {
-            background: #48bb78;
-        }
-
-        .quick-action-btn.secondary:hover {
-            background: #38a169;
+            font-size: 13px;
         }
 
         .empty-state {
@@ -196,12 +226,13 @@
             color: #666;
         }
 
-        .error {
-            background: #fee;
-            color: #c00;
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
+            border-left: 4px solid #c62828;
         }
 
         .access-badge {
@@ -214,18 +245,31 @@
         }
 
         .access-badge.view {
-            background: #bee3f8;
-            color: #2c5282;
+            background: #e3f2fd;
+            color: #1565c0;
         }
 
         .access-badge.comment {
-            background: #c6f6d5;
-            color: #22543d;
+            background: #e8f5e9;
+            color: #2e7d32;
         }
 
         .access-badge.full {
-            background: #fed7d7;
-            color: #742a2a;
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .stats-bar {
+                justify-content: space-around;
+            }
+            .kids-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -242,41 +286,47 @@
         </nav>
         <div class="content-area">
         <div class="dashboard-container">
-        <div class="welcome-section">
-            <h1>🏫 Welcome, <span id="teacherName">Teacher</span></h1>
-            <p>Your dashboard for supporting students and families</p>
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>🏫 Teacher Dashboard</h1>
+                <p class="page-subtitle">Welcome, <span id="teacherName">Teacher</span> — Your hub for supporting students and families</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="window.location.href='/teacher-observations.html'">
+                    📝 My Observations
+                </button>
+                <button class="btn btn-primary" onclick="window.location.href='/perspective-activities.html'">
+                    📚 Activity Library
+                </button>
+            </div>
         </div>
 
         <div id="errorContainer"></div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="label">Accessible Kids</div>
-                <div class="number" id="kidsCount">-</div>
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="value" id="kidsCount">-</div>
+                <div class="label">Kids</div>
             </div>
-            <div class="stat-card">
-                <div class="label">Total Observations</div>
-                <div class="number" id="observationsCount">-</div>
+            <div class="stat-item">
+                <div class="value" id="observationsCount">-</div>
+                <div class="label">Observations</div>
             </div>
-            <div class="stat-card">
-                <div class="label">Activities Created</div>
-                <div class="number" id="activitiesCount">-</div>
+            <div class="stat-item">
+                <div class="value" id="activitiesCount">-</div>
+                <div class="label">Activities</div>
             </div>
         </div>
 
-        <div class="kids-section">
-            <div class="section-header">
-                <h2>👶 Kids You Can Support</h2>
-                <button class="btn btn-secondary" onclick="window.location.href='/perspective-activities.html'">
-                    📚 View Activity Library
-                </button>
-            </div>
-            <div id="loadingContainer" class="loading" style="display: none;">
-                Loading kids...
-            </div>
-            <div id="kidsContainer" class="kids-grid">
-                <!-- Kids will be populated here -->
-            </div>
+        <div class="section-header">
+            <h2>👶 Kids You Can Support</h2>
+        </div>
+        
+        <div id="loadingContainer" class="loading" style="display: none;">
+            Loading kids...
+        </div>
+        <div id="kidsContainer" class="kids-grid">
+            <!-- Kids will be populated here -->
         </div>
         </div>
         </div>
