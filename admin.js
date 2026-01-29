@@ -4,14 +4,6 @@ let currentUser = null;
 let allUsers = [];
 let filteredUsers = [];
 
-// DOM Elements
-const searchInput = document.getElementById('searchInput');
-const usersTableBody = document.getElementById('usersTableBody');
-const emptyState = document.getElementById('emptyState');
-const totalUsersEl = document.getElementById('totalUsers');
-const activeUsersEl = document.getElementById('activeUsers');
-const connectedSheetsEl = document.getElementById('connectedSheets');
-
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Supabase
@@ -44,7 +36,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadUsers();
     
     // Setup search
-    searchInput.addEventListener('input', handleSearch);
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+    }
 });
 
 // Load all users
@@ -74,15 +69,48 @@ async function loadUsers() {
 function updateStats() {
     const totalUsers = allUsers.length;
     const activeUsers = allUsers.filter(u => u.is_active).length;
-    const connectedSheets = allUsers.filter(u => u.sheet_id).length;
     
-    totalUsersEl.textContent = totalUsers;
-    activeUsersEl.textContent = activeUsers;
-    connectedSheetsEl.textContent = connectedSheets;
+    // Count teachers - handle both old string format and new array format
+    const teacherCount = allUsers.filter(u => {
+        if (Array.isArray(u.user_types)) {
+            return u.user_types.includes('teacher');
+        } else if (u.user_type) {
+            return u.user_type === 'teacher';
+        }
+        return false;
+    }).length;
+    
+    document.getElementById('totalUsers').textContent = totalUsers;
+    document.getElementById('activeUsers').textContent = activeUsers;
+    document.getElementById('teacherCount').textContent = teacherCount;
+    
+    // Category and activity counts are updated in loadUniversalActivities
+}
+
+// Get user types as array (handles both old and new format)
+function getUserTypes(user) {
+    if (Array.isArray(user.user_types)) {
+        return user.user_types;
+    } else if (user.user_type) {
+        return [user.user_type];
+    }
+    return ['parent'];
+}
+
+// Render user types as badges
+function renderUserTypeBadges(user) {
+    const types = getUserTypes(user);
+    return types.map(type => {
+        const typeClass = type === 'admin' ? 'admin-type' : type;
+        return `<span class="type-badge ${typeClass}">${type}</span>`;
+    }).join('');
 }
 
 // Render users table
 function renderUsersTable() {
+    const usersTableBody = document.getElementById('usersTableBody');
+    const emptyState = document.getElementById('emptyState');
+    
     usersTableBody.innerHTML = '';
     
     if (filteredUsers.length === 0) {
@@ -97,25 +125,30 @@ function renderUsersTable() {
         
         const statusClass = user.is_active ? 'active' : 'inactive';
         const statusText = user.is_active ? 'Active' : 'Inactive';
-        const toggleText = user.is_active ? 'Disable' : 'Enable';
         
         const lastLogin = user.last_login 
             ? new Date(user.last_login).toLocaleDateString()
             : 'Never';
         
+        const isCurrentUser = user.id === currentUser.id;
+        
         row.innerHTML = `
             <td><strong>${user.display_name || 'N/A'}</strong></td>
             <td>${user.email}</td>
             <td><span class="role-badge ${user.role}">${user.role}</span></td>
-            <td>${user.sheet_id ? '✓ Connected' : '—'}</td>
+            <td>${renderUserTypeBadges(user)}</td>
             <td><span class="user-status ${statusClass}">${statusText}</span></td>
             <td>${lastLogin}</td>
             <td>
-                ${user.id !== currentUser.id ? `
-                    <button class="action-btn toggle" onclick="toggleUserStatus('${user.id}', ${!user.is_active})">
-                        ${toggleText}
+                <button class="action-btn edit" onclick="openEditUserModal('${user.id}')">
+                    ✏️ Edit
+                </button>
+                ${!isCurrentUser ? `
+                    <button class="action-btn ${user.is_active ? 'danger' : 'toggle'}" 
+                            onclick="toggleUserStatus('${user.id}', ${!user.is_active})">
+                        ${user.is_active ? 'Disable' : 'Enable'}
                     </button>
-                ` : '<em>You</em>'}
+                ` : '<em style="color: #999;">You</em>'}
             </td>
         `;
         
@@ -171,22 +204,204 @@ async function toggleUserStatus(userId, newStatus) {
     }
 }
 
-// Show error message
-function showError(message) {
-    const errorEl = document.getElementById('error');
-    if (errorEl) {
-        errorEl.textContent = message;
-        errorEl.style.display = 'block';
+// Show message (error or success)
+function showMessage(message, type = 'error') {
+    const container = document.getElementById('messageContainer');
+    if (container) {
+        const className = type === 'error' ? 'error-message' : 'success-message';
+        container.innerHTML = `<div class="${className}">${message}</div>`;
         setTimeout(() => {
-            errorEl.style.display = 'none';
+            container.innerHTML = '';
         }, 5000);
     } else {
         alert(message);
     }
 }
 
-// Make toggleUserStatus available globally
+function showError(message) {
+    showMessage(message, 'error');
+}
+
+function showSuccess(message) {
+    showMessage(message, 'success');
+}
+
+// ====== ADD USER FUNCTIONALITY ======
+
+function openAddUserModal() {
+    const modal = document.getElementById('addUserModal');
+    
+    // Reset form
+    document.getElementById('newUserEmail').value = '';
+    document.getElementById('newUserName').value = '';
+    document.getElementById('newUserPassword').value = '';
+    document.getElementById('newUserRole').value = 'user';
+    document.getElementById('newUserTypeParent').checked = true;
+    document.getElementById('newUserTypeTeacher').checked = false;
+    
+    modal.classList.add('show');
+}
+
+function closeAddUserModal() {
+    document.getElementById('addUserModal').classList.remove('show');
+}
+
+async function saveNewUser() {
+    try {
+        const email = document.getElementById('newUserEmail').value.trim();
+        const displayName = document.getElementById('newUserName').value.trim();
+        const password = document.getElementById('newUserPassword').value;
+        const role = document.getElementById('newUserRole').value;
+        const isParent = document.getElementById('newUserTypeParent').checked;
+        const isTeacher = document.getElementById('newUserTypeTeacher').checked;
+        
+        if (!email || !displayName || !password) {
+            showError('Please fill in all required fields');
+            return;
+        }
+        
+        if (password.length < 8) {
+            showError('Password must be at least 8 characters');
+            return;
+        }
+        
+        if (!isParent && !isTeacher) {
+            showError('Please select at least one user type');
+            return;
+        }
+        
+        // Build user_types array
+        const userTypes = [];
+        if (isParent) userTypes.push('parent');
+        if (isTeacher) userTypes.push('teacher');
+        
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        // Note: Creating users requires admin API or service role key
+        // For now, we'll insert directly into the users table
+        // In production, you might want to use Supabase Admin API
+        
+        // Check if email already exists
+        const { data: existingUser } = await supabaseClient
+            .from('users')
+            .select('id')
+            .eq('email', email)
+            .single();
+        
+        if (existingUser) {
+            showError('A user with this email already exists');
+            return;
+        }
+        
+        // Create user record
+        // Note: This creates a user profile but not an auth account
+        // The user would need to sign up or be invited separately
+        const { error } = await supabaseClient
+            .from('users')
+            .insert({
+                email,
+                display_name: displayName,
+                role,
+                user_types: userTypes,
+                auth_method: 'email',
+                is_active: true
+            });
+        
+        if (error) throw error;
+        
+        closeAddUserModal();
+        showSuccess('User created successfully! They will need to set up their password via the login page.');
+        await loadUsers();
+        
+    } catch (error) {
+        console.error('Error creating user:', error);
+        showError('Failed to create user: ' + error.message);
+    }
+}
+
+// ====== EDIT USER FUNCTIONALITY ======
+
+function openEditUserModal(userId) {
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) {
+        showError('User not found');
+        return;
+    }
+    
+    const modal = document.getElementById('editUserModal');
+    const userTypes = getUserTypes(user);
+    
+    document.getElementById('editUserId').value = user.id;
+    document.getElementById('editUserEmail').value = user.email;
+    document.getElementById('editUserName').value = user.display_name || '';
+    document.getElementById('editUserRole').value = user.role || 'user';
+    document.getElementById('editUserTypeParent').checked = userTypes.includes('parent');
+    document.getElementById('editUserTypeTeacher').checked = userTypes.includes('teacher');
+    document.getElementById('editUserActive').value = user.is_active ? 'true' : 'false';
+    
+    modal.classList.add('show');
+}
+
+function closeEditUserModal() {
+    document.getElementById('editUserModal').classList.remove('show');
+}
+
+async function saveUserEdits() {
+    try {
+        const userId = document.getElementById('editUserId').value;
+        const displayName = document.getElementById('editUserName').value.trim();
+        const role = document.getElementById('editUserRole').value;
+        const isParent = document.getElementById('editUserTypeParent').checked;
+        const isTeacher = document.getElementById('editUserTypeTeacher').checked;
+        const isActive = document.getElementById('editUserActive').value === 'true';
+        
+        if (!displayName) {
+            showError('Please enter a display name');
+            return;
+        }
+        
+        if (!isParent && !isTeacher) {
+            showError('Please select at least one user type');
+            return;
+        }
+        
+        // Build user_types array
+        const userTypes = [];
+        if (isParent) userTypes.push('parent');
+        if (isTeacher) userTypes.push('teacher');
+        
+        const supabaseClient = window.supabaseUtils.getClient();
+        
+        const { error } = await supabaseClient
+            .from('users')
+            .update({
+                display_name: displayName,
+                role,
+                user_types: userTypes,
+                is_active: isActive
+            })
+            .eq('id', userId);
+        
+        if (error) throw error;
+        
+        closeEditUserModal();
+        showSuccess('User updated successfully!');
+        await loadUsers();
+        
+    } catch (error) {
+        console.error('Error updating user:', error);
+        showError('Failed to update user: ' + error.message);
+    }
+}
+
+// Make functions globally available
 window.toggleUserStatus = toggleUserStatus;
+window.openAddUserModal = openAddUserModal;
+window.closeAddUserModal = closeAddUserModal;
+window.saveNewUser = saveNewUser;
+window.openEditUserModal = openEditUserModal;
+window.closeEditUserModal = closeEditUserModal;
+window.saveUserEdits = saveUserEdits;
 
 // ====== UNIVERSAL ACTIVITIES MANAGEMENT ======
 
@@ -235,7 +450,7 @@ async function loadUniversalActivities() {
     try {
         const supabaseClient = window.supabaseUtils.getClient();
         
-        // Load categories
+        // Load universal categories (parent_id IS NULL means universal)
         const { data: categoriesData, error: categoriesError } = await supabaseClient
             .from('kid_activity_categories')
             .select('*')
@@ -245,15 +460,29 @@ async function loadUniversalActivities() {
         if (categoriesError) throw categoriesError;
         categories = categoriesData || [];
         
-        // Load activities
-        const { data: activitiesData, error: activitiesError } = await supabaseClient
-            .from('kid_activities')
-            .select('*')
-            .is('parent_id', null)
-            .order('name', { ascending: true });
+        // Load activities from universal categories
+        // Activities don't have parent_id - they belong to categories via category_id
+        // We need to get activities where the category's parent_id IS NULL
+        if (categories.length > 0) {
+            const categoryIds = categories.map(c => c.id);
+            
+            const { data: activitiesData, error: activitiesError } = await supabaseClient
+                .from('kid_activities')
+                .select('*')
+                .in('category_id', categoryIds)
+                .order('name', { ascending: true });
+            
+            if (activitiesError) throw activitiesError;
+            universalActivities = activitiesData || [];
+        } else {
+            universalActivities = [];
+        }
         
-        if (activitiesError) throw activitiesError;
-        universalActivities = activitiesData || [];
+        // Update stats
+        const categoryCountEl = document.getElementById('categoryCount');
+        const activityCountEl = document.getElementById('activityCount');
+        if (categoryCountEl) categoryCountEl.textContent = categories.length;
+        if (activityCountEl) activityCountEl.textContent = universalActivities.length;
         
         renderUniversalActivities();
         
@@ -283,42 +512,43 @@ function renderUniversalActivities(searchTerm = '') {
             );
         }
         
+        // Skip empty categories when searching
         if (categoryActivities.length === 0 && normalizedSearch) return;
         
         const categoryCard = document.createElement('div');
-        categoryCard.style.cssText = 'background: #f9f9f9; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 2px solid #e0e0e0;';
+        categoryCard.className = 'category-card';
         
         const categoryHeader = document.createElement('div');
-        categoryHeader.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #667eea;';
+        categoryHeader.className = 'category-header';
         categoryHeader.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="category-title">
                 <span style="font-size: 1.5rem;">${category.icon}</span>
-                <h3 style="margin: 0; color: #333;">${category.name}</h3>
-                <span style="color: #999; font-size: 0.9rem;">(${categoryActivities.length} activities)</span>
+                <h3>${category.name}</h3>
+                <span class="category-count">(${categoryActivities.length} activities)</span>
             </div>
-            <div>
-                <button class="btn btn-secondary" style="padding: 6px 12px; margin-right: 5px;" onclick="editCategory('${category.id}')">✏️ Edit</button>
-                <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="deleteCategory('${category.id}')">🗑️ Delete</button>
+            <div class="header-actions">
+                <button class="action-btn edit" onclick="editCategory('${category.id}')">✏️ Edit</button>
+                <button class="action-btn danger" onclick="deleteCategory('${category.id}')">🗑️ Delete</button>
             </div>
         `;
         
         const activitiesList = document.createElement('div');
-        activitiesList.style.cssText = 'display: grid; gap: 10px;';
+        activitiesList.className = 'activities-list';
         
         if (categoryActivities.length === 0) {
             activitiesList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No activities in this category</p>';
         } else {
             categoryActivities.forEach(activity => {
                 const activityRow = document.createElement('div');
-                activityRow.style.cssText = 'background: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: start; border: 1px solid #e0e0e0;';
+                activityRow.className = 'activity-row';
                 activityRow.innerHTML = `
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; color: #333; margin-bottom: 5px;">${activity.name}</div>
-                        ${activity.description ? `<div style="font-size: 0.9rem; color: #666;">${activity.description}</div>` : ''}
+                    <div class="activity-info">
+                        <div class="activity-name">${activity.name}</div>
+                        ${activity.description ? `<div class="activity-description">${activity.description}</div>` : ''}
                     </div>
-                    <div style="display: flex; gap: 5px;">
-                        <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="editActivity('${activity.id}')">✏️ Edit</button>
-                        <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="deleteActivity('${activity.id}')">🗑️</button>
+                    <div class="header-actions">
+                        <button class="action-btn edit" onclick="editActivity('${activity.id}')">✏️</button>
+                        <button class="action-btn danger" onclick="deleteActivity('${activity.id}')">🗑️</button>
                     </div>
                 `;
                 activitiesList.appendChild(activityRow);
@@ -331,7 +561,12 @@ function renderUniversalActivities(searchTerm = '') {
     });
     
     if (categories.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><p>No categories yet. Add a category to get started!</p></div>';
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📚</div>
+                <p>No categories yet. Add a category to get started!</p>
+            </div>
+        `;
     }
 }
 

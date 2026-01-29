@@ -9,203 +9,348 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .admin-container {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 20px;
         }
-        
-        .admin-header {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+        .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 15px;
         }
-        
-        .admin-header h1 {
-            color: #667eea;
+
+        .page-header-left h1 {
             margin: 0;
-            font-size: 2rem;
+            color: #1976d2;
         }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+        .page-subtitle {
+            margin: 5px 0 0 0;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .stats-bar {
+            display: flex;
             gap: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
         }
-        
-        .stat-card {
+
+        .stat-item {
             background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            text-align: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        
+
         .stat-value {
-            font-size: 3rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            color: #667eea;
-            margin: 10px 0;
+            color: #1976d2;
         }
-        
+
         .stat-label {
             color: #666;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
         }
-        
-        .users-card {
+
+        .admin-section {
             background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
         }
-        
-        .users-card h2 {
-            color: #667eea;
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
-        
+
+        .section-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .section-header p {
+            margin: 5px 0 0 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
         .search-bar {
             margin-bottom: 20px;
         }
-        
+
         .search-bar input {
             width: 100%;
-            padding: 12px 20px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 1rem;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
             font-family: inherit;
         }
-        
+
         .search-bar input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #1976d2;
         }
-        
+
         .users-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
         }
-        
+
         .users-table th {
             background: #f5f5f5;
-            padding: 15px;
+            padding: 12px 15px;
             text-align: left;
-            font-weight: bold;
+            font-weight: 600;
             color: #333;
-            border-bottom: 2px solid #ddd;
+            border-bottom: 2px solid #e0e0e0;
+            font-size: 0.9rem;
         }
-        
+
         .users-table td {
-            padding: 15px;
+            padding: 12px 15px;
             border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
         }
-        
+
         .users-table tr:hover {
             background: #f9f9f9;
         }
-        
+
         .user-status {
             display: inline-block;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
         }
-        
+
         .user-status.active {
             background: #e8f5e9;
             color: #2e7d32;
         }
-        
+
         .user-status.inactive {
             background: #ffebee;
             color: #c62828;
         }
-        
+
         .role-badge {
             display: inline-block;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 4px;
         }
-        
+
         .role-badge.admin {
             background: #fff3cd;
             color: #856404;
         }
-        
+
         .role-badge.user {
             background: #e3f2fd;
             color: #1565c0;
         }
-        
+
+        .type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        .type-badge.parent {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .type-badge.teacher {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .type-badge.admin-type {
+            background: #fff3cd;
+            color: #856404;
+        }
+
         .action-btn {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: none;
-            border-radius: 8px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: bold;
-            transition: all 0.3s;
-            margin: 0 5px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin: 0 3px;
         }
-        
+
+        .action-btn.edit {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .action-btn.edit:hover {
+            background: #bbdefb;
+        }
+
         .action-btn.toggle {
-            background: #667eea;
+            background: #1976d2;
             color: white;
         }
-        
+
         .action-btn.toggle:hover {
-            background: #5568d3;
+            background: #1565c0;
         }
-        
+
         .action-btn.danger {
-            background: #f44336;
-            color: white;
+            background: #ffebee;
+            color: #c62828;
         }
-        
+
         .action-btn.danger:hover {
-            background: #d32f2f;
+            background: #ffcdd2;
         }
-        
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: #999;
         }
-        
+
         .empty-state-icon {
             font-size: 4rem;
             margin-bottom: 20px;
         }
-        
-        @media (max-width: 768px) {
-            .users-table {
-                font-size: 0.9rem;
-            }
-            
-            .users-table th,
-            .users-table td {
-                padding: 10px 5px;
-            }
-            
-            .action-btn {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-            }
+
+        /* Category cards for Universal Activities */
+        .category-card {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
-        
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1976d2;
+        }
+
+        .category-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-title h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .category-count {
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .activity-row {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 10px;
+        }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .activity-description {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
         /* Modal styles */
         .modal {
             display: none;
@@ -219,16 +364,20 @@
             align-items: center;
             justify-content: center;
         }
-        
+
+        .modal.show {
+            display: flex;
+        }
+
         .modal-content {
             background: white;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             max-width: 90%;
             max-height: 90vh;
             overflow-y: auto;
         }
-        
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -236,12 +385,12 @@
             padding: 20px;
             border-bottom: 1px solid #e0e0e0;
         }
-        
+
         .modal-header h2 {
             margin: 0;
             color: #333;
         }
-        
+
         .close-btn {
             background: none;
             border: none;
@@ -255,20 +404,112 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .close-btn:hover {
             color: #333;
         }
-        
-        .form-group {
-            margin-bottom: 15px;
+
+        .modal-body {
+            padding: 20px;
         }
-        
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
+            margin-bottom: 8px;
+            font-weight: 500;
             color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c62828;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2e7d32;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .users-table {
+                font-size: 0.85rem;
+            }
+
+            .users-table th,
+            .users-table td {
+                padding: 8px 10px;
+            }
+
+            .action-btn {
+                padding: 4px 8px;
+                font-size: 0.8rem;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+            }
+
+            .stat-item {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -279,136 +520,265 @@
     
     <div class="main-content">
         <div class="admin-container">
-        <div class="admin-header">
-            <h1>🛡️ Admin Panel</h1>
-            <div class="header-actions">
-                <button class="btn btn-primary" onclick="window.location.href='/dashboard.html'">Dashboard</button>
-                <button class="btn btn-secondary" onclick="window.location.href='/index.html'">View App</button>
-            </div>
-        </div>
-        
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-value" id="totalUsers">0</div>
-                <div class="stat-label">Total Users</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="activeUsers">0</div>
-                <div class="stat-label">Active Users</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="connectedSheets">0</div>
-                <div class="stat-label">Connected Sheets</div>
-            </div>
-        </div>
-        
-        <div class="users-card">
-            <h2>User Management</h2>
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Search users by name or email...">
-            </div>
-            
-            <div id="usersTableContainer">
-                <table class="users-table">
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Sheet ID</th>
-                            <th>Status</th>
-                            <th>Last Login</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTableBody">
-                        <!-- Users will be inserted here -->
-                    </tbody>
-                </table>
-                
-                <div id="emptyState" class="empty-state" style="display: none;">
-                    <div class="empty-state-icon">👥</div>
-                    <p>No users found</p>
+            <div class="page-header">
+                <div class="page-header-left">
+                    <h1>🛡️ Admin Panel</h1>
+                    <p class="page-subtitle">Manage users, roles, and the universal activities library</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="window.location.href='/dashboard.html'">
+                        ← Dashboard
+                    </button>
                 </div>
             </div>
-        </div>
-        
-        <!-- Universal Activities Management -->
-        <div class="users-card" style="margin-top: 30px;">
-            <h2>Universal Activities Database</h2>
-            <p style="color: #666; margin-bottom: 20px;">Manage the universal activities library available to all users</p>
-            
-            <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-                <button class="btn btn-primary" id="addCategoryBtn">➕ Add Category</button>
-                <button class="btn btn-primary" id="addUniversalActivityBtn">➕ Add Activity</button>
-                <div class="search-bar" style="flex: 1; margin: 0; min-width: 200px;">
+
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalUsers">0</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="activeUsers">0</div>
+                    <div class="stat-label">Active Users</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="teacherCount">0</div>
+                    <div class="stat-label">Teachers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="categoryCount">0</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="activityCount">0</div>
+                    <div class="stat-label">Activities</div>
+                </div>
+            </div>
+
+            <div id="messageContainer"></div>
+
+            <!-- User Management Section -->
+            <div class="admin-section">
+                <div class="section-header">
+                    <div>
+                        <h2>👥 User Management</h2>
+                        <p>Add, edit, and manage user accounts and roles</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openAddUserModal()">
+                        ➕ Add User
+                    </button>
+                </div>
+
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Search users by name or email...">
+                </div>
+
+                <div id="usersTableContainer">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>User Types</th>
+                                <th>Status</th>
+                                <th>Last Login</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Users will be inserted here -->
+                        </tbody>
+                    </table>
+
+                    <div id="emptyState" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">👥</div>
+                        <p>No users found</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Universal Activities Management -->
+            <div class="admin-section">
+                <div class="section-header">
+                    <div>
+                        <h2>📚 Universal Activities Database</h2>
+                        <p>Manage the activity library available to all users</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" id="addCategoryBtn">➕ Add Category</button>
+                        <button class="btn btn-primary" id="addUniversalActivityBtn">➕ Add Activity</button>
+                    </div>
+                </div>
+
+                <div class="search-bar">
                     <input type="text" id="activitySearchInput" placeholder="Search activities...">
                 </div>
-            </div>
-            
-            <div id="categoriesContainer">
-                <!-- Categories and activities will be loaded here -->
+
+                <div id="categoriesContainer">
+                    <!-- Categories and activities will be loaded here -->
+                </div>
             </div>
         </div>
-    </div>
     
     <div id="loadingOverlay" class="loading no-print" style="display: none;">Loading...</div>
     <div id="error" class="error no-print" style="display: none;"></div>
     </div>
     
     <!-- Add/Edit Category Modal -->
-    <div id="categoryModal" class="modal" style="display: none;">
+    <div id="categoryModal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h2 id="categoryModalTitle">Add Category</h2>
                 <button class="close-btn" onclick="closeCategoryModal()">×</button>
             </div>
-            <div style="padding: 20px;">
+            <div class="modal-body">
                 <div class="form-group">
                     <label for="categoryName">Category Name</label>
-                    <input type="text" id="categoryName" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    <input type="text" id="categoryName" required>
                 </div>
                 <div class="form-group">
                     <label for="categoryIcon">Icon</label>
-                    <input type="text" id="categoryIcon" placeholder="e.g., 🎨" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    <input type="text" id="categoryIcon" placeholder="e.g., 🎨" required>
                 </div>
                 <div class="form-group">
                     <label for="categorySortOrder">Sort Order</label>
-                    <input type="number" id="categorySortOrder" value="1" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    <input type="number" id="categorySortOrder" value="1" required>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-primary" id="saveCategoryBtn">Save</button>
+                <div class="modal-actions">
                     <button class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
+                    <button class="btn btn-primary" id="saveCategoryBtn">Save</button>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Add/Edit Activity Modal -->
-    <div id="activityModal" class="modal" style="display: none;">
+    <div id="activityModal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h2 id="activityModalTitle">Add Activity</h2>
                 <button class="close-btn" onclick="closeActivityModal()">×</button>
             </div>
-            <div style="padding: 20px;">
+            <div class="modal-body">
                 <div class="form-group">
                     <label for="activityCategory">Category</label>
-                    <select id="activityCategory" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    <select id="activityCategory" required>
                         <option value="">-- Select a category --</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="activityName">Activity Name</label>
-                    <input type="text" id="activityName" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    <input type="text" id="activityName" required>
                 </div>
                 <div class="form-group">
                     <label for="activityDescription">Description (optional)</label>
-                    <textarea id="activityDescription" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-height: 80px;"></textarea>
+                    <textarea id="activityDescription" rows="3"></textarea>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-primary" id="saveActivityBtn">Save</button>
+                <div class="modal-actions">
                     <button class="btn btn-secondary" onclick="closeActivityModal()">Cancel</button>
+                    <button class="btn btn-primary" id="saveActivityBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Add New User</h2>
+                <button class="close-btn" onclick="closeAddUserModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newUserEmail">Email *</label>
+                    <input type="email" id="newUserEmail" required placeholder="user@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="newUserName">Display Name *</label>
+                    <input type="text" id="newUserName" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="newUserPassword">Password *</label>
+                    <input type="password" id="newUserPassword" required placeholder="Min 8 characters" minlength="8">
+                </div>
+                <div class="form-group">
+                    <label for="newUserRole">Permission Role *</label>
+                    <select id="newUserRole" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>User Types *</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="newUserTypeParent" value="parent" checked>
+                            <label for="newUserTypeParent">Parent</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="newUserTypeTeacher" value="teacher">
+                            <label for="newUserTypeTeacher">Teacher</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeAddUserModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveNewUser()">Create User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Edit User</h2>
+                <button class="close-btn" onclick="closeEditUserModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editUserId">
+                <div class="form-group">
+                    <label for="editUserEmail">Email</label>
+                    <input type="email" id="editUserEmail" disabled style="background: #f5f5f5; color: #666;">
+                    <small style="color: #999;">Email cannot be changed</small>
+                </div>
+                <div class="form-group">
+                    <label for="editUserName">Display Name *</label>
+                    <input type="text" id="editUserName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editUserRole">Permission Role *</label>
+                    <select id="editUserRole" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>User Types *</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="editUserTypeParent" value="parent">
+                            <label for="editUserTypeParent">Parent</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="editUserTypeTeacher" value="teacher">
+                            <label for="editUserTypeTeacher">Teacher</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editUserActive">Status</label>
+                    <select id="editUserActive">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeEditUserModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveUserEdits()">Save Changes</button>
                 </div>
             </div>
         </div>

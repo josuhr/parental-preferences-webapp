@@ -111,6 +111,52 @@ async function isAdmin(userId) {
     return profile && profile.role === 'admin';
 }
 
+// Check if user has a specific user type
+// Handles both old string format (user_type) and new array format (user_types)
+function hasUserType(profile, type) {
+    if (!profile) return false;
+    
+    // Check new array format
+    if (Array.isArray(profile.user_types)) {
+        return profile.user_types.includes(type);
+    }
+    
+    // Check old string format
+    if (profile.user_type) {
+        return profile.user_type === type;
+    }
+    
+    return false;
+}
+
+// Check if user is a teacher
+async function isTeacher(userId) {
+    const profile = await getUserProfile(userId);
+    return hasUserType(profile, 'teacher');
+}
+
+// Check if user is a parent
+async function isParent(userId) {
+    const profile = await getUserProfile(userId);
+    return hasUserType(profile, 'parent');
+}
+
+// Get all user types for a user
+async function getUserTypes(userId) {
+    const profile = await getUserProfile(userId);
+    if (!profile) return [];
+    
+    if (Array.isArray(profile.user_types)) {
+        return profile.user_types;
+    }
+    
+    if (profile.user_type) {
+        return [profile.user_type];
+    }
+    
+    return ['parent']; // Default
+}
+
 // Sign out
 async function signOut() {
     if (!supabaseClient) return;
@@ -131,6 +177,10 @@ window.supabaseUtils = {
     getUserProfile,
     getUserSettings,
     isAdmin,
+    isTeacher,
+    isParent,
+    getUserTypes,
+    hasUserType,
     signOut,
     getClient: () => supabaseClient
 };
