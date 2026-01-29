@@ -347,6 +347,9 @@ function closeEditUserModal() {
 }
 
 async function saveUserEdits() {
+    alert('saveUserEdits called - this confirms the button is working');
+    console.log('=== SAVE USER EDITS CALLED ===');
+    
     try {
         const userId = document.getElementById('editUserId').value;
         const displayName = document.getElementById('editUserName').value.trim();
