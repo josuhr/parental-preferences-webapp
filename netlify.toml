@@ -7,6 +7,18 @@
   # Skip deploys when only documentation/SQL files change
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ':(exclude)*.md' ':(exclude)*.sql' ':(exclude).cursor/**'"
 
+# Redirect root to dashboard
+[[redirects]]
+  from = "/"
+  to = "/dashboard.html"
+  status = 302
+
+# Redirect index.html to dashboard
+[[redirects]]
+  from = "/index.html"
+  to = "/dashboard.html"
+  status = 302
+
 [[headers]]
   for = "/*"
   [headers.values]
