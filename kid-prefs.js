@@ -150,6 +150,9 @@ function createKidCard(kid) {
             <button class="btn btn-ai btn-small" onclick="showInterestsSummary('${kid.id}')">
                 ✨ Interests Summary
             </button>
+            <button class="btn btn-observations btn-small" onclick="showObservations('${kid.id}')">
+                📝 Observations
+            </button>
             <button class="btn btn-primary btn-small" onclick="manageAccess('${kid.id}')">
                 👥 Teachers
             </button>
@@ -668,8 +671,167 @@ function resetCopyButton() {
     const copyBtn = document.querySelector('.btn-copy');
     const copyIcon = document.getElementById('copyIcon');
     const copyText = document.getElementById('copyText');
-    
+
     if (copyBtn) copyBtn.classList.remove('copied');
     if (copyIcon) copyIcon.textContent = '📋';
     if (copyText) copyText.textContent = 'Copy to Clipboard';
+}
+
+// ===== Teacher Observations Feature =====
+
+// Show observations for a kid
+async function showObservations(kidId) {
+    const kid = kids.find(k => k.id === kidId);
+    if (!kid) {
+        showError('Kid not found');
+        return;
+    }
+
+    // Open modal with loading state
+    openObservationsModal(kid);
+
+    try {
+        const observations = await loadObservationsForKid(kidId);
+        renderObservations(observations);
+    } catch (error) {
+        console.error('Error loading observations:', error);
+        showObservationsError();
+    }
+}
+
+// Open the observations modal
+function openObservationsModal(kid) {
+    const modal = document.getElementById('observationsModal');
+
+    // Set kid header info
+    document.getElementById('observationsKidAvatar').textContent = kid.avatar_emoji;
+    document.getElementById('observationsKidName').textContent = kid.name;
+    document.getElementById('observationsKidHeader').style.display = 'flex';
+
+    // Show loading, hide content and empty state
+    document.getElementById('observationsLoading').style.display = 'block';
+    document.getElementById('observationsList').style.display = 'none';
+    document.getElementById('observationsEmpty').style.display = 'none';
+
+    modal.classList.add('show');
+}
+
+// Close the observations modal
+function closeObservationsModal() {
+    document.getElementById('observationsModal').classList.remove('show');
+}
+
+// Load observations from the database
+async function loadObservationsForKid(kidId) {
+    const supabaseClient = window.supabaseUtils.getClient();
+
+    const { data, error } = await supabaseClient
+        .from('teacher_observations')
+        .select(`
+            id,
+            observation_type,
+            title,
+            description,
+            observation_date,
+            created_at,
+            teacher_id,
+            profiles:teacher_id (
+                full_name
+            )
+        `)
+        .eq('kid_id', kidId)
+        .eq('is_visible_to_parent', true)
+        .order('observation_date', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return data || [];
+}
+
+// Render observations in the modal
+function renderObservations(observations) {
+    document.getElementById('observationsLoading').style.display = 'none';
+
+    if (observations.length === 0) {
+        document.getElementById('observationsEmpty').style.display = 'block';
+        document.getElementById('observationsList').style.display = 'none';
+        return;
+    }
+
+    const container = document.getElementById('observationsList');
+    container.innerHTML = '';
+
+    observations.forEach(obs => {
+        const card = document.createElement('div');
+        card.className = 'observation-card';
+
+        // Format date
+        let dateStr = '';
+        if (obs.observation_date) {
+            dateStr = new Date(obs.observation_date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        } else if (obs.created_at) {
+            dateStr = new Date(obs.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Get teacher name
+        const teacherName = obs.profiles?.full_name || 'Teacher';
+
+        card.innerHTML = `
+            <div class="observation-card-header">
+                <span class="observation-type-badge ${obs.observation_type}">${formatObservationType(obs.observation_type)}</span>
+                <span class="observation-date">${dateStr}</span>
+            </div>
+            <div class="observation-title">${escapeHtml(obs.title)}</div>
+            ${obs.description ? `<div class="observation-description">${escapeHtml(obs.description)}</div>` : ''}
+            <div style="margin-top: 10px; font-size: 0.8rem; color: #999;">
+                From: ${escapeHtml(teacherName)}
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+
+    container.style.display = 'block';
+}
+
+// Format observation type for display
+function formatObservationType(type) {
+    const types = {
+        'preference': '💜 Preference',
+        'behavior': '💙 Behavior',
+        'growth': '💚 Growth',
+        'challenge': '🧡 Challenge',
+        'success': '💛 Success'
+    };
+    return types[type] || type;
+}
+
+// Show error state for observations
+function showObservationsError() {
+    document.getElementById('observationsLoading').style.display = 'none';
+    document.getElementById('observationsList').innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #c62828;">
+            <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
+            <h3 style="margin: 0 0 10px 0;">Unable to Load Observations</h3>
+            <p>Please try again later.</p>
+        </div>
+    `;
+    document.getElementById('observationsList').style.display = 'block';
+}
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }

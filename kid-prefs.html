@@ -501,6 +501,68 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Teacher Observations Styles */
+        .observation-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #1976d2;
+        }
+
+        .observation-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .observation-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .observation-type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .observation-type-badge.preference { background: #fce4ec; color: #c2185b; }
+        .observation-type-badge.behavior { background: #e3f2fd; color: #1565c0; }
+        .observation-type-badge.growth { background: #e8f5e9; color: #2e7d32; }
+        .observation-type-badge.challenge { background: #fff3e0; color: #ef6c00; }
+        .observation-type-badge.success { background: #f1f8e9; color: #558b2f; }
+
+        .observation-date {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        .observation-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .observation-description {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .btn-observations {
+            background: #f5f5f5;
+            color: #1976d2;
+            border: 1px solid #1976d2;
+        }
+
+        .btn-observations:hover {
+            background: #e3f2fd;
+        }
     </style>
 </head>
 <body>
@@ -579,6 +641,40 @@
                     <button type="submit" class="btn btn-primary">Save Kid</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Teacher Observations Modal -->
+    <div id="observationsModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h2>📝 Teacher Observations</h2>
+                <button class="modal-close" onclick="closeObservationsModal()">×</button>
+            </div>
+
+            <div id="observationsKidHeader" class="summary-kid-header" style="display: none;">
+                <div class="summary-kid-avatar" id="observationsKidAvatar"></div>
+                <div class="summary-kid-info">
+                    <h3 id="observationsKidName"></h3>
+                    <span style="color: #666; font-size: 0.9rem;">Observations from teachers</span>
+                </div>
+            </div>
+
+            <div id="observationsLoading" style="text-align: center; padding: 40px; color: #666;">
+                Loading observations...
+            </div>
+
+            <div id="observationsEmpty" style="display: none; text-align: center; padding: 40px; color: #999;">
+                <div style="font-size: 48px; margin-bottom: 15px;">📋</div>
+                <h3 style="margin: 0 0 10px 0; color: #666;">No Observations Yet</h3>
+                <p>Teachers haven't shared any observations for this child yet.</p>
+            </div>
+
+            <div id="observationsList" style="display: none;"></div>
+
+            <div style="margin-top: 20px; text-align: right;">
+                <button type="button" class="btn btn-primary" onclick="closeObservationsModal()">Close</button>
+            </div>
         </div>
     </div>
 
