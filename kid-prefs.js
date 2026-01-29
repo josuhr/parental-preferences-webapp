@@ -727,22 +727,10 @@ async function loadObservationsForKid(kidId) {
 
     const { data, error } = await supabaseClient
         .from('teacher_observations')
-        .select(`
-            id,
-            observation_type,
-            title,
-            description,
-            observation_date,
-            created_at,
-            teacher_id,
-            profiles:teacher_id (
-                full_name
-            )
-        `)
+        .select('*')
         .eq('kid_id', kidId)
         .eq('is_visible_to_parent', true)
-        .order('observation_date', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false });
+        .order('observed_date', { ascending: false });
 
     if (error) throw error;
 
@@ -768,8 +756,8 @@ function renderObservations(observations) {
 
         // Format date
         let dateStr = '';
-        if (obs.observation_date) {
-            dateStr = new Date(obs.observation_date).toLocaleDateString('en-US', {
+        if (obs.observed_date) {
+            dateStr = new Date(obs.observed_date).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric'
@@ -782,9 +770,6 @@ function renderObservations(observations) {
             });
         }
 
-        // Get teacher name
-        const teacherName = obs.profiles?.full_name || 'Teacher';
-
         card.innerHTML = `
             <div class="observation-card-header">
                 <span class="observation-type-badge ${obs.observation_type}">${formatObservationType(obs.observation_type)}</span>
@@ -792,9 +777,6 @@ function renderObservations(observations) {
             </div>
             <div class="observation-title">${escapeHtml(obs.title)}</div>
             ${obs.description ? `<div class="observation-description">${escapeHtml(obs.description)}</div>` : ''}
-            <div style="margin-top: 10px; font-size: 0.8rem; color: #999;">
-                From: ${escapeHtml(teacherName)}
-            </div>
         `;
 
         container.appendChild(card);
