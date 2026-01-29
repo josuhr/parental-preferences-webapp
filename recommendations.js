@@ -181,7 +181,9 @@ function renderRecommendations() {
 // Render a single recommendation card
 function renderRecommendationCard(rec) {
     // Convert score (0-5 scale) to percentage for display
-    const scorePercent = rec.score ? Math.round((rec.score / 5) * 100) : 0;
+    // Clamp to valid range to handle any unexpected values
+    const rawScore = parseFloat(rec.score) || 0;
+    const scorePercent = Math.max(0, Math.min(100, Math.round((rawScore / 5) * 100)));
     const stars = getStarsForConfidence(scorePercent);
     const reasons = extractReasons(rec.explanation);
     
@@ -225,9 +227,12 @@ function renderRecommendationCard(rec) {
 
 // Get stars for confidence level
 function getStarsForConfidence(confidence) {
-    const fullStars = Math.floor(confidence / 20);
-    const halfStar = (confidence % 20) >= 10 ? '½' : '';
-    return '★'.repeat(fullStars) + halfStar + '☆'.repeat(5 - fullStars - (halfStar ? 1 : 0));
+    // Clamp confidence to 0-100 range to prevent errors
+    const clampedConfidence = Math.max(0, Math.min(100, confidence || 0));
+    const fullStars = Math.min(5, Math.floor(clampedConfidence / 20));
+    const halfStar = (clampedConfidence % 20) >= 10 && fullStars < 5 ? '½' : '';
+    const emptyStars = Math.max(0, 5 - fullStars - (halfStar ? 1 : 0));
+    return '★'.repeat(fullStars) + halfStar + '☆'.repeat(emptyStars);
 }
 
 // Extract human-readable reasons from explanation JSON
