@@ -355,6 +355,8 @@ async function saveUserEdits() {
         const isTeacher = document.getElementById('editUserTypeTeacher').checked;
         const isActive = document.getElementById('editUserActive').value === 'true';
         
+        console.log('Saving user edits:', { userId, displayName, role, isParent, isTeacher, isActive });
+        
         if (!displayName) {
             showError('Please enter a display name');
             return;
@@ -370,9 +372,11 @@ async function saveUserEdits() {
         if (isParent) userTypes.push('parent');
         if (isTeacher) userTypes.push('teacher');
         
+        console.log('User types to save:', userTypes);
+        
         const supabaseClient = window.supabaseUtils.getClient();
         
-        const { error } = await supabaseClient
+        const { data, error } = await supabaseClient
             .from('users')
             .update({
                 display_name: displayName,
@@ -380,9 +384,19 @@ async function saveUserEdits() {
                 user_types: userTypes,
                 is_active: isActive
             })
-            .eq('id', userId);
+            .eq('id', userId)
+            .select();
+        
+        console.log('Update result:', { data, error });
         
         if (error) throw error;
+        
+        // Check if the update actually affected any rows
+        if (!data || data.length === 0) {
+            showError('Update failed - you may not have permission to edit this user. Check RLS policies.');
+            console.error('Update returned no rows - likely RLS policy blocking the update');
+            return;
+        }
         
         closeEditUserModal();
         showSuccess('User updated successfully!');
