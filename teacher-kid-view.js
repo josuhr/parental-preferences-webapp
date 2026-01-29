@@ -215,13 +215,12 @@ function renderCategory(category, activities, preferences) {
         }
     });
     
-    // Render each preference group - use same emojis as Activity Preferences page
+    // Render each preference group - use same emojis/labels as Activity Preferences page
     const levels = [
-        { key: 'loves', emoji: '❤️', title: 'Loves' },
-        { key: 'likes', emoji: '😊', title: 'Likes' },
-        { key: 'neutral', emoji: '😐', title: 'Neutral' },
-        { key: 'dislikes', emoji: '😟', title: 'Dislikes' },
-        { key: 'refuses', emoji: '❌', title: 'Refuses' }
+        { key: 'loves', emoji: '⭐', title: 'Loves' },
+        { key: 'likes', emoji: '👍', title: 'Likes' },
+        { key: 'neutral', emoji: '😐', title: 'Not Interested' },
+        { key: 'refuses', emoji: '❓', title: 'Not Yet Tried' }
     ];
     
     levels.forEach(level => {
