@@ -87,12 +87,15 @@ exports.handler = async (event, context) => {
             apiKey: process.env.OPENAI_API_KEY
         });
 
+        // Build list of exact category names for the prompt
+        const categoryNames = requestData.categories.map(c => c.name);
+
         // Build the prompt
         const systemPrompt = `You are a helpful family activity advisor. Based on a family's existing activity preferences, suggest NEW activities they would likely enjoy.
 
 IMPORTANT RULES:
 1. Suggest 5-8 NEW activities that are NOT already in their list
-2. Each suggestion must fit into one of the provided categories
+2. Each suggestion MUST use one of these EXACT category names: ${categoryNames.join(', ')}
 3. Consider patterns in what caregivers and kids enjoy
 4. Suggestions should be age-appropriate and practical for families
 5. Be creative but realistic - activities should be doable at home or locally
@@ -100,7 +103,7 @@ IMPORTANT RULES:
 OUTPUT FORMAT - Return ONLY a valid JSON array with no additional text:
 [
   {
-    "category": "Category Name (must match one of the provided categories exactly)",
+    "category": "EXACT category name from the list above",
     "name": "Activity Name",
     "description": "Brief 1-sentence description of the activity",
     "reasoning": "Brief explanation of why this family would enjoy this based on their preferences"
@@ -151,14 +154,29 @@ OUTPUT FORMAT - Return ONLY a valid JSON array with no additional text:
             throw new Error('AI response is not an array');
         }
 
-        // Validate and clean each suggestion
+        // Validate and clean each suggestion, with fuzzy category matching
         const validCategories = requestData.categories.map(c => c.name);
-        suggestions = suggestions.filter(s => {
-            return s.category && s.name && s.description && s.reasoning &&
-                   validCategories.includes(s.category);
-        });
-
-        console.log(`Successfully generated ${suggestions.length} activity suggestions`);
+        suggestions = suggestions
+            .filter(s => s.category && s.name && s.description && s.reasoning)
+            .map(s => {
+                // Try exact match first
+                if (validCategories.includes(s.category)) {
+                    return s;
+                }
+                // Try case-insensitive match
+                const lowerCategory = s.category.toLowerCase();
+                const matchedCategory = validCategories.find(vc =>
+                    vc.toLowerCase() === lowerCategory ||
+                    vc.toLowerCase().includes(lowerCategory) ||
+                    lowerCategory.includes(vc.toLowerCase())
+                );
+                if (matchedCategory) {
+                    return { ...s, category: matchedCategory };
+                }
+                // No match found - still include but mark for filtering
+                return { ...s, _noMatch: true };
+            })
+            .filter(s => !s._noMatch);
 
         return {
             statusCode: 200,
