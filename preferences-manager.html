@@ -377,6 +377,9 @@
         <div class="manager-header">
             <h1>❤️ Activity Preferences</h1>
             <div style="display: flex; gap: 10px;">
+                <button id="aiSuggestionsBtn" class="btn-secondary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                    ✨ AI Suggestions
+                </button>
                 <button id="addActivityBtn" class="btn-primary">➕ Add Activity</button>
                 <button id="bulkAddBtn" class="btn-secondary" style="background: #667eea; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
                     ➕📋 Bulk Add
@@ -510,6 +513,152 @@
             </div>
         </div>
     </div>
+
+    <!-- AI Suggestions Modal -->
+    <div id="aiSuggestionsModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 700px; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h2>✨ AI Activity Suggestions</h2>
+                <button class="close-btn" onclick="closeAiSuggestionsModal()">×</button>
+            </div>
+
+            <div id="aiSuggestionsContent" style="padding: 0 20px 20px 20px; overflow-y: auto; flex: 1;">
+                <!-- Loading State -->
+                <div id="aiSuggestionsLoading" style="text-align: center; padding: 60px 20px;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">🤖</div>
+                    <div style="font-size: 18px; color: #667eea; margin-bottom: 10px;">Analyzing your preferences...</div>
+                    <div style="color: #666;">Our AI is finding activities your family will love</div>
+                    <div style="margin-top: 20px;">
+                        <div style="width: 200px; height: 4px; background: #e0e0e0; border-radius: 2px; margin: 0 auto; overflow: hidden;">
+                            <div style="width: 30%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 2px; animation: loading 1.5s infinite ease-in-out;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error State -->
+                <div id="aiSuggestionsError" style="display: none; text-align: center; padding: 60px 20px;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">😕</div>
+                    <div id="aiErrorTitle" style="font-size: 18px; color: #c62828; margin-bottom: 10px;">Unable to generate suggestions</div>
+                    <div id="aiErrorMessage" style="color: #666; margin-bottom: 20px;">Please try again later.</div>
+                    <button onclick="fetchAiSuggestions()" class="btn-primary" style="padding: 10px 24px;">
+                        🔄 Try Again
+                    </button>
+                </div>
+
+                <!-- Suggestions List -->
+                <div id="aiSuggestionsList" style="display: none;">
+                    <p style="color: #666; margin-bottom: 20px; font-size: 14px;">
+                        Based on your family's preferences, here are some activities you might enjoy. Click "Add" to add any activity to your household.
+                    </p>
+                    <div id="suggestionsContainer">
+                        <!-- Suggestions will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="aiSuggestionsFooter" style="display: none; padding: 15px 20px; border-top: 2px solid #e0e0e0; background: #f5f7fa;">
+                <button onclick="fetchAiSuggestions()" class="btn-secondary" style="width: 100%; padding: 12px; background: white; border: 2px solid #667eea; color: #667eea; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                    🔄 Get New Suggestions
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(200%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .suggestion-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+
+        .suggestion-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .suggestion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .suggestion-category {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #667eea;
+            background: #f0f4ff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .suggestion-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .suggestion-description {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .suggestion-reasoning {
+            font-size: 13px;
+            color: #888;
+            font-style: italic;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .suggestion-add-btn {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .suggestion-add-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .suggestion-add-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .suggestion-added {
+            color: #2e7d32;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+    </style>
 
     <script src="supabase-config.js"></script>
     <script>

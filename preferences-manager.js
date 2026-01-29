@@ -39,9 +39,13 @@ function setupEventListeners() {
     document.getElementById('addActivityBtn').addEventListener('click', () => {
         openAddActivityModal();
     });
-    
+
     document.getElementById('bulkAddBtn').addEventListener('click', () => {
         openBulkAddModal();
+    });
+
+    document.getElementById('aiSuggestionsBtn').addEventListener('click', () => {
+        openAiSuggestionsModal();
     });
     
     // Search input
@@ -1058,3 +1062,308 @@ async function addSelectedActivities() {
 window.closeBulkAddModal = closeBulkAddModal;
 window.toggleSelectAll = toggleSelectAll;
 window.addSelectedActivities = addSelectedActivities;
+
+// ====== AI SUGGESTIONS FUNCTIONALITY ======
+
+// Open AI suggestions modal
+function openAiSuggestionsModal() {
+    const modal = document.getElementById('aiSuggestionsModal');
+    if (!modal) {
+        showError('AI suggestions modal not found');
+        return;
+    }
+
+    // Show loading state
+    document.getElementById('aiSuggestionsLoading').style.display = 'block';
+    document.getElementById('aiSuggestionsError').style.display = 'none';
+    document.getElementById('aiSuggestionsList').style.display = 'none';
+    document.getElementById('aiSuggestionsFooter').style.display = 'none';
+
+    modal.style.display = 'flex';
+
+    // Fetch suggestions
+    fetchAiSuggestions();
+}
+
+// Close AI suggestions modal
+function closeAiSuggestionsModal() {
+    const modal = document.getElementById('aiSuggestionsModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Fetch AI suggestions from the Netlify function
+async function fetchAiSuggestions() {
+    // Show loading state
+    document.getElementById('aiSuggestionsLoading').style.display = 'block';
+    document.getElementById('aiSuggestionsError').style.display = 'none';
+    document.getElementById('aiSuggestionsList').style.display = 'none';
+    document.getElementById('aiSuggestionsFooter').style.display = 'none';
+
+    try {
+        // Gather preference data
+        const requestData = gatherPreferenceDataForAI();
+
+        // Call the Netlify function
+        const response = await fetch('/.netlify/functions/suggest-activities', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.message || data.error || 'Failed to generate suggestions');
+        }
+
+        // Render suggestions
+        renderAiSuggestions(data.suggestions);
+
+    } catch (error) {
+        console.error('Error fetching AI suggestions:', error);
+        showAiError(error.message || 'Unable to generate suggestions');
+    }
+}
+
+// Gather preference data to send to the AI
+function gatherPreferenceDataForAI() {
+    // Get current household activities with their names and categories
+    const householdActivityList = householdActivities.map(ha => {
+        const activity = ha.kid_activities;
+        const category = categories.find(c => c.id === activity.category_id);
+        return {
+            name: activity.name,
+            category: category ? category.name : 'Unknown',
+            description: activity.description || ''
+        };
+    });
+
+    // Get caregiver preferences grouped by level
+    const caregiverPrefs = {
+        drop_anything: [],
+        sometimes: [],
+        on_your_own: []
+    };
+
+    preferences.forEach(pref => {
+        const householdActivity = householdActivities.find(ha => ha.id === pref.household_activity_id);
+        if (!householdActivity) return;
+
+        const activityName = householdActivity.kid_activities.name;
+
+        if (pref.caregiver1_preference === 'drop_anything' || pref.caregiver2_preference === 'drop_anything') {
+            if (!caregiverPrefs.drop_anything.includes(activityName)) {
+                caregiverPrefs.drop_anything.push(activityName);
+            }
+        }
+        if (pref.caregiver1_preference === 'sometimes' || pref.caregiver2_preference === 'sometimes') {
+            if (!caregiverPrefs.sometimes.includes(activityName)) {
+                caregiverPrefs.sometimes.push(activityName);
+            }
+        }
+        if (pref.caregiver1_preference === 'on_your_own' || pref.caregiver2_preference === 'on_your_own') {
+            if (!caregiverPrefs.on_your_own.includes(activityName)) {
+                caregiverPrefs.on_your_own.push(activityName);
+            }
+        }
+    });
+
+    // Get kid preferences grouped by kid and level
+    const kidPrefs = {};
+
+    kids.forEach(kid => {
+        kidPrefs[kid.name] = {
+            loves: [],
+            likes: [],
+            neutral: [],
+            refuses: []
+        };
+
+        kidPreferences.filter(kp => kp.kid_id === kid.id).forEach(kp => {
+            const householdActivity = householdActivities.find(ha => ha.activity_id === kp.activity_id);
+            if (!householdActivity) return;
+
+            const activityName = householdActivity.kid_activities.name;
+
+            switch (kp.preference_level) {
+                case 'loves':
+                    kidPrefs[kid.name].loves.push(activityName);
+                    break;
+                case 'likes':
+                    kidPrefs[kid.name].likes.push(activityName);
+                    break;
+                case 'neutral':
+                    kidPrefs[kid.name].neutral.push(activityName);
+                    break;
+                case 'refuses':
+                    kidPrefs[kid.name].refuses.push(activityName);
+                    break;
+            }
+        });
+    });
+
+    // Get categories for the AI to choose from
+    const categoryList = categories.map(c => ({
+        id: c.id,
+        name: c.name,
+        icon: c.icon
+    }));
+
+    return {
+        householdActivities: householdActivityList,
+        preferences: caregiverPrefs,
+        kidPreferences: kidPrefs,
+        categories: categoryList
+    };
+}
+
+// Show error state in the AI modal
+function showAiError(message) {
+    document.getElementById('aiSuggestionsLoading').style.display = 'none';
+    document.getElementById('aiSuggestionsList').style.display = 'none';
+    document.getElementById('aiSuggestionsFooter').style.display = 'none';
+
+    const errorDiv = document.getElementById('aiSuggestionsError');
+    const errorMessage = document.getElementById('aiErrorMessage');
+
+    if (message.includes('not configured')) {
+        document.getElementById('aiErrorTitle').textContent = 'AI Not Configured';
+        errorMessage.textContent = 'The AI service is not set up. Please ask your administrator to configure the OPENAI_API_KEY.';
+    } else if (message.includes('Rate limit')) {
+        document.getElementById('aiErrorTitle').textContent = 'Too Many Requests';
+        errorMessage.textContent = 'Please wait a moment before trying again.';
+    } else {
+        document.getElementById('aiErrorTitle').textContent = 'Unable to Generate Suggestions';
+        errorMessage.textContent = message;
+    }
+
+    errorDiv.style.display = 'block';
+}
+
+// Render AI suggestions in the modal
+function renderAiSuggestions(suggestions) {
+    document.getElementById('aiSuggestionsLoading').style.display = 'none';
+    document.getElementById('aiSuggestionsError').style.display = 'none';
+
+    const container = document.getElementById('suggestionsContainer');
+    container.innerHTML = '';
+
+    if (!suggestions || suggestions.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <div style="font-size: 32px; margin-bottom: 10px;">🤷</div>
+                <p>No suggestions available right now. Try adding more activities and preferences first!</p>
+            </div>
+        `;
+        document.getElementById('aiSuggestionsList').style.display = 'block';
+        document.getElementById('aiSuggestionsFooter').style.display = 'block';
+        return;
+    }
+
+    suggestions.forEach((suggestion, index) => {
+        const category = categories.find(c => c.name === suggestion.category);
+        const categoryIcon = category ? category.icon : '📌';
+
+        const card = document.createElement('div');
+        card.className = 'suggestion-card';
+        card.id = `suggestion-${index}`;
+        card.innerHTML = `
+            <div class="suggestion-header">
+                <span class="suggestion-category">${categoryIcon} ${suggestion.category}</span>
+                <button class="suggestion-add-btn" onclick="addSuggestedActivity(${index})">
+                    ➕ Add
+                </button>
+            </div>
+            <div class="suggestion-name">${suggestion.name}</div>
+            <div class="suggestion-description">${suggestion.description}</div>
+            <div class="suggestion-reasoning">💡 ${suggestion.reasoning}</div>
+        `;
+
+        container.appendChild(card);
+    });
+
+    // Store suggestions for later use when adding
+    window.currentAiSuggestions = suggestions;
+
+    document.getElementById('aiSuggestionsList').style.display = 'block';
+    document.getElementById('aiSuggestionsFooter').style.display = 'block';
+}
+
+// Add a suggested activity to the household
+async function addSuggestedActivity(suggestionIndex) {
+    const suggestion = window.currentAiSuggestions[suggestionIndex];
+    if (!suggestion) {
+        showError('Suggestion not found');
+        return;
+    }
+
+    const card = document.getElementById(`suggestion-${suggestionIndex}`);
+    const addBtn = card.querySelector('.suggestion-add-btn');
+
+    // Disable button while processing
+    addBtn.disabled = true;
+    addBtn.textContent = 'Adding...';
+
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+
+        // Find the category ID
+        const category = categories.find(c => c.name === suggestion.category);
+        if (!category) {
+            throw new Error('Category not found');
+        }
+
+        // Create the activity in kid_activities
+        const { data: newActivity, error: activityError } = await supabaseClient
+            .from('kid_activities')
+            .insert({
+                category_id: category.id,
+                name: suggestion.name,
+                description: suggestion.description
+            })
+            .select()
+            .single();
+
+        if (activityError) throw activityError;
+
+        // Add to household_activities
+        const { error: householdError } = await supabaseClient
+            .from('household_activities')
+            .insert({
+                user_id: currentUser.id,
+                activity_id: newActivity.id
+            });
+
+        if (householdError) throw householdError;
+
+        // Update UI to show success
+        const headerDiv = card.querySelector('.suggestion-header');
+        headerDiv.innerHTML = `
+            <span class="suggestion-category">${category.icon} ${suggestion.category}</span>
+            <span class="suggestion-added">✓ Added</span>
+        `;
+
+        // Reload the main data to show the new activity
+        await loadAllData();
+
+        showSuccess(`"${suggestion.name}" added to your household!`);
+
+    } catch (error) {
+        console.error('Error adding suggested activity:', error);
+        showError('Failed to add activity: ' + error.message);
+
+        // Re-enable button on error
+        addBtn.disabled = false;
+        addBtn.textContent = '➕ Add';
+    }
+}
+
+// Make AI functions globally available
+window.openAiSuggestionsModal = openAiSuggestionsModal;
+window.closeAiSuggestionsModal = closeAiSuggestionsModal;
+window.fetchAiSuggestions = fetchAiSuggestions;
+window.addSuggestedActivity = addSuggestedActivity;
