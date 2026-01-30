@@ -123,14 +123,17 @@ async function isAdmin(userId) {
         return false;
     }
 
-    // Check array format first, then singular, then role
-    if (Array.isArray(data?.user_types)) {
-        return data.user_types.includes('admin');
+    // Check ALL possible admin indicators
+    if (Array.isArray(data?.user_types) && data.user_types.includes('admin')) {
+        return true;
     }
-    if (data?.user_type) {
-        return data.user_type === 'admin';
+    if (data?.user_type === 'admin') {
+        return true;
     }
-    return data?.role === 'admin';
+    if (data?.role === 'admin') {
+        return true;
+    }
+    return false;
 }
 
 // Check if user has a specific user type

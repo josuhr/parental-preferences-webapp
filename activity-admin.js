@@ -26,14 +26,14 @@ async function checkAdminAccess() {
         .eq('id', user.id)
         .single();
 
-    // Check array format first, then singular, then role
+    // Check ALL possible admin indicators
     let userIsAdmin = false;
-    if (Array.isArray(userData?.user_types)) {
-        userIsAdmin = userData.user_types.includes('admin');
-    } else if (userData?.user_type) {
-        userIsAdmin = userData.user_type === 'admin';
-    } else {
-        userIsAdmin = userData?.role === 'admin';
+    if (Array.isArray(userData?.user_types) && userData.user_types.includes('admin')) {
+        userIsAdmin = true;
+    } else if (userData?.user_type === 'admin') {
+        userIsAdmin = true;
+    } else if (userData?.role === 'admin') {
+        userIsAdmin = true;
     }
 
     if (error || !userIsAdmin) {
