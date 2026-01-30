@@ -553,7 +553,7 @@ function createPreferenceButtons(householdId, caregiverType, currentPreference) 
     const levels = [
         { value: 'drop_anything', emoji: '🔥', title: 'Drop anything - High priority' },
         { value: 'sometimes', emoji: '👌', title: 'Sometimes - Flexible' },
-        { value: 'on_your_own', emoji: '🆗', title: 'On your own - Kid can do independently' }
+        { value: 'on_your_own', emoji: '👋', title: 'On your own - Kid can do independently' }
     ];
     
     return levels.map(level => {

@@ -184,7 +184,7 @@ function renderByRating(container) {
     const ratingLevels = [
         { value: 'drop_anything', label: 'Drop Anything', icon: '🔥' },
         { value: 'sometimes', label: 'Sometimes', icon: '👌' },
-        { value: 'on_your_own', label: 'On Your Own', icon: '🆗' }
+        { value: 'on_your_own', label: 'On Your Own', icon: '👋' }
     ];
     
     ratingLevels.forEach(rating => {
@@ -485,7 +485,7 @@ function getPreferenceEmoji(preference) {
     switch (preference) {
         case 'drop_anything': return '🔥';
         case 'sometimes': return '👌';
-        case 'on_your_own': return '🆗';
+        case 'on_your_own': return '👋';
         default: return '—';
     }
 }
@@ -569,7 +569,7 @@ function exportToPDF() {
             <span class="print-legend-text">Sometimes</span>
         </div>
         <div class="print-legend-item">
-            <span class="print-legend-emoji">🆗</span>
+            <span class="print-legend-emoji">👋</span>
             <span class="print-legend-text">On Your Own</span>
         </div>
     `;
