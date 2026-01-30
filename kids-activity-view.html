@@ -63,15 +63,18 @@
             /* Hide UI elements */
             .filter-bar, .view-toggle, #exportPdfBtn,
             #platform-nav-container, #sidebar-nav-container,
-            .breadcrumb-nav, .page-header {
+            .breadcrumb-nav, .page-header,
+            .sidebar-nav, .platform-nav, .mobile-sidebar-toggle, .sidebar-overlay {
                 display: none !important;
             }
 
-            /* Clean layout */
-            body {
-                margin: 0;
-                padding: 0;
-                background: white;
+            /* Reset ALL layout margins - critical for proper positioning */
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                margin-left: 0 !important;
+                padding-top: 0 !important;
+                background: white !important;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 font-size: 11pt;
                 -webkit-print-color-adjust: exact !important;
@@ -81,108 +84,128 @@
             .main-content {
                 margin: 0 !important;
                 padding: 0 !important;
+                margin-left: 0 !important;
+                min-height: auto !important;
+                background: white !important;
+            }
+
+            .content-area {
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: none !important;
             }
 
             .kids-view-container {
-                padding: 0;
-                max-width: none;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: none !important;
+                width: 100% !important;
             }
 
-            /* Print header styling */
+            /* Print header styling - works with or without "Print backgrounds" */
             .print-header {
                 display: block !important;
                 text-align: center;
-                margin-bottom: 20px;
-                padding: 20px;
+                margin-bottom: 16px;
+                padding: 16px 20px;
+                border: 4px solid #667eea;
+                border-radius: 12px;
                 background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FFA726 50%, #AB47BC 75%, #7E57C2 100%) !important;
-                border-radius: 16px;
-                color: white;
             }
 
             .print-header h1 {
-                margin: 0 0 8px 0;
-                font-size: 24pt;
+                margin: 0 0 6px 0;
+                font-size: 22pt;
                 font-weight: 700;
-                text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                color: #333;
             }
 
             .print-header .subtitle {
-                font-size: 12pt;
-                opacity: 0.95;
+                font-size: 11pt;
+                color: #555;
+                font-weight: 500;
             }
 
             /* Legend styling */
             .print-legend {
                 display: flex !important;
                 justify-content: center;
-                gap: 30px;
-                margin-bottom: 20px;
-                padding: 12px 20px;
-                background: #f8f9fa;
-                border-radius: 12px;
-                border: 2px solid #e0e0e0;
+                gap: 24px;
+                margin-bottom: 16px;
+                padding: 10px 20px;
+                border: 2px solid #ccc;
+                border-radius: 8px;
             }
 
             .print-legend-item {
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                font-size: 11pt;
+                gap: 6px;
+                font-size: 10pt;
             }
 
             .print-legend-emoji {
-                font-size: 18pt;
+                font-size: 14pt;
             }
 
             .print-legend-text {
-                font-weight: 500;
+                font-weight: 600;
                 color: #333;
             }
 
             /* Category sections */
             .category-section {
                 page-break-inside: avoid;
-                margin-bottom: 16px;
-                box-shadow: none;
-                border: 2px solid #e0e0e0;
-                border-radius: 12px;
+                margin-bottom: 14px;
+                box-shadow: none !important;
+                border: 2px solid #667eea;
+                border-radius: 8px;
                 overflow: hidden;
+                padding: 0 !important;
             }
 
             .category-title {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-                color: white !important;
-                padding: 10px 16px !important;
+                background: #f0f4ff !important;
+                border-bottom: 2px solid #667eea;
+                padding: 8px 12px !important;
                 margin-bottom: 0 !important;
                 border-radius: 0 !important;
             }
 
             .category-title span {
-                color: white !important;
+                color: #333 !important;
             }
 
             .category-icon {
-                font-size: 20px !important;
+                font-size: 16px !important;
             }
 
-            /* Tables */
+            #category-content-1, #category-content-2, #category-content-3,
+            #category-content-4, #category-content-5, #category-content-6,
+            #category-content-7, #category-content-8, #category-content-9,
+            [id^="category-content-"] {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Tables - compact for more content per page */
             .activities-table {
-                font-size: 10pt;
+                font-size: 9pt;
                 border-collapse: collapse;
                 width: 100%;
                 margin: 0;
             }
 
             .activities-table th {
-                padding: 8px 12px;
-                font-size: 10pt;
+                padding: 5px 8px;
+                font-size: 9pt;
                 background: #f5f5f5 !important;
-                border-bottom: 2px solid #ddd;
+                border-bottom: 1px solid #ccc;
                 text-align: left;
             }
 
             .activities-table td {
-                padding: 8px 12px;
+                padding: 4px 8px;
                 border-bottom: 1px solid #eee;
             }
 
@@ -190,12 +213,9 @@
                 page-break-inside: avoid;
             }
 
-            .activities-table tr:nth-child(even) {
-                background: #fafafa !important;
-            }
-
             .pref-cell {
-                font-size: 16pt !important;
+                font-size: 12pt !important;
+                text-align: center !important;
             }
 
             /* Hide descriptions in print */
@@ -212,18 +232,18 @@
             .print-footer {
                 display: block !important;
                 text-align: center;
-                margin-top: 24px;
-                padding-top: 16px;
-                border-top: 2px dashed #ccc;
-                color: #888;
-                font-size: 10pt;
+                margin-top: 20px;
+                padding-top: 12px;
+                border-top: 2px dashed #999;
+                color: #666;
+                font-size: 9pt;
             }
 
             .print-footer-logo {
-                font-size: 14pt;
-                font-weight: 600;
+                font-size: 12pt;
+                font-weight: 700;
                 color: #667eea;
-                margin-bottom: 4px;
+                margin-bottom: 2px;
             }
         }
 
