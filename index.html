@@ -3,99 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activity Guide - HomeBase</title>
-    <link rel="stylesheet" href="homebase-layout.css">
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta http-equiv="refresh" content="0;url=/dashboard.html">
+    <title>HomeBase - Redirecting...</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 25%, #FFA726 50%, #AB47BC 75%, #7E57C2 100%);
+        }
+        .loading {
+            text-align: center;
+            color: white;
+        }
+        .loading h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .loading p {
+            opacity: 0.9;
+        }
+        a {
+            color: white;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <!-- Platform Navigation -->
-    <div id="platformNavContainer"></div>
-    <div id="sidebar-nav-container"></div>
-    
-    <div class="main-content">
-        <div class="no-print header">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
-            <div>
-                <h1>🎨 Parental Preferences Activity Guide</h1>
-                <p>Which activities do Mom and Dad love to do with you?</p>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button id="dashboardBtn" class="btn btn-secondary" style="display: none;">⚙️ Dashboard</button>
-                <button id="adminBtn" class="btn btn-help" style="display: none;">🛡️ Admin</button>
-            </div>
-        </div>
-        <div class="data-source-switcher" style="margin-bottom: 15px; padding: 12px; background: #f5f5f5; border-radius: 8px;">
-            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                <label style="font-weight: 600; color: #555;">📊 Data Source:</label>
-                <div style="display: flex; gap: 10px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="radio" name="dataSource" value="sheets" id="sourceSheets" checked>
-                        <span>Google Sheets</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="radio" name="dataSource" value="builtin" id="sourceBuiltin">
-                        <span>Built-in Preferences</span>
-                    </label>
-                </div>
-                <button id="managePrefsBtn" class="btn btn-secondary" style="display: none;">✏️ Manage Preferences</button>
-            </div>
-        </div>
-        <div class="view-mode-switcher" style="margin-bottom: 15px; padding: 12px; background: #f5f5f5; border-radius: 8px;">
-            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                <label style="font-weight: 600; color: #555;">👁️ View By:</label>
-                <div style="display: flex; gap: 10px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="radio" name="viewMode" value="level" id="viewByLevel" checked>
-                        <span>How Much They Like It</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="radio" name="viewMode" value="who" id="viewByWho">
-                        <span>Who Likes It</span>
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div class="controls">
-            <button id="refreshBtn" class="btn btn-primary">🔄 Refresh Data</button>
-            <button id="printBtn" class="btn btn-secondary">🖨️ Print</button>
-        </div>
-        <div id="loading" class="loading">Loading activities...</div>
-        <div id="error" class="error"></div>
+    <div class="loading">
+        <h1>HomeBase</h1>
+        <p>Redirecting to dashboard...</p>
+        <p><a href="/dashboard.html">Click here if not redirected</a></p>
     </div>
-
-    <div id="categories" class="categories-container">
-        <!-- Categories will be dynamically inserted here -->
-    </div>
-
-    <div class="print-footer">
-        <p>💜 Activities updated from Google Sheets | Made with love for learning together!</p>
-    </div>
-    </div>
-
-    <script src="supabase-config.js"></script>
     <script>
-        // Load platform navigation
-        fetch('platform-nav.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('platformNavContainer').innerHTML = html;
-                const script = document.createElement('script');
-                script.src = 'platform-nav.js';
-                document.body.appendChild(script);
-            })
-            .catch(error => console.error('Error loading platform nav:', error));
-        
-        // Load sidebar navigation
-        fetch('sidebar-nav.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('sidebar-nav-container').innerHTML = html;
-                const script = document.createElement('script');
-                script.src = 'sidebar-nav.js';
-                document.body.appendChild(script);
-            });
+        // JavaScript redirect as backup
+        window.location.replace('/dashboard.html');
     </script>
-    <script src="script.js"></script>
 </body>
 </html>
