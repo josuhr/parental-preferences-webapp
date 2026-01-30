@@ -12,6 +12,8 @@ let kidPreferences = [];
 let visibleKidIds = new Set(); // Track which kids are visible in the table
 let expandedCategoryIds = new Set(); // Track expanded categories in current session
 let selectedActivityIds = new Set(); // For bulk add modal
+let currentSearchTerm = ''; // Current search filter
+let categorySortState = {}; // Track sort state per category: { categoryId: 'asc' | 'desc' | null }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -140,6 +142,124 @@ function toggleKidVisibility(kidId) {
 // Make toggleKidVisibility available globally
 window.toggleKidVisibility = toggleKidVisibility;
 
+// ====== SEARCH FILTERING ======
+
+// Filter activities by search term
+function filterActivitiesBySearch(searchTerm) {
+    currentSearchTerm = searchTerm.toLowerCase().trim();
+
+    // Show/hide clear button
+    const clearBtn = document.getElementById('clearSearchBtn');
+    if (clearBtn) {
+        clearBtn.style.display = currentSearchTerm ? 'block' : 'none';
+    }
+
+    // Get all activity rows
+    const allRows = document.querySelectorAll('.activity-row');
+    const categorySections = document.querySelectorAll('.category-card');
+
+    allRows.forEach(row => {
+        const activityName = row.querySelector('.activity-name')?.textContent.toLowerCase() || '';
+        const activityDesc = row.querySelector('.activity-description')?.textContent.toLowerCase() || '';
+
+        if (!currentSearchTerm || activityName.includes(currentSearchTerm) || activityDesc.includes(currentSearchTerm)) {
+            row.classList.remove('search-hidden');
+        } else {
+            row.classList.add('search-hidden');
+        }
+    });
+
+    // Show/hide category sections based on whether they have visible activities
+    categorySections.forEach(section => {
+        const visibleRows = section.querySelectorAll('.activity-row:not(.search-hidden)');
+        const tableBody = section.querySelector('.table-body');
+
+        // Remove any existing "no results" message
+        const existingNoResults = section.querySelector('.no-search-results');
+        if (existingNoResults) {
+            existingNoResults.remove();
+        }
+
+        if (visibleRows.length === 0 && currentSearchTerm) {
+            // Hide the whole category if no matching activities
+            section.style.display = 'none';
+        } else {
+            section.style.display = 'block';
+
+            // Auto-expand categories with search results
+            if (currentSearchTerm && visibleRows.length > 0 && !section.hasAttribute('open')) {
+                section.setAttribute('open', '');
+            }
+        }
+    });
+
+    // Update the activity count in category headers
+    updateCategoryActivityCounts();
+}
+
+// Update category activity counts to reflect search results
+function updateCategoryActivityCounts() {
+    const categorySections = document.querySelectorAll('.category-card');
+
+    categorySections.forEach(section => {
+        const totalRows = section.querySelectorAll('.activity-row').length;
+        const visibleRows = section.querySelectorAll('.activity-row:not(.search-hidden)').length;
+        const countSpan = section.querySelector('.category-header .category-title span:last-child');
+
+        if (countSpan && countSpan.style) {
+            if (currentSearchTerm) {
+                countSpan.textContent = `(${visibleRows} of ${totalRows} activities)`;
+            } else {
+                countSpan.textContent = `(${totalRows} activities)`;
+            }
+        }
+    });
+}
+
+// Clear search
+function clearSearch() {
+    const searchInput = document.getElementById('activitySearchFilter');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    filterActivitiesBySearch('');
+}
+
+// Make search functions globally available
+window.filterActivitiesBySearch = filterActivitiesBySearch;
+window.clearSearch = clearSearch;
+
+// ====== SORTING ======
+
+// Sort activities within a category
+function sortCategoryActivities(categoryId, direction) {
+    // Update sort state
+    if (categorySortState[categoryId] === direction) {
+        // Toggle off if clicking the same direction
+        categorySortState[categoryId] = null;
+    } else {
+        categorySortState[categoryId] = direction;
+    }
+
+    // Re-render to apply sort
+    renderHouseholdActivities();
+
+    // Restore search filter if active
+    if (currentSearchTerm) {
+        filterActivitiesBySearch(currentSearchTerm);
+    }
+
+    // Ensure this category stays expanded
+    const section = document.querySelector(`.category-card[data-category-id="${categoryId}"]`);
+    if (section) {
+        section.setAttribute('open', '');
+        expandedCategoryIds.add(categoryId);
+    }
+}
+
+// Make sort function globally available
+window.sortCategoryActivities = sortCategoryActivities;
+
 // Load all data
 async function loadAllData() {
     showLoading(true);
@@ -235,17 +355,17 @@ async function loadAllData() {
 function renderHouseholdActivities() {
     const container = document.getElementById('activitiesContainer');
     const emptyState = document.getElementById('emptyState');
-    
+
     if (householdActivities.length === 0) {
         container.style.display = 'none';
         emptyState.style.display = 'block';
         return;
     }
-    
+
     container.style.display = 'block';
     emptyState.style.display = 'none';
     container.innerHTML = '';
-    
+
     // Group by category
     const activityByCategory = {};
     householdActivities.forEach(ha => {
@@ -259,15 +379,21 @@ function renderHouseholdActivities() {
             activity: activity
         });
     });
-    
+
     // Render each category
     categories.forEach(category => {
         const categoryActivities = activityByCategory[category.id] || [];
         if (categoryActivities.length > 0) {
-            const categoryCard = createCategoryCard(category, categoryActivities);
+            // Pass a copy so sorting doesn't affect the original array
+            const categoryCard = createCategoryCard(category, [...categoryActivities]);
             container.appendChild(categoryCard);
         }
     });
+
+    // Reapply search filter if one is active
+    if (currentSearchTerm) {
+        filterActivitiesBySearch(currentSearchTerm);
+    }
 }
 
 // Create category card
@@ -275,12 +401,12 @@ function createCategoryCard(category, categoryActivities) {
     const card = document.createElement('details');
     card.className = 'category-card';
     card.dataset.categoryId = category.id;
-    
+
     // Keep category open if it was previously expanded in this session
     if (expandedCategoryIds.has(category.id)) {
         card.setAttribute('open', '');
     }
-    
+
     // Track when category is opened/closed
     card.addEventListener('toggle', () => {
         if (card.open) {
@@ -289,18 +415,45 @@ function createCategoryCard(category, categoryActivities) {
             expandedCategoryIds.delete(category.id);
         }
     });
-    
+
+    // Sort activities based on current sort state for this category
+    const sortDirection = categorySortState[category.id];
+    if (sortDirection) {
+        categoryActivities.sort((a, b) => {
+            const nameA = a.activity.name.toLowerCase();
+            const nameB = b.activity.name.toLowerCase();
+            if (sortDirection === 'asc') {
+                return nameA.localeCompare(nameB);
+            } else {
+                return nameB.localeCompare(nameA);
+            }
+        });
+    }
+
     const caregiver1Label = userSettings?.caregiver1_label || 'Mom';
     const caregiver2Label = userSettings?.caregiver2_label || 'Dad';
     const bothLabel = userSettings?.both_label || 'Both';
-    
-    // Build header with kid columns
+
+    // Determine sort button states
+    const ascActive = sortDirection === 'asc' ? 'active' : '';
+    const descActive = sortDirection === 'desc' ? 'active' : '';
+
+    // Build header with kid columns and sort controls
     let headerHTML = `
         <summary class="category-header">
             <div class="category-title">
                 <span class="category-icon">${category.icon}</span>
                 <span>${category.name}</span>
                 <span style="font-size: 11px; color: #888; margin-left: 10px;">(${categoryActivities.length} activities)</span>
+            </div>
+            <div class="sort-controls" onclick="event.stopPropagation();">
+                <span class="sort-label">Sort:</span>
+                <button class="sort-btn ${ascActive}" onclick="event.preventDefault(); sortCategoryActivities('${category.id}', 'asc')" title="Sort A-Z">
+                    A↓Z
+                </button>
+                <button class="sort-btn ${descActive}" onclick="event.preventDefault(); sortCategoryActivities('${category.id}', 'desc')" title="Sort Z-A">
+                    Z↓A
+                </button>
             </div>
         </summary>
         <div class="activities-table">
@@ -345,7 +498,9 @@ function createCategoryCard(category, categoryActivities) {
 function createActivityRow(householdId, activity) {
     const row = document.createElement('div');
     row.className = 'activity-row';
-    
+    row.dataset.activityName = activity.name.toLowerCase();
+    row.dataset.householdId = householdId;
+
     const preference = preferences.find(p => p.household_activity_id === householdId);
     const visibleKids = kids.filter(k => visibleKidIds.has(k.id));
     

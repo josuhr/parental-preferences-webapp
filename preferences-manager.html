@@ -215,9 +215,68 @@
         .kid-filter-checkbox:hover {
             background: #e8e8e8;
         }
-        
+
         .kid-filter-checkbox input[type="checkbox"] {
             cursor: pointer;
+        }
+
+        /* Sort controls */
+        .sort-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: auto;
+        }
+
+        .sort-btn {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #666;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sort-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .sort-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .sort-label {
+            font-size: 12px;
+            color: #888;
+            margin-right: 4px;
+        }
+
+        /* Search highlight */
+        .activity-row.search-hidden {
+            display: none !important;
+        }
+
+        .search-match {
+            background: #fff3cd;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        /* No results message */
+        .no-search-results {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-style: italic;
         }
 
         .btn-primary {
@@ -388,10 +447,24 @@
         </div>
         
         <div style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                <label style="font-weight: 600; color: #333;">Show Kids:</label>
-                <div id="kidFilters" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <!-- Kid checkboxes will be populated here -->
+            <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <!-- Search Box -->
+                <div style="flex: 1; min-width: 250px;">
+                    <div style="position: relative;">
+                        <input type="text" id="activitySearchFilter" placeholder="🔍 Search activities..."
+                               style="width: 100%; padding: 10px 14px 10px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border-color 0.2s;"
+                               oninput="filterActivitiesBySearch(this.value)">
+                        <button id="clearSearchBtn" onclick="clearSearch()"
+                                style="display: none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: #999;">✕</button>
+                    </div>
+                </div>
+
+                <!-- Kid Filters -->
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <label style="font-weight: 600; color: #333;">Show Kids:</label>
+                    <div id="kidFilters" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <!-- Kid checkboxes will be populated here -->
+                    </div>
                 </div>
             </div>
         </div>
