@@ -91,6 +91,10 @@
             <path d="M9 5H2v7l9 9 7-7-9-9z"/>
             <circle cx="6" cy="9" r="1.5" fill="currentColor"/>
             <path d="M15 5h-1l7 7-4 4"/>
+        </svg>`,
+        'admin': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L4 6v6c0 5.5 3.5 10.7 8 12 4.5-1.3 8-6.5 8-12V6l-8-4z"/>
+            <path d="M9 12l2 2 4-4"/>
         </svg>`
     };
 
@@ -108,6 +112,7 @@
                 { name: 'Recommendations', icon: 'sparkle', url: '/recommendations.html', slug: 'recommendations.html' },
                 { name: 'Activity Contexts', icon: 'tags', url: '/activity-contexts.html', slug: 'activity-contexts.html' },
                 { name: 'Teacher Dashboard', icon: 'school', url: '/teacher-dashboard.html', slug: 'teacher-dashboard.html', requiresTeacher: true },
+                { name: 'Activity Admin', icon: 'admin', url: '/activity-admin.html', slug: 'activity-admin.html', requiresAdmin: true },
                 { name: 'Settings', icon: 'settings', url: '/recommendation-settings.html', slug: 'recommendation-settings.html' }
             ]
         },
@@ -250,6 +255,10 @@
 
     // Check if item should be visible based on permissions
     function shouldShowItem(item) {
+        // If item requires admin access, check permissions
+        if (item.requiresAdmin) {
+            return userIsAdmin;
+        }
         // If item requires teacher access, check permissions
         if (item.requiresTeacher) {
             return userIsTeacher || userIsAdmin;

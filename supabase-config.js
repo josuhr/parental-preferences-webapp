@@ -107,8 +107,30 @@ async function getUserSettings(userId) {
 
 // Check if user is admin
 async function isAdmin(userId) {
-    const profile = await getUserProfile(userId);
-    return profile && profile.role === 'admin';
+    if (!supabaseClient) {
+        await initSupabase();
+    }
+
+    // Select all columns and check whichever exists
+    const { data, error } = await supabaseClient
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+    if (error) {
+        console.error('Error checking admin status:', error);
+        return false;
+    }
+
+    // Check array format first, then singular, then role
+    if (Array.isArray(data?.user_types)) {
+        return data.user_types.includes('admin');
+    }
+    if (data?.user_type) {
+        return data.user_type === 'admin';
+    }
+    return data?.role === 'admin';
 }
 
 // Check if user has a specific user type
@@ -131,30 +153,71 @@ function hasUserType(profile, type) {
 
 // Check if user is a teacher
 async function isTeacher(userId) {
-    const profile = await getUserProfile(userId);
-    return hasUserType(profile, 'teacher');
+    if (!supabaseClient) {
+        await initSupabase();
+    }
+
+    const { data, error } = await supabaseClient
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+    if (error) {
+        console.error('Error checking teacher status:', error);
+        return false;
+    }
+
+    if (Array.isArray(data?.user_types)) {
+        return data.user_types.includes('teacher');
+    }
+    return data?.user_type === 'teacher';
 }
 
 // Check if user is a parent
 async function isParent(userId) {
-    const profile = await getUserProfile(userId);
-    return hasUserType(profile, 'parent');
+    if (!supabaseClient) {
+        await initSupabase();
+    }
+
+    const { data, error } = await supabaseClient
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+    if (error) {
+        console.error('Error checking parent status:', error);
+        return false;
+    }
+
+    if (Array.isArray(data?.user_types)) {
+        return data.user_types.includes('parent');
+    }
+    return data?.user_type === 'parent';
 }
 
 // Get all user types for a user
 async function getUserTypes(userId) {
-    const profile = await getUserProfile(userId);
-    if (!profile) return [];
-    
-    if (Array.isArray(profile.user_types)) {
-        return profile.user_types;
+    if (!supabaseClient) {
+        await initSupabase();
     }
-    
-    if (profile.user_type) {
-        return [profile.user_type];
+
+    const { data, error } = await supabaseClient
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+    if (error) {
+        console.error('Error getting user types:', error);
+        return ['parent']; // Default
     }
-    
-    return ['parent']; // Default
+
+    if (Array.isArray(data?.user_types)) {
+        return data.user_types;
+    }
+    return data?.user_type ? [data.user_type] : ['parent'];
 }
 
 // Sign out
