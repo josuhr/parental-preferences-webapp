@@ -11,6 +11,9 @@ let currentFilter = 'all';
 let groupByMode = 'category'; // 'category' or 'rating'
 let activityContexts = {}; // Maps activity_id to array of context info
 let currentContextFilter = 'all'; // Current context filter
+let isKidViewMode = false; // Toggle between caregiver and kid view
+let kidSelections = new Set(); // Activities selected by kid
+let activityIllustrations = {}; // Cache for activity illustrations
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -686,3 +689,261 @@ function exportToPDF() {
 // Make functions globally available
 window.switchView = switchView;
 window.exportToPDF = exportToPDF;
+
+// ===== KID VIEW FUNCTIONALITY =====
+
+// Toggle between caregiver and kid view
+function toggleViewMode() {
+    isKidViewMode = !isKidViewMode;
+
+    const toggle = document.getElementById('viewModeToggle');
+    const caregiverLabel = document.getElementById('caregiverViewLabel');
+    const kidLabel = document.getElementById('kidViewLabel');
+
+    if (isKidViewMode) {
+        toggle.classList.add('kid-mode');
+        caregiverLabel.classList.remove('active');
+        kidLabel.classList.add('active');
+        document.body.classList.add('kid-view-active');
+        renderKidView();
+    } else {
+        toggle.classList.remove('kid-mode');
+        caregiverLabel.classList.add('active');
+        kidLabel.classList.remove('active');
+        document.body.classList.remove('kid-view-active');
+        document.getElementById('kidSelectionsBar').classList.remove('visible');
+    }
+}
+
+// Render the kid-friendly view
+function renderKidView() {
+    const grid = document.getElementById('kidActivitiesGrid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    // Get all activities, applying context filter
+    const activitiesToShow = householdActivities.filter(ha => {
+        const activity = ha.kid_activities;
+        return activityMatchesContext(activity.id);
+    });
+
+    if (activitiesToShow.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+                <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+                <p>No activities found for this filter.</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Render each activity as a kid-friendly card
+    activitiesToShow.forEach(ha => {
+        const activity = ha.kid_activities;
+        const preference = preferences.find(p => p.household_activity_id === ha.id);
+        const category = categories.find(c => c.id === activity.category_id);
+
+        const card = createKidActivityCard(activity, preference, category, ha.id);
+        grid.appendChild(card);
+    });
+
+    updateSelectionsBar();
+}
+
+// Create a kid-friendly activity card
+function createKidActivityCard(activity, preference, category, householdId) {
+    const card = document.createElement('div');
+    card.className = 'kid-activity-card';
+    card.dataset.activityId = activity.id;
+    card.dataset.householdId = householdId;
+
+    if (kidSelections.has(activity.id)) {
+        card.classList.add('selected');
+    }
+
+    // Get caregiver info
+    const caregiver1Label = userSettings?.caregiver1_label || 'Mom';
+    const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
+    const caregiver2Label = userSettings?.caregiver2_label || 'Dad';
+    const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
+
+    const pref1 = preference?.caregiver1_preference;
+    const pref2 = preference?.caregiver2_preference;
+
+    // Build caregiver badges HTML
+    let caregiversHTML = '';
+    if (pref1 || pref2) {
+        caregiversHTML = '<div class="kid-card-caregivers">';
+        if (pref1) {
+            const isLoves = pref1 === 'drop_anything';
+            caregiversHTML += `
+                <div class="kid-caregiver-badge ${isLoves ? 'loves' : ''}">
+                    <span class="emoji">${getPreferenceEmoji(pref1)}</span>
+                    <span class="name">${caregiver1Label}</span>
+                </div>
+            `;
+        }
+        if (pref2) {
+            const isLoves = pref2 === 'drop_anything';
+            caregiversHTML += `
+                <div class="kid-caregiver-badge ${isLoves ? 'loves' : ''}">
+                    <span class="emoji">${getPreferenceEmoji(pref2)}</span>
+                    <span class="name">${caregiver2Label}</span>
+                </div>
+            `;
+        }
+        caregiversHTML += '</div>';
+    }
+
+    // Check for cached illustration
+    const illustrationUrl = activity.illustration_url || activityIllustrations[activity.id];
+    const categoryIcon = category?.icon || '🎯';
+
+    let imageHTML;
+    if (illustrationUrl) {
+        imageHTML = `<img src="${illustrationUrl}" alt="${activity.name}" onerror="this.parentElement.innerHTML='${categoryIcon}'">`;
+    } else {
+        imageHTML = categoryIcon;
+    }
+
+    card.innerHTML = `
+        <div class="kid-card-image" id="img-${activity.id}">
+            ${imageHTML}
+        </div>
+        <div class="kid-card-name">${activity.name}</div>
+        ${caregiversHTML}
+    `;
+
+    // Add click handler for selection
+    card.addEventListener('click', () => {
+        toggleKidSelection(activity.id, card);
+    });
+
+    // Optionally load illustration if not cached
+    if (!illustrationUrl && !activityIllustrations[activity.id]) {
+        // We could auto-generate here, but let's make it opt-in to control costs
+        // loadActivityIllustration(activity.id, activity.name, category?.name);
+    }
+
+    return card;
+}
+
+// Toggle kid's activity selection
+function toggleKidSelection(activityId, cardElement) {
+    if (kidSelections.has(activityId)) {
+        kidSelections.delete(activityId);
+        cardElement.classList.remove('selected');
+    } else {
+        kidSelections.add(activityId);
+        cardElement.classList.add('selected');
+        // Add a little bounce animation
+        cardElement.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+            cardElement.style.transform = '';
+        }, 150);
+    }
+
+    updateSelectionsBar();
+    saveKidSelections();
+}
+
+// Update the selections bar at the bottom
+function updateSelectionsBar() {
+    const bar = document.getElementById('kidSelectionsBar');
+    const countEl = document.getElementById('selectionsCount');
+
+    if (kidSelections.size > 0) {
+        bar.classList.add('visible');
+        countEl.textContent = kidSelections.size;
+    } else {
+        bar.classList.remove('visible');
+    }
+}
+
+// Clear all kid selections
+function clearKidSelections() {
+    kidSelections.clear();
+
+    // Remove selected class from all cards
+    document.querySelectorAll('.kid-activity-card.selected').forEach(card => {
+        card.classList.remove('selected');
+    });
+
+    updateSelectionsBar();
+    saveKidSelections();
+}
+
+// Save kid selections to localStorage (could also save to database)
+function saveKidSelections() {
+    const selectionsArray = Array.from(kidSelections);
+    localStorage.setItem('kidActivitySelections', JSON.stringify(selectionsArray));
+}
+
+// Load kid selections from localStorage
+function loadKidSelections() {
+    try {
+        const saved = localStorage.getItem('kidActivitySelections');
+        if (saved) {
+            const selectionsArray = JSON.parse(saved);
+            kidSelections = new Set(selectionsArray);
+        }
+    } catch (e) {
+        console.error('Error loading kid selections:', e);
+    }
+}
+
+// Load activity illustration from AI (called on-demand)
+async function loadActivityIllustration(activityId, activityName, categoryName) {
+    const imageContainer = document.getElementById(`img-${activityId}`);
+    if (!imageContainer) return;
+
+    // Show loading state
+    imageContainer.classList.add('loading');
+
+    try {
+        const response = await fetch('/.netlify/functions/generate-activity-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                activityId,
+                activityName,
+                categoryName
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to generate image');
+        }
+
+        const data = await response.json();
+        if (data.success && data.imageUrl) {
+            // Cache the URL
+            activityIllustrations[activityId] = data.imageUrl;
+
+            // Update the image
+            imageContainer.innerHTML = `<img src="${data.imageUrl}" alt="${activityName}">`;
+        }
+    } catch (error) {
+        console.error('Error loading illustration:', error);
+    } finally {
+        imageContainer.classList.remove('loading');
+    }
+}
+
+// Initialize kid view on page load
+function initKidView() {
+    loadKidSelections();
+}
+
+// Call init when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initKidView);
+} else {
+    initKidView();
+}
+
+// Make kid view functions globally available
+window.toggleViewMode = toggleViewMode;
+window.clearKidSelections = clearKidSelections;
+window.loadActivityIllustration = loadActivityIllustration;

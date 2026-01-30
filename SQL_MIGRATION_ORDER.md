@@ -33,6 +33,9 @@ Run these SQL files in Supabase SQL Editor in this exact order:
 16. `database-phase5-consolidated.sql` - Teacher access, observations, perspective activities
 17. `database-phase5-app-access.sql` - Register teacher-dashboard app
 
+## Phase 6: Kid View
+18. `database-kid-view.sql` - Activity illustrations, kid activity selections
+
 ---
 
 ## Archived Files
