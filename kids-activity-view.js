@@ -512,64 +512,86 @@ function showError(message) {
     console.error(message);
 }
 
-// Export to PDF (uses browser print dialog)
+// Export to PDF (uses browser print dialog) - Fridge-worthy handout design
 function exportToPDF() {
     // Save current view settings
     const originalTitle = document.title;
     const originalView = currentView;
     const originalFilter = currentFilter;
-    
-    // Force table view and show all for printing (most compact)
+
+    // Force table view and show all for printing
     currentView = 'table';
     currentFilter = 'all';
     renderActivities();
-    
-    // Update title for PDF
+
+    // Get caregiver labels
     const caregiver1Label = userSettings?.caregiver1_label || 'Caregiver 1';
     const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
     const caregiver2Label = userSettings?.caregiver2_label || 'Caregiver 2';
     const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
-    const dateStr = new Date().toLocaleDateString();
-    document.title = `Family Activity Preferences - ${dateStr}`;
-    
-    // Add compact print-friendly header
+    const dateStr = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    // Update document title for PDF filename
+    document.title = `Family Activity Preferences - ${new Date().toLocaleDateString()}`;
+
+    const container = document.querySelector('.kids-view-container');
+
+    // Create colorful print header
     const printHeader = document.createElement('div');
-    printHeader.id = 'printHeader';
-    printHeader.style.display = 'none';
+    printHeader.className = 'print-header';
     printHeader.innerHTML = `
-        <div style="text-align: center; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid #333;">
-            <h1 style="margin: 0; font-size: 16pt; font-weight: 600;">👨‍👩‍👧‍👦 Family Activity Preferences</h1>
-            <p style="margin: 3px 0 0 0; font-size: 9pt; color: #666;">
-                ${caregiver1Emoji} ${caregiver1Label} & ${caregiver2Emoji} ${caregiver2Label} | ${dateStr}
-            </p>
+        <h1>🏠 What We Like!</h1>
+        <div class="subtitle">
+            ${caregiver1Emoji} ${caregiver1Label} & ${caregiver2Emoji} ${caregiver2Label}
         </div>
     `;
-    
-    // Add to page
-    const container = document.querySelector('.kids-view-container');
-    container.insertBefore(printHeader, container.firstChild);
-    
-    // Add print styles
-    const printStyle = document.createElement('style');
-    printStyle.id = 'printStyles';
-    printStyle.textContent = `
-        @media print {
-            #printHeader {
-                display: block !important;
-            }
-        }
+
+    // Create legend explaining the emojis
+    const printLegend = document.createElement('div');
+    printLegend.className = 'print-legend';
+    printLegend.innerHTML = `
+        <div class="print-legend-item">
+            <span class="print-legend-emoji">🔥</span>
+            <span class="print-legend-text">Drop Anything!</span>
+        </div>
+        <div class="print-legend-item">
+            <span class="print-legend-emoji">👌</span>
+            <span class="print-legend-text">Sometimes</span>
+        </div>
+        <div class="print-legend-item">
+            <span class="print-legend-emoji">🆗</span>
+            <span class="print-legend-text">On Your Own</span>
+        </div>
     `;
-    document.head.appendChild(printStyle);
-    
+
+    // Create footer
+    const printFooter = document.createElement('div');
+    printFooter.className = 'print-footer';
+    printFooter.innerHTML = `
+        <div class="print-footer-logo">HomeBase</div>
+        <div>Updated ${dateStr}</div>
+    `;
+
+    // Add elements to page
+    container.insertBefore(printHeader, container.firstChild);
+    container.insertBefore(printLegend, printHeader.nextSibling);
+    container.appendChild(printFooter);
+
     // Open print dialog
     window.print();
-    
+
     // Clean up after print and restore view
     setTimeout(() => {
         document.title = originalTitle;
         printHeader.remove();
-        printStyle.remove();
-        
+        printLegend.remove();
+        printFooter.remove();
+
         // Restore original view and filter
         currentView = originalView;
         currentFilter = originalFilter;
