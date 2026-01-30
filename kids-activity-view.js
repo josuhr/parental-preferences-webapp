@@ -325,36 +325,36 @@ function createCategorySection(category, categoryActivities) {
 function createActivityCard(activity, preference) {
     const card = document.createElement('div');
     card.className = 'activity-card';
-    
+
     const caregiver1Label = userSettings?.caregiver1_label || 'Caregiver 1';
     const caregiver1Emoji = userSettings?.caregiver1_emoji || '💗';
     const caregiver2Label = userSettings?.caregiver2_label || 'Caregiver 2';
     const caregiver2Emoji = userSettings?.caregiver2_emoji || '💙';
     const bothLabel = userSettings?.both_label || 'Both';
-    
+
     const prefs = {
         caregiver1: preference?.caregiver1_preference,
         caregiver2: preference?.caregiver2_preference
     };
-    
+
     let prefsHTML = '';
     if (currentFilter === 'all') {
         // Check if both caregivers agree
         const bothAgree = prefs.caregiver1 && prefs.caregiver2 && prefs.caregiver1 === prefs.caregiver2;
-        
+
         if (bothAgree) {
-            // Only show "Both" when they agree
+            // Show single "Both" column when they agree
             prefsHTML = `
                 <div class="activity-card-prefs">
-                    ${createPrefRow(bothLabel, prefs.caregiver1)}
+                    ${createPrefColumn(bothLabel, prefs.caregiver1, true)}
                 </div>
             `;
         } else {
-            // Show individual preferences when they differ or one is missing
+            // Show side-by-side columns when preferences differ
             prefsHTML = `
                 <div class="activity-card-prefs">
-                    ${createPrefRow(`${caregiver1Emoji} ${caregiver1Label}`, prefs.caregiver1)}
-                    ${createPrefRow(`${caregiver2Emoji} ${caregiver2Label}`, prefs.caregiver2)}
+                    ${createPrefColumn(`${caregiver1Emoji} ${caregiver1Label}`, prefs.caregiver1)}
+                    ${createPrefColumn(`${caregiver2Emoji} ${caregiver2Label}`, prefs.caregiver2)}
                 </div>
             `;
         }
@@ -366,28 +366,33 @@ function createActivityCard(activity, preference) {
         const displayLabel = emoji ? `${emoji} ${label}` : label;
         prefsHTML = `
             <div class="activity-card-prefs">
-                ${createPrefRow(displayLabel, prefs[currentFilter])}
+                <div class="pref-single">
+                    <span class="pref-emoji">${getPreferenceEmoji(prefs[currentFilter])}</span>
+                    <span class="pref-text">${getPreferenceText(prefs[currentFilter])}</span>
+                </div>
             </div>
         `;
     }
-    
+
     card.innerHTML = `
         <div class="activity-card-title">${activity.name}</div>
         ${prefsHTML}
     `;
-    
+
     return card;
 }
 
-// Create preference row for card
-function createPrefRow(label, preference) {
+// Create preference column for card (vertical layout: label above, emoji/text below)
+function createPrefColumn(label, preference, isBothAgree = false) {
     const emoji = getPreferenceEmoji(preference);
     const text = getPreferenceText(preference);
-    
+    const extraClass = isBothAgree ? 'both-agree' : '';
+
     return `
-        <div class="pref-row">
-            <span class="pref-label">${label}:</span>
-            <span class="pref-value">${emoji} ${text}</span>
+        <div class="pref-column ${extraClass}">
+            <span class="pref-label">${label}</span>
+            <span class="pref-emoji">${emoji}</span>
+            <span class="pref-text">${text}</span>
         </div>
     `;
 }

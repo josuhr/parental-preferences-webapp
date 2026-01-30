@@ -331,37 +331,80 @@
         }
 
         .activity-card {
-            background: #f9f9f9;
-            border-radius: 6px;
-            padding: 15px;
-            border-left: 4px solid #1976d2;
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .activity-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
         }
 
         .activity-card-title {
             font-weight: 600;
+            font-size: 15px;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
         }
 
         .activity-card-prefs {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            gap: 12px;
         }
 
-        .pref-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
+        .pref-column {
+            flex: 1;
+            text-align: center;
+            padding: 10px 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .pref-column.both-agree {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+            border: 1px solid #c8e6c9;
         }
 
         .pref-label {
-            color: #666;
+            font-size: 13px;
+            color: #555;
+            font-weight: 500;
+            margin-bottom: 6px;
+            display: block;
         }
 
-        .pref-value {
-            font-size: 16px;
+        .pref-emoji {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .pref-text {
+            font-size: 11px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Single preference (when filtering by one caregiver) */
+        .pref-single {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .pref-single .pref-emoji {
+            font-size: 28px;
+        }
+
+        .pref-single .pref-text {
+            font-size: 13px;
         }
 
         /* Table View */
