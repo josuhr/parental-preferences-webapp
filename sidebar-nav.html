@@ -306,18 +306,20 @@
     /* Mobile styles */
     @media (max-width: 768px) {
         .sidebar-nav {
-            transform: translateX(-100%);
-            transition: transform 0.3s ease, width 0.3s ease;
+            transform: translateX(-100%) !important;
+            transition: transform 0.3s ease;
             width: var(--sidebar-width);
             z-index: 1100;
+            left: 0;
         }
 
         .sidebar-nav.mobile-open {
-            transform: translateX(0);
+            transform: translateX(0) !important;
         }
 
         .sidebar-nav.collapsed {
-            transform: translateX(-100%);
+            transform: translateX(-100%) !important;
+            width: var(--sidebar-width);
         }
 
         .sidebar-overlay {

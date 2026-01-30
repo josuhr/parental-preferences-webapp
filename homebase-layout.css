@@ -321,20 +321,25 @@ h3 {
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
     body {
-        margin-left: 0;
+        margin-left: 0 !important;
         padding-top: var(--topnav-height);
     }
-    
+
+    body.sidebar-collapsed {
+        margin-left: 0 !important;
+    }
+
     .main-content {
         padding: var(--spacing-compact);
+        margin-left: 0 !important;
     }
-    
+
     .grid-2,
     .grid-3,
     .grid-4 {
         grid-template-columns: 1fr;
     }
-    
+
     .card {
         padding: var(--spacing-normal);
     }
