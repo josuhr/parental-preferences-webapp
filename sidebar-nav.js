@@ -139,12 +139,23 @@
     // Check user permissions
     async function checkUserPermissions() {
         try {
+            // Wait for supabaseUtils to be available (max 3 seconds)
+            let attempts = 0;
+            while (!window.supabaseUtils && attempts < 30) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+
             if (window.supabaseUtils) {
                 const user = await window.supabaseUtils.getCurrentUser();
+                console.log('Sidebar: Got user', user?.id);
                 if (user) {
                     userIsTeacher = await window.supabaseUtils.isTeacher(user.id);
                     userIsAdmin = await window.supabaseUtils.isAdmin(user.id);
+                    console.log('Sidebar: isAdmin =', userIsAdmin, 'isTeacher =', userIsTeacher);
                 }
+            } else {
+                console.warn('Sidebar: supabaseUtils not available after waiting');
             }
         } catch (error) {
             console.error('Error checking user permissions for sidebar:', error);
