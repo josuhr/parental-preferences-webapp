@@ -86,6 +86,11 @@
             <path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z"/>
             <path d="M2 9v1c0 1.1.9 2 2 2h1"/>
             <circle cx="13" cy="9" r="1"/>
+        </svg>`,
+        'tags': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 5H2v7l9 9 7-7-9-9z"/>
+            <circle cx="6" cy="9" r="1.5" fill="currentColor"/>
+            <path d="M15 5h-1l7 7-4 4"/>
         </svg>`
     };
 
@@ -101,6 +106,7 @@
                 { name: 'Kid Management', icon: 'child', url: '/kid-prefs.html', slug: 'kid-prefs.html' },
                 { name: 'Who Likes What?', icon: 'family', url: '/kids-activity-view.html', slug: 'kids-activity-view.html' },
                 { name: 'Recommendations', icon: 'sparkle', url: '/recommendations.html', slug: 'recommendations.html' },
+                { name: 'Activity Contexts', icon: 'tags', url: '/activity-contexts.html', slug: 'activity-contexts.html' },
                 { name: 'Teacher Dashboard', icon: 'school', url: '/teacher-dashboard.html', slug: 'teacher-dashboard.html', requiresTeacher: true },
                 { name: 'Settings', icon: 'settings', url: '/recommendation-settings.html', slug: 'recommendation-settings.html' }
             ]
