@@ -9,6 +9,8 @@ let preferences = [];
 let currentView = 'grid';
 let currentFilter = 'all';
 let groupByMode = 'category'; // 'category' or 'rating'
+let activityContexts = {}; // Maps activity_id to array of context info
+let currentContextFilter = 'all'; // Current context filter
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -86,11 +88,41 @@ async function loadAllData() {
                 .from('household_activity_preferences')
                 .select('*')
                 .in('household_activity_id', householdActivityIds);
-            
+
             if (prefsError) throw prefsError;
             preferences = prefsData || [];
         }
-        
+
+        // Load activity contexts for filtering
+        const activityIds = householdActivities.map(ha => ha.activity_id);
+        if (activityIds.length > 0) {
+            const { data: contextData, error: contextError } = await supabaseClient
+                .from('activity_contexts')
+                .select(`
+                    activity_id,
+                    recommendation_contexts (
+                        id,
+                        name,
+                        context_type,
+                        attributes
+                    )
+                `)
+                .in('activity_id', activityIds);
+
+            if (!contextError && contextData) {
+                // Organize contexts by activity ID
+                activityContexts = {};
+                contextData.forEach(ac => {
+                    if (!activityContexts[ac.activity_id]) {
+                        activityContexts[ac.activity_id] = [];
+                    }
+                    if (ac.recommendation_contexts) {
+                        activityContexts[ac.activity_id].push(ac.recommendation_contexts);
+                    }
+                });
+            }
+        }
+
         updateCaregiverLabels();
         renderActivities();
         
@@ -115,6 +147,49 @@ function updateCaregiverLabels() {
     filter.options[2].text = `${caregiver2Emoji} ${caregiver2Label}`;
     filter.options[3].text = bothLabel;
 }
+
+// Filter by context
+function filterByContext(context) {
+    currentContextFilter = context;
+
+    // Update button states
+    document.querySelectorAll('.context-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.context === context);
+    });
+
+    renderActivities();
+}
+
+// Check if activity matches current context filter
+function activityMatchesContext(activityId) {
+    if (currentContextFilter === 'all') return true;
+
+    const contexts = activityContexts[activityId] || [];
+    if (contexts.length === 0) return false;
+
+    // Check each context for a match
+    return contexts.some(ctx => {
+        const attrs = ctx.attributes || {};
+        const name = (ctx.name || '').toLowerCase();
+        const contextType = ctx.context_type || '';
+
+        switch (currentContextFilter) {
+            case 'indoor':
+                return attrs.location === 'indoor' || name.includes('indoor');
+            case 'outdoor':
+                return attrs.location === 'outdoor' || name.includes('outdoor');
+            case 'high':
+                return attrs.energy === 'high' || name.includes('high energy') || name.includes('active');
+            case 'low':
+                return attrs.energy === 'low' || name.includes('quiet') || name.includes('calm') || name.includes('low energy');
+            default:
+                return true;
+        }
+    });
+}
+
+// Make filter function globally available
+window.filterByContext = filterByContext;
 
 // Switch view
 function switchView(view) {
@@ -154,10 +229,10 @@ function renderByCategory(container) {
     householdActivities.forEach(ha => {
         const activity = ha.kid_activities;
         const categoryId = activity.category_id;
-        
-        // Apply filter
+
+        // Apply filter (caregiver + context)
         const preference = preferences.find(p => p.household_activity_id === ha.id);
-        if (shouldShowActivity(preference)) {
+        if (shouldShowActivity(preference, activity.id)) {
             if (!activityByCategory[categoryId]) {
                 activityByCategory[categoryId] = [];
             }
@@ -194,8 +269,8 @@ function renderByRating(container) {
         householdActivities.forEach(ha => {
             const activity = ha.kid_activities;
             const preference = preferences.find(p => p.household_activity_id === ha.id);
-            
-            if (shouldShowActivity(preference)) {
+
+            if (shouldShowActivity(preference, activity.id)) {
                 // Check if any caregiver has this rating
                 let hasRating = false;
                 if (currentFilter === 'all') {
@@ -283,12 +358,16 @@ function renderByRating(container) {
     });
 }
 
-// Check if activity should be shown based on filter
-function shouldShowActivity(preference) {
+// Check if activity should be shown based on caregiver filter and context filter
+function shouldShowActivity(preference, activityId) {
+    // Check context filter first
+    if (!activityMatchesContext(activityId)) return false;
+
+    // Then check caregiver filter
     if (currentFilter === 'all') return true;
-    
+
     if (!preference) return false;
-    
+
     const prefLevel = preference[`${currentFilter}_preference`];
     return prefLevel !== null && prefLevel !== undefined;
 }
