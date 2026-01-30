@@ -447,18 +447,18 @@
         </div>
         
         <div style="background: white; border-radius: 8px; padding: 15px 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 24px;">
                 <!-- Search Box -->
-                <div style="position: relative; width: 220px; flex-shrink: 0;">
+                <div style="position: relative; flex: 0 0 200px;">
                     <input type="text" id="activitySearchFilter" placeholder="🔍 Search..."
-                           style="width: 100%; padding: 8px 30px 8px 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; transition: border-color 0.2s;"
+                           style="width: 100%; padding: 8px 28px 8px 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; box-sizing: border-box;"
                            oninput="filterActivitiesBySearch(this.value)">
                     <button id="clearSearchBtn" onclick="clearSearch()"
-                            style="display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 14px; color: #999; padding: 0;">✕</button>
+                            style="display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 14px; color: #999; padding: 0; line-height: 1;">✕</button>
                 </div>
 
                 <!-- Kid Filters -->
-                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                     <label style="font-weight: 600; color: #333; white-space: nowrap;">Show Kids:</label>
                     <div id="kidFilters" style="display: flex; gap: 8px; flex-wrap: wrap;">
                         <!-- Kid checkboxes will be populated here -->
