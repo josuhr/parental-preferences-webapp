@@ -148,14 +148,10 @@
 
             if (window.supabaseUtils) {
                 const user = await window.supabaseUtils.getCurrentUser();
-                console.log('Sidebar: Got user', user?.id);
                 if (user) {
                     userIsTeacher = await window.supabaseUtils.isTeacher(user.id);
                     userIsAdmin = await window.supabaseUtils.isAdmin(user.id);
-                    console.log('Sidebar: isAdmin =', userIsAdmin, 'isTeacher =', userIsTeacher);
                 }
-            } else {
-                console.warn('Sidebar: supabaseUtils not available after waiting');
             }
         } catch (error) {
             console.error('Error checking user permissions for sidebar:', error);
