@@ -1419,31 +1419,64 @@ function renderAiSuggestions(suggestions) {
     const container = document.getElementById('suggestionsContainer');
     container.innerHTML = '';
 
-    if (!suggestions || suggestions.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: #666;">
-                <div style="font-size: 32px; margin-bottom: 10px;">🤷</div>
-                <p>No suggestions available right now. Try adding more activities and preferences first!</p>
-            </div>
+    // Store all suggestions for later use when adding
+    window.currentAiSuggestions = suggestions;
+
+    // Filter out hidden suggestions
+    const visibleSuggestions = filterHiddenSuggestions(suggestions);
+    const hiddenCount = (suggestions ? suggestions.length : 0) - visibleSuggestions.length;
+
+    // Show hidden count info if any are hidden
+    if (hiddenCount > 0) {
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'hidden-suggestions-info';
+        infoDiv.innerHTML = `
+            <span>${hiddenCount} suggestion${hiddenCount === 1 ? '' : 's'} hidden</span>
+            <button onclick="resetHiddenSuggestions()">Reset hidden</button>
         `;
+        container.appendChild(infoDiv);
+    }
+
+    if (!visibleSuggestions || visibleSuggestions.length === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.style.cssText = 'text-align: center; padding: 40px; color: #666;';
+        emptyDiv.innerHTML = `
+            <div style="font-size: 32px; margin-bottom: 10px;">🤷</div>
+            <p>${hiddenCount > 0 ? 'All suggestions are hidden. Click "Reset hidden" above or "Get New Suggestions" below.' : 'No suggestions available right now. Try adding more activities and preferences first!'}</p>
+        `;
+        container.appendChild(emptyDiv);
         document.getElementById('aiSuggestionsList').style.display = 'block';
         document.getElementById('aiSuggestionsFooter').style.display = 'block';
         return;
     }
 
-    suggestions.forEach((suggestion, index) => {
+    visibleSuggestions.forEach((suggestion) => {
+        // Find the original index in window.currentAiSuggestions for the add function
+        const originalIndex = suggestions.findIndex(s => s.name === suggestion.name && s.category === suggestion.category);
         const category = categories.find(c => c.name === suggestion.category);
         const categoryIcon = category ? category.icon : '📌';
 
+        // Escape quotes in name and category for onclick handlers
+        const escapedName = suggestion.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        const escapedCategory = suggestion.category.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
         const card = document.createElement('div');
         card.className = 'suggestion-card';
-        card.id = `suggestion-${index}`;
+        card.id = `suggestion-${originalIndex}`;
         card.innerHTML = `
             <div class="suggestion-header">
                 <span class="suggestion-category">${categoryIcon} ${suggestion.category}</span>
-                <button class="suggestion-add-btn" onclick="addSuggestedActivity(${index})">
-                    ➕ Add
-                </button>
+                <div class="suggestion-actions">
+                    <button class="btn-hide-suggestion" onclick="hideAiSuggestion('${escapedName}', '${escapedCategory}')" title="Don't show this again">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                    </button>
+                    <button class="suggestion-add-btn" onclick="addSuggestedActivity(${originalIndex})">
+                        ➕ Add
+                    </button>
+                </div>
             </div>
             <div class="suggestion-name">${suggestion.name}</div>
             <div class="suggestion-description">${suggestion.description}</div>
@@ -1452,9 +1485,6 @@ function renderAiSuggestions(suggestions) {
 
         container.appendChild(card);
     });
-
-    // Store suggestions for later use when adding
-    window.currentAiSuggestions = suggestions;
 
     document.getElementById('aiSuggestionsList').style.display = 'block';
     document.getElementById('aiSuggestionsFooter').style.display = 'block';
@@ -1529,8 +1559,41 @@ async function addSuggestedActivity(suggestionIndex) {
     }
 }
 
+// Hide a suggestion (save to localStorage)
+function hideAiSuggestion(name, category) {
+    const hidden = JSON.parse(localStorage.getItem('hiddenAISuggestions') || '[]');
+    const key = `${category}|${name}`;
+    if (!hidden.includes(key)) {
+        hidden.push(key);
+        localStorage.setItem('hiddenAISuggestions', JSON.stringify(hidden));
+    }
+    // Re-render to remove the hidden suggestion from view
+    renderAiSuggestions(window.currentAiSuggestions);
+}
+
+// Check if suggestion is hidden
+function isAiSuggestionHidden(name, category) {
+    const hidden = JSON.parse(localStorage.getItem('hiddenAISuggestions') || '[]');
+    return hidden.includes(`${category}|${name}`);
+}
+
+// Filter out hidden suggestions before rendering
+function filterHiddenSuggestions(suggestions) {
+    if (!suggestions) return [];
+    return suggestions.filter(s => !isAiSuggestionHidden(s.name, s.category));
+}
+
+// Reset all hidden suggestions
+function resetHiddenSuggestions() {
+    localStorage.removeItem('hiddenAISuggestions');
+    // Re-render to show all suggestions again
+    renderAiSuggestions(window.currentAiSuggestions);
+}
+
 // Make AI functions globally available
 window.openAiSuggestionsModal = openAiSuggestionsModal;
 window.closeAiSuggestionsModal = closeAiSuggestionsModal;
 window.fetchAiSuggestions = fetchAiSuggestions;
 window.addSuggestedActivity = addSuggestedActivity;
+window.hideAiSuggestion = hideAiSuggestion;
+window.resetHiddenSuggestions = resetHiddenSuggestions;

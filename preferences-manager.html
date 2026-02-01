@@ -729,6 +729,61 @@
             align-items: center;
             gap: 6px;
         }
+
+        .suggestion-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-hide-suggestion {
+            background: transparent;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px;
+            cursor: pointer;
+            color: #999;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-hide-suggestion:hover {
+            background: #fee;
+            border-color: #f99;
+            color: #c00;
+        }
+
+        .btn-hide-suggestion svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .hidden-suggestions-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .hidden-suggestions-info button {
+            background: transparent;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: underline;
+        }
+
+        .hidden-suggestions-info button:hover {
+            color: #764ba2;
+        }
     </style>
 
     <script src="supabase-config.js"></script>
