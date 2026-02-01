@@ -59,7 +59,6 @@ async function loadKidData() {
         // Update UI
         document.getElementById('kidAvatar').textContent = kid.avatar_emoji || '👶';
         document.getElementById('kidName').textContent = kid.name;
-        document.getElementById('kidNameInline').textContent = kid.name + "'s";
         
     } catch (error) {
         console.error('Error loading kid data:', error);
@@ -458,17 +457,29 @@ async function loadAvailableTeachers() {
     try {
         const supabaseClient = window.supabaseUtils.getClient();
 
-        // Get all users who are teachers (check both user_type and role fields)
-        const { data: teachers, error } = await supabaseClient
+        // Get all users and filter to teachers
+        const { data: allUsers, error } = await supabaseClient
             .from('users')
-            .select('id, email, display_name, user_type, role')
+            .select('*')
             .order('display_name');
 
         if (error) throw error;
 
-        // Filter to only teachers (checking multiple possible fields)
-        const teacherUsers = (teachers || []).filter(user => {
-            return user.user_type === 'teacher' || user.role === 'teacher';
+        // Filter to only teachers (checking all possible fields)
+        const teacherUsers = (allUsers || []).filter(user => {
+            // Check user_types array
+            if (Array.isArray(user.user_types) && user.user_types.includes('teacher')) {
+                return true;
+            }
+            // Check user_type singular
+            if (user.user_type === 'teacher') {
+                return true;
+            }
+            // Check role
+            if (user.role === 'teacher') {
+                return true;
+            }
+            return false;
         });
 
         if (teacherUsers.length === 0) {
