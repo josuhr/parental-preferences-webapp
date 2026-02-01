@@ -24,10 +24,20 @@
                 userMenuName.textContent = userProfile.display_name || currentUser.email.split('@')[0];
             }
             
-            // Show admin menu item if admin
+            // Show admin menu item if admin (check all possible admin indicators)
             const adminMenuItem = document.getElementById('adminMenuItem');
-            if (adminMenuItem && userProfile.role === 'admin') {
-                adminMenuItem.style.display = 'flex';
+            if (adminMenuItem) {
+                let isAdmin = false;
+                if (Array.isArray(userProfile.user_types) && userProfile.user_types.includes('admin')) {
+                    isAdmin = true;
+                } else if (userProfile.user_type === 'admin') {
+                    isAdmin = true;
+                } else if (userProfile.role === 'admin') {
+                    isAdmin = true;
+                }
+                if (isAdmin) {
+                    adminMenuItem.style.display = 'flex';
+                }
             }
             
             // Set up event listeners
@@ -48,14 +58,6 @@
             userMenuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 userMenuDropdown.classList.toggle('show');
-            });
-        }
-        
-        // Admin menu item
-        const adminMenuItem = document.getElementById('adminMenuItem');
-        if (adminMenuItem) {
-            adminMenuItem.addEventListener('click', () => {
-                window.location.href = '/admin.html';
             });
         }
         
