@@ -3,7 +3,7 @@
 
 let allActivities = [];
 let categories = [];
-let isAdmin = false;
+let hasAdminAccess = false;
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async () => {
@@ -42,7 +42,7 @@ async function checkAdminAccess() {
         return;
     }
 
-    isAdmin = true;
+    hasAdminAccess = true;
     document.getElementById('adminContent').style.display = 'block';
     await loadActivities();
 }
