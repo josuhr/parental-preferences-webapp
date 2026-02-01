@@ -2,6 +2,7 @@
 let currentUser = null;
 let currentKid = null;
 let kidId = null;
+let existingPermissions = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load kid data and access list
     await loadKidData();
     await loadAccessList();
+    await loadAvailableTeachers();
 });
 
 // Load kid information
@@ -80,7 +82,10 @@ async function loadAccessList() {
             .order('created_at', { ascending: false });
         
         if (error) throw error;
-        
+
+        // Store for checking in teacher list
+        existingPermissions = permissions || [];
+
         // Get pending invitations
         const { data: invitations, error: inviteError } = await supabaseClient
             .from('teacher_invitations')
@@ -440,8 +445,150 @@ async function cancelInvitation(invitationId) {
 function showMessage(message, type = 'success') {
     const container = document.getElementById('messageContainer');
     container.innerHTML = `<div class="message ${type}">${message}</div>`;
-    
+
     setTimeout(() => {
         container.innerHTML = '';
     }, 5000);
+}
+
+// Load available teachers
+async function loadAvailableTeachers() {
+    const container = document.getElementById('availableTeachersContainer');
+
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+
+        // Get all users who are teachers (check both user_type and role fields)
+        const { data: teachers, error } = await supabaseClient
+            .from('users')
+            .select('id, email, display_name, user_type, role')
+            .order('display_name');
+
+        if (error) throw error;
+
+        // Filter to only teachers (checking multiple possible fields)
+        const teacherUsers = (teachers || []).filter(user => {
+            return user.user_type === 'teacher' || user.role === 'teacher';
+        });
+
+        if (teacherUsers.length === 0) {
+            container.innerHTML = `
+                <div class="no-teachers">
+                    No teachers registered in the system yet. Use the email form below to invite one.
+                </div>
+            `;
+            return;
+        }
+
+        // Build teacher cards
+        const grid = document.createElement('div');
+        grid.className = 'teachers-grid';
+
+        teacherUsers.forEach(teacher => {
+            const card = createTeacherCard(teacher);
+            grid.appendChild(card);
+        });
+
+        container.innerHTML = '';
+        container.appendChild(grid);
+
+    } catch (error) {
+        console.error('Error loading teachers:', error);
+        container.innerHTML = `
+            <div class="no-teachers">
+                Failed to load teachers. You can still use the email form below.
+            </div>
+        `;
+    }
+}
+
+// Create teacher card element
+function createTeacherCard(teacher) {
+    const card = document.createElement('div');
+    card.className = 'teacher-card';
+
+    // Check if this teacher already has access
+    const hasAccess = existingPermissions.some(p =>
+        p.teacher_id === teacher.id && p.status === 'approved'
+    );
+
+    if (hasAccess) {
+        card.classList.add('already-granted');
+    }
+
+    // Get initials for avatar
+    const name = teacher.display_name || teacher.email;
+    const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+    card.innerHTML = `
+        <div class="teacher-card-info">
+            <div class="teacher-card-avatar">${initials}</div>
+            <div class="teacher-card-details">
+                <div class="teacher-card-name">${teacher.display_name || 'Teacher'}</div>
+                <div class="teacher-card-email">${teacher.email}</div>
+            </div>
+        </div>
+        <div class="teacher-card-actions">
+            ${hasAccess ? `
+                <span style="color: #4CAF50; font-size: 0.85rem;">✓ Has Access</span>
+            ` : `
+                <select id="access-level-${teacher.id}">
+                    <option value="view">View</option>
+                    <option value="comment">Comment</option>
+                    <option value="full">Full</option>
+                </select>
+                <button class="btn-grant" onclick="grantAccessToTeacher('${teacher.id}', '${teacher.email}', '${teacher.display_name || ''}')">
+                    Grant
+                </button>
+            `}
+        </div>
+    `;
+
+    return card;
+}
+
+// Grant access to a specific teacher from the list
+async function grantAccessToTeacher(teacherId, email, displayName) {
+    const accessLevel = document.getElementById(`access-level-${teacherId}`).value;
+
+    try {
+        const supabaseClient = window.supabaseUtils.getClient();
+
+        // Check if already granted
+        const { data: existing } = await supabaseClient
+            .from('kid_access_permissions')
+            .select('id')
+            .eq('kid_id', kidId)
+            .eq('teacher_id', teacherId)
+            .maybeSingle();
+
+        if (existing) {
+            showMessage('This teacher already has access.', 'error');
+            return;
+        }
+
+        // Grant access
+        const { error: insertError } = await supabaseClient
+            .from('kid_access_permissions')
+            .insert({
+                kid_id: kidId,
+                teacher_id: teacherId,
+                granted_by: currentUser.id,
+                access_level: accessLevel,
+                status: 'approved',
+                granted_at: new Date().toISOString()
+            });
+
+        if (insertError) throw insertError;
+
+        showMessage(`✅ Access granted to ${displayName || email}!`, 'success');
+
+        // Reload both lists
+        await loadAccessList();
+        await loadAvailableTeachers();
+
+    } catch (error) {
+        console.error('Error granting access:', error);
+        showMessage('Failed to grant access: ' + error.message, 'error');
+    }
 }
